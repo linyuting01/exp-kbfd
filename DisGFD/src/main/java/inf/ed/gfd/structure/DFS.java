@@ -5,13 +5,12 @@ import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import inf.ed.graph.structure.Graph;
 
 public class DFS implements Comparable<DFS>, Serializable {
   
   static Logger log = LogManager.getLogger(DFS.class);
   
-  
+private static final long serialVersionUID = 1L;
   /*
    * we use Triple to denote one node in the pattern, why a Triple is 
    * for the node whose label has already in the pattern
@@ -37,10 +36,10 @@ public class DFS implements Comparable<DFS>, Serializable {
   }
   @Override
   public int compareTo(DFS other) {
-    if(this.fLabel != other.fLabel){
+    if(!this.fLabel.equals(other.fLabel)){
       return this.fLabel.compareTo(other.fLabel);
     }
-    if(this.tLabel != other.tLabel){
+    if(!this.tLabel.equals(other.tLabel)){
       return this.tLabel.compareTo(other.tLabel);
     }
     if(this.eLabel != other.eLabel){
@@ -56,6 +55,19 @@ public class DFS implements Comparable<DFS>, Serializable {
 	 int c = 2;
 	 DFS dfs = new DFS(a,b,c);
 	 log.debug(dfs.toString());
+  }
+  @Override
+  public boolean equals(Object o) {
+	    if (!(o instanceof DFS)) return false;
+	    DFS  other = (DFS) o;
+	    return (this.fLabel.equals(other.fLabel) 
+	    		&& this.tLabel.equals(other.tLabel) &&
+	    	     this.eLabel == other.eLabel);
+	  }
+  
+  @Override
+  public int hashCode() { 
+	  return  fLabel.hashCode() ^ tLabel.hashCode() ^ eLabel; 
   }
     
  /**     

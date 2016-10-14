@@ -2,6 +2,7 @@ package inf.ed.graph.structure;
 
 import inf.ed.gfd.structure.Ball;
 import inf.ed.graph.structure.adaptor.TypedEdge;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -29,12 +30,17 @@ public class SimpleGraph<V extends Vertex, E extends Edge> implements Graph<V, E
 
 	/**
 	 * 
+	 * 
 	 */
+	
+	static Logger log = LogManager.getLogger(SimpleGraph.class);
+	
+	
 	private static final long serialVersionUID = 1L;
 	private DirectedGraph<V, E> graph;
 	private VertexFactory<V> vertexFactory;
-	private Int2ObjectMap<V> vertices;
-	static Logger log = LogManager.getLogger(SimpleGraph.class);
+	private Int2ObjectMap<V> vertices = new Int2ObjectOpenHashMap<V>();
+	
 
 	public SimpleGraph(Class<V> vertexClass, Class<E> edgeClass) {
 		vertexFactory = new VertexFactory<V>(vertexClass);

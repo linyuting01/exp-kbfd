@@ -1,7 +1,10 @@
 package inf.ed.gfd.structure;
 
-public class Triple implements Comparable<Triple>{
+import java.io.Serializable;
 
+public class Triple implements Comparable<Triple>, Serializable{
+
+	  private static final long serialVersionUID = 1L;
 	  private int first;
 	  private int second;
 	  private int third;
@@ -27,7 +30,7 @@ public class Triple implements Comparable<Triple>{
 
 
 	@Override
-	  public int hashCode() { return first ^ second; }
+	  public int hashCode() { return first ^ second ^third; }
 
 	  @Override
 	  public boolean equals(Object o) {

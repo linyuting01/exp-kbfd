@@ -84,8 +84,11 @@ public class GfdNode {
 		this.children = children;
 	}
 	
+	public void setPattern(Graph<VertexString, TypedEdge>  pattern){
+		this.pattern = pattern;
+	}
 	
-	
+
 	public Vector<DFS> getPatternCode(){
 		return this.patternCode;
 	}
@@ -234,7 +237,7 @@ public class GfdNode {
 						DFS dfs2 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
 						t.addNode(attr_Map, dfs2);
 					}
-					if(dfs1.tLabel.equals(dfsn.fLabel)){//CX
+					if(dfs1.tLabel.equals(dfsn.fLabel)){//XA
 						DFS dfs2 = new DFS(dfs1.fLabel,dfs.tLabel,dfs1.eLabel);
 						t.addNode(attr_Map, dfs2);
 					}
@@ -366,9 +369,13 @@ public class GfdNode {
 		}
 		int fId = g.nodeSet.get(e1);
 		int tId = g.nodeSet.get(e2);
+		log.debug(fId+ " "+ tId);
 		//log.debug(g.getPattern().allVertices().size());
+		/////////////////////////////////////////////////////notice need revise
+		//if(fId!=tId){
 		g.getPattern().addEdge(g.getPattern().allVertices().get(fId), 
 				g.getPattern().allVertices().get(tId));
+		
 		return g;
 	}
 	

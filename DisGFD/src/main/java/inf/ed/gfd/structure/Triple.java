@@ -21,6 +21,11 @@ public class Triple implements Comparable<Triple>{
 	}
 
 
+	public Triple() {
+		// TODO Auto-generated constructor stub
+	}
+
+
 	@Override
 	  public int hashCode() { return first ^ second; }
 

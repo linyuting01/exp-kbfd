@@ -127,6 +127,20 @@ public class GfdNode {
 			}
 			
 	}
+   public boolean isEqualL(DFS dfs){
+	   boolean flag;
+	   int fFirst = dfs.fLabel.getFirst();
+	   int fSecond = dfs.fLabel.getSecond();
+	   int tFirst = dfs.tLabel.getFirst();
+	   int tSecond = dfs.tLabel.getSecond();
+	   if(fSecond == 0 && tSecond == fFirst){
+		   return true;
+	   }
+	   if(fSecond!=0 &&fSecond == tSecond){
+		   return true;
+	   }
+	   return false;
+   }
    
    public void extendDFS(DFS dfs, List<DFS> edgePattern){
 	   
@@ -148,9 +162,74 @@ public class GfdNode {
 	   }
    }
 				
-				
-			
+	
+   /*
+    * three cases to extend node
+    *
+    */
+   
+   public void extendDFS(DFS dfs,HashMap<Integer,String> attr_Map, GfdNode root){
 
+		   if(this == root){
+			   
+		   }
+		   else{
+		   boolean flag = isEqualL(dfs);
+		   GfdNode parent = this.parent;
+		   List<GfdNode> children = parent.getChildren();
+		  
+		   
+		   if(this.parent != root){
+			   GfdNode parent = this.parent;
+			   List<GfdNode> children = parent.getChildren();
+			   for(GfdNode t: children){
+				   if(flag == true ){
+					   Triple tLabel = new Triple(dfs.tLabel.getFirst(), dfs.tLabel.getSecond(), 
+							   dfs.tLabel.getThird()+1);
+					   DFS dfsn = new DFS(dfs.fLabel,tLabel,dfs.eLabel);
+					   GfdNode g = this.addNode(attr_Map, dfsn);
+				   }
+				   else{
+					   GfdNode g = t;
+					   Triple b1 = addTriple(dfs.fLabel);
+					   Triple b2 = addTriple(dfs.tLabel);
+					   DFS dfs1 = new DFS(dfs.fLabel,b2,dfs.eLabel);
+					   DFS dfs2 = new DFS(b1,dfs.tLabel,dfs.eLabel);
+					   GfdNode g1 = this.addNode(attr_Map, dfs1);
+					   GfdNode g2 = this.addNode(attr_Map, dfs2);
+				   }
+			   }
+		   }
+		   }
+
+			
+			   
+		   
+		   
+		   
+		   
+	   
+   }
+   
+   public Triple addTriple(Triple a){
+	   
+	   if(a.getSecond() == 0){
+		   Triple b = new Triple(a.getFirst(),a.getFirst(),1);
+		   return b;
+	   }
+	   else{
+		   Triple b = new Triple(a.getFirst(),a.getSecond(),a.getThird()+1);
+		   return b;
+	   }
+   }
+   
+			
+   /**
+    * 
+    * @param attr_Map attr id: attr 
+    * @param dfs
+    * @return
+    */
 	public GfdNode addNode(HashMap<Integer,String> attr_Map, DFS dfs){
 		GfdNode g = new GfdNode();
 		g.setParent(this);

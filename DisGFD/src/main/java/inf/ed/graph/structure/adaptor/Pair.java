@@ -1,18 +1,21 @@
 package inf.ed.graph.structure.adaptor;
 
-public class Pair<T> implements java.io.Serializable {
+import java.io.Serializable;
+
+
+public class Pair<T> implements Comparable<Pair<Integer>>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The first object in the pair
 	 */
-	public final T x;
+	public T x;
 
 	/**
 	 * The second object in the pair
 	 */
-	public final T y;
+	public T y;
 
 	/**
 	 * Creates a pair out of {@code x} and {@code y}
@@ -20,6 +23,12 @@ public class Pair<T> implements java.io.Serializable {
 	public Pair(T x, T y) {
 		this.x = x;
 		this.y = y;
+	}
+
+	public Pair(Pair<T> a) {
+		// TODO Auto-generated constructor stub
+		this.x = a.x;
+		this.y = a.y;
 	}
 
 	/**
@@ -43,4 +52,21 @@ public class Pair<T> implements java.io.Serializable {
 	public String toString() {
 		return "{" + x + ", " + y + "}";
 	}
+
+
+	@Override
+	public int compareTo(Pair<Integer> o) {
+		// TODO Auto-generated method stub
+		int x1 = (int)x;
+		int y1 = (int)y;
+		if(x1 != o.x){
+			return x1-o.x;
+		}
+		else{	
+			return y1-o.y;
+		}
+		
+	}
+
+
 }

@@ -15,7 +15,7 @@ public class TypedEdge implements Edge, Serializable {
 	Vertex from;
 	Vertex to;
 	private int[] attrs = { -1, -1, -1 };
-	int attrCount = 0;
+	public int attrCount = 0;
 
 	public TypedEdge(Object from, Object to) {
 		this.from = (Vertex) from;

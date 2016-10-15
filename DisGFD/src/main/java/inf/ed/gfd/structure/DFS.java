@@ -5,6 +5,8 @@ import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import inf.ed.graph.structure.adaptor.Pair;
+
 
 public class DFS implements Comparable<DFS>, Serializable {
   
@@ -15,11 +17,11 @@ private static final long serialVersionUID = 1L;
    * we use Triple to denote one node in the pattern, why a Triple is 
    * for the node whose label has already in the pattern
    */
-  public Triple fLabel;
-  public Triple tLabel;
+  public Pair<Integer> fLabel;
+  public Pair<Integer> tLabel;
   public int eLabel;
 
-  public DFS(Triple A, Triple B, int e){
+  public DFS(Pair<Integer> A, Pair<Integer> B, int e){
     this.fLabel = A;
     this.tLabel = B;
     this.eLabel = e;
@@ -28,8 +30,8 @@ private static final long serialVersionUID = 1L;
   @Override
   public String toString(){
     StringBuffer sb = new StringBuffer();
-    sb.append(this.fLabel);
-    sb.append(this.tLabel);
+    sb.append(this.fLabel.toString());
+    sb.append(this.tLabel.toString());
     sb.append(this.eLabel);
     return sb.toString();
     
@@ -50,8 +52,8 @@ private static final long serialVersionUID = 1L;
   
   public static void main(String args[]) {  
     
-	 Triple a = new Triple(3,5,1);
-	 Triple b = new Triple(4,1,2);
+	 Pair<Integer> a = new Pair<Integer>(3,5);
+	 Pair<Integer> b = new Pair<Integer>(4,1);
 	 int c = 2;
 	 DFS dfs = new DFS(a,b,c);
 	 log.debug(dfs.toString());

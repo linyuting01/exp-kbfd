@@ -13,13 +13,9 @@ public class WorkUnitW2C implements Serializable {
 
 	
 	public String patternId; 
-	public String oriPatternId;
-	public String edgeId;
-	public int fId; 
-	public int tId;
 	public String conditionId;
 	public int support;
-	public boolean satisfy;
+	public boolean sat;
 	public int partitionId;
 	public boolean isConnected;
 	public IntSet patterIds;
@@ -33,9 +29,15 @@ public class WorkUnitW2C implements Serializable {
 		this.patternId = pId;
 		this.conditionId = cId;
 		this.support = supp;
-		this.satisfy = satisfy;
+		this.sat = satisfy;
 		this.partitionId = parId;
 		this.isConnected = isConnected;
+	}
+	//for pattern;
+	public WorkUnitW2C(String pId, int supp, int parId){
+		this.patternId = pId;
+		this.support = supp;
+		this.partitionId = parId;
 	}
 	
 	

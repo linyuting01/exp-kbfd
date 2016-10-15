@@ -25,7 +25,7 @@ public class GfdNode {
 	/**
 	 * 
 	 */
-
+	
 	static Logger log = LogManager.getLogger(GfdNode.class);
 	
 	public Graph<VertexString, TypedEdge> pattern;

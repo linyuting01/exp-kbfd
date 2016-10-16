@@ -15,15 +15,15 @@ public class WorkUnitC2WEp implements Serializable {
 	
 	public String oriPatternId;
 	// String and the pattrn node in the new pattern;
-	public HashMap<String,Pair<Integer>> edgeIds;
+	public HashMap<DFS, Pair<Integer>> edgeIds;
 	
 	public WorkUnitC2WEp(){
-		
+		this.edgeIds = new  HashMap<DFS, Pair<Integer>>();
 	}
 	
 	//for worker to SC;
 	//verify pattern's local support
-	public WorkUnitC2WEp(String opId, HashMap<String,Pair<Integer>> edgeIds){
+	public WorkUnitC2WEp(String opId, HashMap<DFS,Pair<Integer>> edgeIds){
 		this.oriPatternId = opId;
 		this.edgeIds = edgeIds;
 	}

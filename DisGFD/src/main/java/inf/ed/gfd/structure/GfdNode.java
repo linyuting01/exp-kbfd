@@ -5,7 +5,9 @@ package inf.ed.gfd.structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +39,9 @@ public class GfdNode {
 	public List<GfdNode> children; 
 	public String key;
 	//private GfdNode rNeighbor;
+	
+	
+	public WorkUnitC2WEp wC2Wp;
 
 	
 	
@@ -48,6 +53,7 @@ public class GfdNode {
 		this.children = new ArrayList<GfdNode>();
 		this.nodeSet = new HashMap<Pair<Integer>,Integer>();
 		this.patternCode = new Vector<DFS>();
+		this.wC2Wp = new WorkUnitC2WEp();
 		//this.rNeighbor = null;
 	}
 

@@ -8,6 +8,7 @@ public abstract class OrthogonalVertex implements Vertex, Serializable {
 	protected int id; // node ID
 	protected OrthogonalEdge firstin; // first in node
 	protected OrthogonalEdge firstout; // first out node
+	public boolean isBorder;
 
 	public OrthogonalEdge GetFirstIn() {
 		return this.firstin;

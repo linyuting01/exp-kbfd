@@ -38,10 +38,12 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 
 	private static final long serialVersionUID = 1L;
 
-	private Int2ObjectMap<V> vertices;
-	private int edgeSize; // amount of edges
+	private Int2ObjectMap<V> vertices = new Int2ObjectOpenHashMap<V>();;
+	private int edgeSize = 0; // amount of edges
 	private VertexFactory<V> vertexFactory;
 	int ballCenter = -1;
+	
+	public Set<OrthogonalEdge> allEdges = new HashSet<OrthogonalEdge>();
 
 	public OrthogonalGraph(Class<V> vertexClass) {
 		// this.vertices = new TIntObjectHashMap<V>();
@@ -64,6 +66,7 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 		e.SetTLink(tlink);
 		from.SetFirstOut(e);
 		to.SetFirstIn(e);
+		 allEdges.add(e);
 		this.edgeSize++;
 		return e;
 	}
@@ -832,5 +835,11 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 
 		}
 		return subgraph;
+	}
+
+	@Override
+	public Set<OrthogonalEdge> getAllEdges() {
+		// TODO Auto-generated method stub
+		return this.allEdges;
 	}
 }

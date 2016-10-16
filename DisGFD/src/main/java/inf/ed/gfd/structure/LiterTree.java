@@ -32,18 +32,23 @@ public class LiterTree {
 	static Logger log = LogManager.getLogger(LiterTree.class);
 	
 	private LiterNode root;
+	public  GfdNode gNode;
 	HashMap<String, LiterNode> condition_Map;
 	
 
 	public LiterTree() {
 		// TODO Auto-generated constructor stub
-		root = new LiterNode();
-		condition_Map = new HashMap<String, LiterNode>();
+		this.root = new LiterNode();
+		this.gNode = new GfdNode();
+		this.condition_Map = new HashMap<String, LiterNode>();
+	}
+	public LiterTree(GfdNode gNode) {
+		// TODO Auto-generated constructor stub
+		this.root = new LiterNode();
+	    this.gNode = gNode;
+		this.condition_Map = new HashMap<String, LiterNode>();
 	}
 	
-	public LiterTree(LiterNode root){
-		this.root = root;
-	}
 
 	public LiterNode getRoot() {
 		return root;
@@ -68,8 +73,7 @@ public class LiterTree {
 	
 	
 	public void extendNode(Set<String> dom, LiterNode t){
-		Int2ObjectMap<VertexString> vertexMap = new Int2ObjectOpenHashMap<VertexString>();
-		vertexMap = t.gnode.getPattern().allVertices(); 
+		Int2ObjectMap<VertexString> vertexMap = this.gNode.getPattern().allVertices(); 
 		HashMap<Integer, String> xl = t.dependency.XEqualsLiteral;
 		HashMap<Integer, String> yl = t.dependency.YEqualsLiteral;
 	    HashMap<Integer, IntSet> xv = t.dependency.XEqualsVariable;
@@ -219,7 +223,6 @@ public class LiterTree {
 		 g.setPattern(pattern);
 		 
 		 LiterNode t = new LiterNode();
-		 t.gnode = g; 
 		 t.setDependency(cond2);
 		 Set<String> s = new HashSet<String>();
 		 s.add("a");

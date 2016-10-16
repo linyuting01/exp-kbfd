@@ -71,6 +71,31 @@ private static final long serialVersionUID = 1L;
   public int hashCode() { 
 	  return  fLabel.hashCode() ^ tLabel.hashCode() ^ eLabel; 
   }
+	
+  public DFS findDFS(){
+	   Pair<Integer> t1 = new Pair<Integer>(0,0);
+	   Pair<Integer> t2 = new Pair<Integer>(0,0);
+	   t1.x = this.fLabel.x;
+	   t2.x = this.tLabel.x;
+	   if(this.isEqualL()){
+		  t2.y = 1;
+	   }
+	   DFS dfsn = new DFS(t1,t2,this.eLabel);
+	   return dfsn;
+  }
+  public boolean isEqualL(){
+	   if(this.fLabel.x == this.tLabel.x){
+		   return true;
+	   }
+	   return false;
+  }
+  
+  public boolean isEqualL(DFS dfs2){
+	   if(this.fLabel.x == dfs2.fLabel.x && this.tLabel.x == dfs2.tLabel.x){
+		   return true;
+	   } 
+	   return false;
+  }
     
  /**     
 void addDFSToPatterns(Graph<VertexString, TypedEdge> pattern, DFS dfsCode){

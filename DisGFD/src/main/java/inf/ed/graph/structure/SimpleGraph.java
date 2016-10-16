@@ -445,4 +445,10 @@ public class SimpleGraph<V extends Vertex, E extends Edge> implements Graph<V, E
 		return null;
 	}
 
+	@Override
+	public Set<E> getAllEdges() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -27,11 +27,11 @@ public class LiterNode implements Serializable {
 	public Condition dependency;
 	public LiterNode parent; 
 	public List<LiterNode>  children;
-	public GfdNode gnode;
 	public String key;
 	
 	public LiterNode() {
 		this.children = new ArrayList<LiterNode>();
+		this.dependency = new Condition();
 		// TODO Auto-generated constructor stub
 	}
 

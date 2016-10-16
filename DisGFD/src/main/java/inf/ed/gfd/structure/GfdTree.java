@@ -49,12 +49,13 @@ public class GfdTree {
 		   }
 		  // extend root's children
 		  for(GfdNode t: root.children){
+			  t.wC2Wp.oriPatternId = t.key;
 			  DFS tdfs = t.getPatternCode().get(0);
 			 log.debug(tdfs.toString() + ":");
 			  int index = edgePattern.indexOf(tdfs);
 			  index++;
 			  //for AA_1 , add AA_2, A_1A, and A{C},{C}A  and A_1{C} and {C}A_1
-			  if(isEqualL(tdfs)){
+			  if(tdfs.isEqualL()){
 				  extendSpecial(true,tdfs,attr_Map,t);
 				  for(; index < (edgePattern.size()); index++){
 					  if(edgePattern.get(index).fLabel.x == tdfs.fLabel.x){
@@ -90,13 +91,13 @@ public class GfdTree {
 	
    public void extendNode(GfdNode g, List<DFS> edgePattern, HashMap<Integer,String> attr_Map){
 	   
-		
+		g.wC2Wp.oriPatternId = g.key;
 		DFS dfs = g.patternCode.get(g.patternCode.size()-1);
-		int index = findIndex(dfs, edgePattern);
+		int index = findIndex(dfs,edgePattern);
 		DFS dfsn = edgePattern.get(index);
 		List<GfdNode> gfds = root.getChildren().get(index).getChildren();
 		if(gfds!=null){
-			if(isEqualL(dfs)){
+			if(dfs.isEqualL()){
 				extendSpecial(true, dfs,attr_Map, g);	
 			}
 			else{
@@ -172,7 +173,7 @@ public class GfdTree {
 				DFS dfs1 = g.getPatternCode().get(1);
 
 				
-				if(!isEqualL(dfs1) && !isEqualL(dfs1,dfsn)){//AB : AX	
+				if(!dfs1.isEqualL() && !dfs1.isEqualL(dfsn)){//AB : AX	
 					if(dfs1.fLabel.equals(dfsn.fLabel)){
 						DFS dfs2 = new DFS(dfs.fLabel,dfs1.tLabel,dfs.eLabel);
 						addNode(t,attr_Map, dfs2);
@@ -196,43 +197,10 @@ public class GfdTree {
 			
 	}
 	
-   public DFS findDFS(DFS dfs){
-	   Pair<Integer> t1 = new Pair<Integer>(0,0);
-	   Pair<Integer> t2 = new Pair<Integer>(0,0);
-	   t1.x = dfs.fLabel.x;
-	   t2.x = dfs.tLabel.x;
-	   if(isEqualL(dfs)){
-		  t2.y = 1;
-	   }
-	   DFS dfsn = new DFS(t1,t2,dfs.eLabel);
-	   return dfsn;
-   }
-   /* the index is decided by edgePattern.
-    * 
-    */
-   public int findIndex(DFS dfs, List<DFS> edgePattern ){
-	   
-	   DFS dfsn =  findDFS(dfs);
-	   return edgePattern.indexOf(dfsn);
-	   
-   }
-   
-   /*
-    * if it is AA_1
-    */
-   public boolean isEqualL(DFS dfs){
-	   if(dfs.fLabel.x == dfs.tLabel.x){
-		   return true;
-	   }
-	   return false;
-   }
-   
-   public boolean isEqualL(DFS dfs1, DFS dfs2){
-	   if(dfs1.fLabel.x == dfs2.fLabel.x && dfs1.tLabel.x == dfs2.tLabel.x){
-		   return true;
-	   } 
-	   return false;
-   }
+  public int findIndex(DFS dfs,List<DFS> edgePattern){
+	  DFS dfsn = dfs.findDFS();
+	  return edgePattern.indexOf(dfsn);
+  }
    
 
    /*
@@ -263,6 +231,7 @@ public class GfdTree {
     */
 
 	public GfdNode addNode(GfdNode t, HashMap<Integer,String> attr_Map, DFS dfs){
+		
 		log.debug(dfs.toString());
 		GfdNode g = new GfdNode();
 		g.setParent(t);
@@ -296,9 +265,14 @@ public class GfdTree {
 				g.getPattern().allVertices().get(tId));
 			e.setAttr(dfs.eLabel);
 		}
+		if(t!= root){
 		g.key = t.key+dfs.toString();
+		}
+		else{
+			g.key = dfs.toString();
+		}
 		pattern_Map.put(g.key, g);
-		
+		t.wC2Wp.edgeIds.put(dfs, new Pair<Integer>(fId, tId));	
 		return g;
 	}
 	

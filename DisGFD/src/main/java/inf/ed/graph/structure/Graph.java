@@ -34,6 +34,7 @@ public interface Graph<V extends Vertex, E extends Edge> {
 	Set<Integer> getParents(int vertexID);
 
 	Set<Integer> getNeighbours(int vertexID);
+	Set<E> getAllEdges();
 
 	/**
 	 * Print the graph with @code{limited} nodes.
@@ -45,6 +46,7 @@ public interface Graph<V extends Vertex, E extends Edge> {
 	int vertexSize();
 
 	int getBallSize(int centerID, int r);
+	
 
 	Ball getBall(int centerID, int r);
 
@@ -58,6 +60,7 @@ public interface Graph<V extends Vertex, E extends Edge> {
 	Set<E> allEdges();
 
 	Int2ObjectMap<V> allVertices();
+	
 
 	/**
 	 * Get a subgraph from the current one, centring at @code{centre}, with

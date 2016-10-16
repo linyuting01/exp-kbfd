@@ -328,10 +328,7 @@ public class GfdTree {
 	
 		log.debug("sucess");
 		
-		
-		
-		
-		    
+	    
 	}
 
 }

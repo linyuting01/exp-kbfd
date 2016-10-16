@@ -6,6 +6,7 @@ import inf.ed.gfd.structure.LiterNode;
 import inf.ed.gfd.structure.LiterTree;
 import inf.ed.gfd.structure.WorkUnitC2WEp;
 import inf.ed.gfd.structure.WorkUnitW2C;
+import inf.ed.gfd.util.Params;
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.OrthogonalEdge;
 import inf.ed.graph.structure.OrthogonalGraph;
@@ -352,12 +353,42 @@ public class EdgePattern {
 	
 	
 	//for SC
-	public void InitialEdgePattern(HashMap<Integer,Set<WorkUnitW2C>> ws){
+	GfdTree gfdTree = new GfdTree();
+	public void InitialEdgePattern(HashMap<Integer,Set<WorkUnitW2C>> wsw){
 		//assembel the result
-
-		for(Set<WorkUnitW2C> w :  ws.values()){
-			
+        //for pattern
+		HashMap<String,Integer> pSupp = new HashMap<String,Integer>();
+		HashMap<String,List<Int2IntMap>> pBorder = new HashMap<String, List<Int2IntMap>>();
+		for(Set<WorkUnitW2C> ws :  wsw.values()){
+			for(WorkUnitW2C w : ws){
+				String pId = w.patternId;
+				if(!pSupp.containsKey(pId)){
+					pSupp.put(pId, w.support);
+				}
+				else{
+					pSupp.put(pId, pSupp.get(pId) + w.support);
+				}
+				if(!pBorder.containsKey(pId)){
+					pBorder.put(pId, w.boderMatch);
+				}
+				else{
+					pBorder.get(pId).addAll(w.boderMatch);
+				}
+				
+			}
 		}
+		
+		//according the supp to filter the GfdNode waitting to be extended.
+		for(Entry<String,Integer> entry : pSupp.entrySet()){
+			if(entry.getValue() >= Params.VAR_SUPP){
+				//extend pattern;
+				
+			}
+		}
+		
+	}
+	
+	public DFS getDfsFromString(String key){
 		
 	}
 }

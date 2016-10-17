@@ -54,6 +54,10 @@ public class SuppResult extends Result implements Serializable {
 		this.pivotMatch = pivotMatch;
 	}
 
+	public SuppResult(String pId, IntSet a) {
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public void assemblePartialResults(Collection<Result> partialResults) {
 		// TODO Auto-generated method stub

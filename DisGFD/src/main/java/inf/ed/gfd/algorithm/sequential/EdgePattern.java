@@ -42,18 +42,18 @@ public class EdgePattern {
 
 	static Logger log = LogManager.getLogger(EdgePattern.class);
 	  // here String denotes the pattern string P previous, N id the extended 
-	  HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
+	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
 	  //the ith layer , now ;
-	  HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
+	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 	  
 	  
-	  HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
+	  public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
 	  
-	  GfdMsg gfdMsg = new GfdMsg();
+	  public GfdMsg gfdMsg = new GfdMsg();
 	  
-	  HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
+	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
 	  
-	  HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
+	  public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
 	  
 	  IntSet borderNodes = new IntOpenHashSet();
 	  
@@ -73,7 +73,7 @@ public class EdgePattern {
 	   * @param edgeMatch
 	   * @return
 	   */
-	 HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	 public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
 	  
 	 public List<DFS> edgePattern(HashMap<String, Integer> labelsId, Graph<VertexOString, OrthogonalEdge> KB){
 	   OrthogonalVertex fNode, tNode;

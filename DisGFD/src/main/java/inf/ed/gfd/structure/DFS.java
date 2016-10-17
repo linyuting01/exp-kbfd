@@ -17,11 +17,11 @@ private static final long serialVersionUID = 1L;
    * we use Triple to denote one node in the pattern, why a Triple is 
    * for the node whose label has already in the pattern
    */
-  public Pair<Integer> fLabel;
-  public Pair<Integer> tLabel;
+  public Pair<Integer,Integer> fLabel;
+  public Pair<Integer,Integer> tLabel;
   public int eLabel;
 
-  public DFS(Pair<Integer> A, Pair<Integer> B, int e){
+  public DFS(Pair<Integer,Integer> A, Pair<Integer,Integer> B, int e){
     this.fLabel = A;
     this.tLabel = B;
     this.eLabel = e;
@@ -31,7 +31,9 @@ private static final long serialVersionUID = 1L;
   public String toString(){
     StringBuffer sb = new StringBuffer();
     sb.append(this.fLabel.toString());
+    sb.append(";");
     sb.append(this.tLabel.toString());
+    sb.append(";");
     sb.append(this.eLabel);
     return sb.toString();
     
@@ -52,8 +54,8 @@ private static final long serialVersionUID = 1L;
   
   public static void main(String args[]) {  
     
-	 Pair<Integer> a = new Pair<Integer>(3,5);
-	 Pair<Integer> b = new Pair<Integer>(4,1);
+	 Pair<Integer,Integer> a = new Pair<Integer,Integer>(3,5);
+	 Pair<Integer,Integer> b = new Pair<Integer,Integer>(4,1);
 	 int c = 2;
 	 DFS dfs = new DFS(a,b,c);
 	 log.debug(dfs.toString());
@@ -73,8 +75,8 @@ private static final long serialVersionUID = 1L;
   }
 	
   public DFS findDFS(){
-	   Pair<Integer> t1 = new Pair<Integer>(0,0);
-	   Pair<Integer> t2 = new Pair<Integer>(0,0);
+	   Pair<Integer,Integer> t1 = new Pair<Integer,Integer>(0,0);
+	   Pair<Integer,Integer> t2 = new Pair<Integer,Integer>(0,0);
 	   t1.x = this.fLabel.x;
 	   t2.x = this.tLabel.x;
 	   if(this.isEqualL()){

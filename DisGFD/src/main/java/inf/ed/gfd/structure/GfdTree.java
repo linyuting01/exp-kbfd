@@ -47,6 +47,8 @@ public class GfdTree {
 		  for(DFS dfs: edgePattern){
 			    addNode(root,attr_Map, dfs);
 		   }
+	  }
+	  public void extendRootChildren(List<DFS> edgePattern,HashMap<Integer,String> attr_Map){
 		  // extend root's children
 		  for(GfdNode t: root.children){
 			  t.wC2Wp.oriPatternId = t.key;
@@ -111,8 +113,8 @@ public class GfdTree {
     */
     public void extendSpecial( boolean flag, DFS dfs,HashMap<Integer,String> attr_Map, GfdNode g){
         
- 	   Pair<Integer> b1 = addPair(dfs.tLabel);
- 	   Pair<Integer> b2 = addPair(dfs.fLabel);
+ 	   Pair<Integer,Integer> b1 = addPair(dfs.tLabel);
+ 	   Pair<Integer,Integer> b2 = addPair(dfs.fLabel);
  	   int i= dfs.fLabel.y;
  	   int j= dfs.tLabel.y;
  	   
@@ -126,7 +128,7 @@ public class GfdTree {
  			   //A_1A_3 ; add A_1A_4,A_1A_2, A_2A_3, and A_3,A_1
  			   if(i<j-1){
  				   for(i=i+1;i<j;i++){
- 					   Pair<Integer> tp = new Pair<Integer>(dfs.fLabel);
+ 					   Pair<Integer,Integer> tp = new Pair<Integer,Integer>(dfs.fLabel);
  					   tp.y = i;
  					   DFS dfs3 = new DFS(dfs.fLabel,tp,dfs.eLabel);
  					   DFS dfs4 = new DFS(tp,dfs.tLabel,dfs.eLabel);
@@ -141,7 +143,7 @@ public class GfdTree {
  			   addNode(g, attr_Map, dfs1);
  			   if(j<i-1){
  				   for(i=i-1;i>j;i--){
- 					   Pair<Integer> tp = new Pair<Integer>(dfs.fLabel);
+ 					   Pair<Integer,Integer> tp = new Pair<Integer,Integer>(dfs.fLabel);
  					   tp.y = i;
  					   DFS dfs3 = new DFS(tp,dfs.tLabel,dfs.eLabel);
  					   DFS dfs4 = new DFS(dfs.fLabel,tp,dfs.eLabel);
@@ -210,14 +212,14 @@ public class GfdTree {
    /*
     * for AA to get AA_1
     */
-   public Pair<Integer> addPair(Pair<Integer> a){
+   public Pair<Integer,Integer> addPair(Pair<Integer,Integer> a){
 	   
 	   if(a.y == 0){
-		   Pair<Integer> b = new Pair<Integer>(a.x,1);
+		   Pair<Integer,Integer> b = new Pair<Integer,Integer>(a.x,1);
 		   return b;
 	   }
 	   else{
-		   Pair<Integer> b = new Pair<Integer>(a.x,a.y+1);
+		   Pair<Integer,Integer> b = new Pair<Integer,Integer>(a.x,a.y+1);
 		   return b;
 	   }
    }
@@ -239,8 +241,8 @@ public class GfdTree {
 		g.setPatternCode(ColoneUtils.clone(t.patternCode));
 		t.children.add(g);
 		//how to create new node for pattern;
-		Pair<Integer> e1 = dfs.fLabel;
-		Pair<Integer> e2 = dfs.tLabel;
+		Pair<Integer,Integer> e1 = dfs.fLabel;
+		Pair<Integer,Integer> e2 = dfs.tLabel;
 		g.getPatternCode().add(dfs);
 		if(!g.nodeSet.containsKey(e1)){
 			String attr1 = getAttr(attr_Map, e1);
@@ -272,14 +274,14 @@ public class GfdTree {
 			g.key = dfs.toString();
 		}
 		pattern_Map.put(g.key, g);
-		t.wC2Wp.edgeIds.put(dfs, new Pair<Integer>(fId, tId));	
+		t.wC2Wp.edgeIds.put(dfs, new Pair<Integer,Integer>(fId, tId));	
 		return g;
 	}
 	
 	/*
 	 * get attr from attr Id
 	 */
-	public String getAttr(HashMap<Integer,String> attr_Map, Pair<Integer> node){
+	public String getAttr(HashMap<Integer,String> attr_Map, Pair<Integer,Integer> node){
 		int id;
 		if(node.y == 0){
 			id = node.x;
@@ -298,10 +300,10 @@ public class GfdTree {
 		attr_Map.put(2, "b");
 		attr_Map.put(3, "c");
 		List<DFS> edgePattern = new ArrayList<DFS>();
-		Pair<Integer> t1 = new Pair<Integer>(1,0);
-		Pair<Integer> t11 = new Pair<Integer>(1,1);
-		Pair<Integer> t2 = new Pair<Integer>(2,0);
-		Pair<Integer> t3 = new Pair<Integer>(3,0);
+		Pair<Integer,Integer> t1 = new Pair<Integer,Integer>(1,0);
+		Pair<Integer,Integer> t11 = new Pair<Integer,Integer>(1,1);
+		Pair<Integer,Integer> t2 = new Pair<Integer,Integer>(2,0);
+		Pair<Integer,Integer> t3 = new Pair<Integer,Integer>(3,0);
 		
 		DFS d1 = new DFS(t1,t2,1);
 		DFS d7 =  new DFS(t1,t11,2);

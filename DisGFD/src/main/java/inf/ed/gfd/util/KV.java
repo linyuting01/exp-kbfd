@@ -30,6 +30,14 @@ public class KV {
 
 	public static final String SETTING_FRAGMENT = "fragmentedG";
 	public static final String SETTING_REPLICATE = "replicatedG";
+	public static final String SETTING_PARDISGFD = "replicatedG";
+
+	public static final String CLASS_QUERY = null;
+
+	public static final int PARTITION_COUNT = 1;
+
+	public static final int PARTITION_STRATEGY = 0;
+
 
 	/** coordinator RMI service port */
 	public static int RMI_PORT = 1099;

@@ -2,6 +2,7 @@ package inf.ed.gfd.structure;
 
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.OrthogonalEdge;
+import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
@@ -29,19 +30,35 @@ public class Condition implements Serializable, Cloneable {
 
 	public HashMap<Integer, String> XEqualsLiteral;
 	public HashMap<Integer, IntSet> XEqualsVariable;
-
-	public HashMap<Integer, String> YEqualsLiteral;
-	public HashMap<Integer, IntSet> YEqualsVariable;
+    
 	
-	public String conditionId; 
+	public Pair<Integer, String> YEqualsLiteral;
+	public Pair<Integer,Integer> YEqualsVariable;
+	
+
+	//public HashMap<Integer, String> YEqualsLiteral;
+	//public HashMap<Integer, IntSet> YEqualsVariable;
+	
+	public String conditionId;
+
+	public boolean isLiteral; 
 
 	public Condition() {
 
 		XEqualsLiteral = new HashMap<Integer, String>();
 		XEqualsVariable = new HashMap<Integer, IntSet>();
 
-		YEqualsLiteral = new HashMap<Integer, String>();
-		YEqualsVariable = new HashMap<Integer, IntSet>();
+		YEqualsLiteral = new Pair<Integer, String>();
+		YEqualsVariable = new Pair<Integer, Integer>();
+	}
+	public void setYEqualsLiteral(int x, String y){
+		this.YEqualsLiteral.x = x;
+		this.YEqualsLiteral.y = y;
+	}
+	
+	public void setYEqualsVariable(int x, int y){
+		this.YEqualsVariable.x = x;
+		this.YEqualsVariable.y = y;
 	}
 	
 	@Override  
@@ -58,10 +75,7 @@ public class Condition implements Serializable, Cloneable {
         	cond.XEqualsVariable.put(entry.getKey(), new IntOpenHashSet(entry.getValue()));
         }
       
-        cond.YEqualsLiteral = new HashMap<Integer, String>(this.YEqualsLiteral);
-        for(Entry<Integer, IntSet> entry: this.YEqualsVariable.entrySet()){
-        	cond.YEqualsVariable.put(entry.getKey(), new IntOpenHashSet(entry.getValue()));
-        }
+        cond.YEqualsLiteral = new Pair<Integer, String>(this.YEqualsLiteral);
         
         return cond;  
     } 
@@ -130,35 +144,24 @@ public class Condition implements Serializable, Cloneable {
       // check for X
 
       // check for Y. it valid only satisfy the condition
-      for (int u : YEqualsLiteral.keySet()) {
-          int vertexID = match.get(u);
-          if (!KB.getVertex(vertexID).getAttr().equals(YEqualsLiteral.get(u))) {
-              // log.debug("vio: " + vertexID + ":" +
-              // KB.getVertex(vertexID).getAttr()
-              // + ", but expt" + YEqualsLiteral.get(u));
-              return false;
-          }
-       
-      }
-
-      for (int u : YEqualsVariable.keySet()) {
-    	 
-          int vertexID1 = match.get(u);
-          for(int value: YEqualsVariable.get(u)){
-			  int vertexID2 = match.get(value);
-              if (!KB.getVertex(vertexID1).getAttr().equals(KB.getVertex(vertexID2).getAttr())) {
-              // log.debug("vio: " + vertexID1 + ":" +
-              // KB.getVertex(vertexID1).getAttr() + "|"
-              // + +vertexID2 + ":" + KB.getVertex(vertexID2).getAttr());
-              return false;
-          }
-          }
-        
-         
-      }
+		if(this.isLiteral == true){
+			int u = YEqualsLiteral.x;
+	        int vertexID = match.get(u);
+	        if (!KB.getVertex(vertexID).getAttr().equals(YEqualsLiteral.y)) {
+	        	return false;
+	        }
+	    }
+		else{
+			int vertexID1 = YEqualsVariable.x;
+			int vertexID2 = YEqualsVariable.y;
+			 if (!KB.getVertex(vertexID1).getAttr().equals(KB.getVertex(vertexID2).getAttr())) {
+	              return false;
+			 }
+			
+		}
       matchy.add(count);
       return true;
-  }
+  }    
 	/////////////////////////////////////////////
 	
 	
@@ -196,31 +199,20 @@ public class Condition implements Serializable, Cloneable {
       // log.debug("passed X match");
 
       // check for Y. it valid only satisfy the condition
-      for (int u : YEqualsLiteral.keySet()) {
-          int vertexID = match.get(u);
-          if (!KB.getVertex(vertexID).getAttr().equals(YEqualsLiteral.get(u))) {
-              // log.debug("vio: " + vertexID + ":" +
-              // KB.getVertex(vertexID).getAttr()
-              // + ", but expt" + YEqualsLiteral.get(u));
-              return false;
-          }
-      }
-
-      for (int u : YEqualsVariable.keySet()) {
-          int vertexID1 = match.get(u);
-          for(int value: YEqualsVariable.get(u)){
-			    int vertexID2 = match.get(value);
-        
-          if (!KB.getVertex(vertexID1).getAttr().equals(KB.getVertex(vertexID2).getAttr())) {
-              // log.debug("vio: " + vertexID1 + ":" +
-              // KB.getVertex(vertexID1).getAttr() + "|"
-              // + +vertexID2 + ":" + KB.getVertex(vertexID2).getAttr());
-              return false;
-          }
-          }
-      }
-
-
+      if(this.isLiteral == true){
+			int u = YEqualsLiteral.x;
+	        int vertexID = match.get(u);
+	        if (!KB.getVertex(vertexID).getAttr().equals(YEqualsLiteral.y)) {
+	        	return false;
+	        }
+	    }
+		else{
+			int vertexID1 = YEqualsVariable.x;
+			int vertexID2 = YEqualsVariable.y;
+			 if (!KB.getVertex(vertexID1).getAttr().equals(KB.getVertex(vertexID2).getAttr())) {
+	              return false;
+			 }
+		}
       return true;
   }
 
@@ -233,8 +225,6 @@ public class Condition implements Serializable, Cloneable {
     public void clear(){
       this.XEqualsLiteral.clear();
       this.XEqualsVariable.clear();
-      this.YEqualsLiteral.clear();
-      this.YEqualsVariable.clear();
     }
     
     
@@ -243,18 +233,12 @@ public class Condition implements Serializable, Cloneable {
       this.XEqualsLiteral.putAll(c2.XEqualsLiteral);
       this.XEqualsVariable.putAll(c1.XEqualsVariable);
       this.XEqualsLiteral.putAll(c2.XEqualsLiteral);
-      this.YEqualsLiteral.putAll(c1.YEqualsLiteral);
-      this.YEqualsLiteral.putAll(c2.YEqualsLiteral);
-      this.YEqualsVariable.putAll(c1.YEqualsVariable);
-      this.YEqualsLiteral.putAll(c2.YEqualsLiteral);    
     }
 
 	////////////////////////////////////////
 	  public void combineCondition(Condition c2){
 	    this.XEqualsLiteral.putAll(c2.XEqualsLiteral);
 	    this.XEqualsVariable.putAll(c2.XEqualsVariable);
-	    this.YEqualsLiteral.putAll(c2.YEqualsLiteral);
-	    this.YEqualsVariable.putAll(c2.YEqualsVariable);
 	  }
 	    @Override
 	    public boolean equals(Object obj) {
@@ -275,8 +259,7 @@ public class Condition implements Serializable, Cloneable {
 	      List<String> ts = new ArrayList<String>();
 	      transferIString(this.XEqualsLiteral,ts,0);
 	      transferIString(this.XEqualsVariable,ts,1);
-	      transferIString(this.YEqualsLiteral,ts,2);
-	      transferIString(this.YEqualsVariable,ts,3);
+	      transferIString(this.YEqualsLiteral,ts,this.isLiteral);
 	      Collections.sort(ts);
 	      StringBuffer sb = new StringBuffer();
 	      for(String s :ts)
@@ -297,22 +280,30 @@ public class Condition implements Serializable, Cloneable {
         if(i==1){
           sb.append("XEV");
          }
-        if(i==2){
-          sb.append("YEQ");
-        }
-        if(i==3){
-          sb.append("YEV");
-        }
         for(Entry<Integer, T> entry : literal.entrySet()){
            int i1 = entry.getKey();
            sb.append(i1);
            sb.append(":");
            sb.append(entry.getValue());
         }
-           ts.add(sb.toString());
+        
+        ts.add(sb.toString());
 	  
-}
-      
+      }
+      public <T> void transferIString( Pair<Integer,T> p, List<String> ts, boolean isLiteral) {
+	      StringBuffer sb = new StringBuffer();
+	      if(isLiteral == true){
+	        sb.append("YEQ");
+	      }
+	      else{
+	        sb.append("YEV");
+	      }
+		sb.append(p.x);
+		sb.append(":");
+		sb.append(p.y);
+		ts.add(sb.toString());
+  	  
+  }
     
       public boolean isXEmpty(){
         if(this.XEqualsLiteral.isEmpty() && this.XEqualsVariable.isEmpty() ){
@@ -320,12 +311,7 @@ public class Condition implements Serializable, Cloneable {
         }
         return false;
       }
-      public boolean isYEmpty(){
-        if(this.YEqualsLiteral.isEmpty() && this.YEqualsVariable.isEmpty() ){
-          return true;
-        }
-        return false;
-      }
+ 
    /*   
       public boolean trival(){
         HashMap<String, IntSet> lter = new HashMap<String, IntSet>();

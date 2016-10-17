@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.SimpleGraph;
+import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -70,16 +71,29 @@ public class LiterTree {
 	}
 	*/
 	
-	
+	public void initialExtend(Set<String> dom){
+		Int2ObjectMap<VertexString> vertexMap = this.gNode.getPattern().allVertices(); 
+		 for(int nodeId: vertexMap.keySet()){
+	        	
+	        	// add Literal: for all possible equal constant
+	        	for(String s : dom){
+        		    addNode(this.root,1,nodeId,s);
+	        	}
+	        	for(int nodeId2: vertexMap.keySet()){
+	        		addNode(this.root,1,nodeId,nodeId2);
+	        	}
+		 }
+
+	}
 	
 	public void extendNode(Set<String> dom, LiterNode t){
+		
 		Int2ObjectMap<VertexString> vertexMap = this.gNode.getPattern().allVertices(); 
+		
 		HashMap<Integer, String> xl = t.dependency.XEqualsLiteral;
-		HashMap<Integer, String> yl = t.dependency.YEqualsLiteral;
 	    HashMap<Integer, IntSet> xv = t.dependency.XEqualsVariable;
-	    HashMap<Integer, IntSet> yv = t.dependency.YEqualsVariable;
 	    
-	    boolean flag1,flag2, flag3, flag4;
+	    boolean flag;
 		
 		//for all nodes in pattern Q
         for(int nodeId: vertexMap.keySet()){
@@ -87,14 +101,9 @@ public class LiterTree {
         	// add Literal: for all possible equal constant
         	for(String s : dom){
         	
-        		flag1 = addLiteral(xl, xv, s, nodeId);
-        		flag2 = addLiteral(xl, yv, s, nodeId);
-        		flag3 = addLiteral(yl, xv, s, nodeId);
-        		flag4 = addLiteral(yl, yv, s, nodeId);
-        		if(flag1 == true && flag2 == true && flag3 == true && flag4 == true){
+        		flag = addLiteral(xl, xv, s, nodeId);
+        		if(flag == true){
         			addNode(t,0,nodeId,s);	
-        		    addNode(t,1,nodeId,s);
-        			
         		}
         		
         	}
@@ -102,14 +111,9 @@ public class LiterTree {
         	//add variable
             for(int nodeId2: vertexMap.keySet()){
             	//for X
-            	flag1 = addVar(xl, xv, nodeId, nodeId2);
-            	flag2 = addVar(xl, yv, nodeId, nodeId2);
-            	flag3 = addVar(yl, xv, nodeId, nodeId2);
-            	flag4 = addVar(yl, yv, nodeId, nodeId2);
-            	
-            	if(flag1 == true && flag2 == true && flag3 == true && flag4 == true){
+            	flag = addVar(xl, xv, nodeId, nodeId2);
+            	if(flag == true){
             		addNode(t,0,nodeId,nodeId2);
-            		addNode(t,1,nodeId,nodeId2);
             	}  	
             }
         }
@@ -163,7 +167,7 @@ public class LiterTree {
 		if(X == 0){//X
 			t.getDependency().XEqualsLiteral.put(nodeId, s);
 		}else{
-			t.getDependency().YEqualsLiteral.put(nodeId, s);
+			t.getDependency().setYEqualsLiteral(nodeId, s);
 		}
 		String key = t.getDependency().toString();
 		condition_Map.put(key, t);
@@ -172,24 +176,25 @@ public class LiterTree {
 		
 	 public LiterNode addNode(LiterNode g, int X,  int nodeId, int nodeId2){
 		 
-		 HashMap<Integer,IntSet> v = new HashMap<Integer,IntSet>();
+		HashMap<Integer,IntSet> v = new HashMap<Integer,IntSet>();
 		LiterNode t = new LiterNode();
 		t.setDependency((Condition) g.getDependency().clone());
 		t.setParent(g);
 		g.children.add(t);
 		if(X == 0){
 			v = t.getDependency().XEqualsVariable;
+			if(!v.containsKey(nodeId)){
+				v.put(nodeId, new IntOpenHashSet());
+			}
+			v.get(nodeId).add(nodeId2);
+			if(!v.containsKey(nodeId2)){
+				v.put(nodeId2, new IntOpenHashSet());
+			}
+			v.get(nodeId2).add(nodeId);
 		}else{
-			v = t.getDependency().YEqualsVariable;
+			t.getDependency().setYEqualsVariable(nodeId, nodeId2);
 		}
-		if(!v.containsKey(nodeId)){
-			v.put(nodeId, new IntOpenHashSet());
-		}
-		v.get(nodeId).add(nodeId2);
-		if(!v.containsKey(nodeId2)){
-			v.put(nodeId2, new IntOpenHashSet());
-		}
-		v.get(nodeId2).add(nodeId);
+		
 		t.key = t.getDependency().toString();
 		condition_Map.put(t.key, t);
 		return t;

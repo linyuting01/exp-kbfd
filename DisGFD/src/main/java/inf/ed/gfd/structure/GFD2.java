@@ -35,7 +35,7 @@ public class GFD2 implements Serializable {
 	private int SCCNumber = 1;
 	private ArrayList<Graph<VertexString, TypedEdge>> patterns;
 	private Int2ObjectMap<IntSet> candidates;
-	private Condition condition;
+	public Condition condition;
 	private int radius = 0;
 	public IntSet labelSet;
 

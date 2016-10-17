@@ -33,7 +33,9 @@ public class GfdNode {
 	public Graph<VertexString, TypedEdge> pattern;
 	public LiterTree ltree; 
 	public Vector<DFS> patternCode;
-	public HashMap<Pair<Integer>,Integer> nodeSet;
+	
+	//do what? 
+	public HashMap<Pair<Integer,Integer>,Integer> nodeSet;
 	
 	public GfdNode parent; 
 	public List<GfdNode> children; 
@@ -41,7 +43,7 @@ public class GfdNode {
 	//private GfdNode rNeighbor;
 	
 	
-	public WorkUnitC2WEp wC2Wp;
+	public WorkUnit wC2Wp;
 
 	
 	
@@ -51,9 +53,9 @@ public class GfdNode {
 		this.ltree = null;
 		this.parent = null;
 		this.children = new ArrayList<GfdNode>();
-		this.nodeSet = new HashMap<Pair<Integer>,Integer>();
+		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
 		this.patternCode = new Vector<DFS>();
-		this.wC2Wp = new WorkUnitC2WEp();
+		this.wC2Wp = new WorkUnit();
 		//this.rNeighbor = null;
 	}
 

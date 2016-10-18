@@ -27,7 +27,15 @@ private static final long serialVersionUID = 1L;
     this.eLabel = e;
   }
   
-  @Override
+  public DFS(DFS dfs) {
+	// TODO Auto-generated constructor stub
+	 
+		    this.fLabel = dfs.fLabel;
+		    this.tLabel = dfs.tLabel;
+		    this.eLabel = dfs.eLabel; 
+}
+
+@Override
   public String toString(){
     StringBuffer sb = new StringBuffer();
     sb.append(this.fLabel.toString());
@@ -52,12 +60,13 @@ private static final long serialVersionUID = 1L;
     return 0;
   }
   
-  public static void main(String args[]) {  
+  public static void main(String args[]) throws CloneNotSupportedException {  
     
 	 Pair<Integer,Integer> a = new Pair<Integer,Integer>(3,5);
 	 Pair<Integer,Integer> b = new Pair<Integer,Integer>(4,1);
 	 int c = 2;
 	 DFS dfs = new DFS(a,b,c);
+	 DFS dfsn = (DFS) dfs.clone();
 	 log.debug(dfs.toString());
   }
   @Override

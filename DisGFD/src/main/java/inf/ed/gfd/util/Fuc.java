@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
+import inf.ed.gfd.structure.DFS;
+import inf.ed.graph.structure.adaptor.Pair;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -30,7 +32,19 @@ public class Fuc {
 		   
 		  }
 		  return b;
-		}	
+		}
+		public static DFS getDfsFromString(String key){
+			
+			String tmpt[] = key.split(";");
+			String s1[] = tmpt[0].split(",");
+			String s2[] = tmpt[1].split(",");
+			
+			Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(Integer.parseInt(s1[0]),Integer.parseInt(s1[1]));
+			Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(Integer.parseInt(s2[0]),Integer.parseInt(s2[1]));
+			DFS dfs = new DFS(p1,p2, Integer.parseInt(tmpt[2]));
+			
+			return dfs;
+		}
 		
 		public static void main(String args[]) {
 			IntSet a = new IntOpenHashSet();

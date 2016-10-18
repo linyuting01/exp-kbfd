@@ -399,18 +399,7 @@ public class EdgePattern {
 		
 	}
 	
-	public DFS getDfsFromString(String key){
-		
-		String tmpt[] = key.split(";");
-		String s1[] = tmpt[0].split(",");
-		String s2[] = tmpt[1].split(",");
-		
-		Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(Integer.parseInt(s1[0]),Integer.parseInt(s1[1]));
-		Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(Integer.parseInt(s2[0]),Integer.parseInt(s2[1]));
-		DFS dfs = new DFS(p1,p2, Integer.parseInt(tmpt[2]));
-		
-		return dfs;
-	}
+	
 	
 	/*
 	public void writeToFile(String filename, List<GFD2> gfds) {

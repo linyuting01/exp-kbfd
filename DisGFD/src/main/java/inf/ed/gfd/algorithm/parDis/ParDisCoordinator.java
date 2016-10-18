@@ -1,9 +1,14 @@
 package inf.ed.gfd.algorithm.parDis;
 
 import inf.ed.gfd.structure.CrossingEdge;
+import inf.ed.gfd.structure.DFS;
 import inf.ed.gfd.structure.GFD2;
+import inf.ed.gfd.structure.GfdNode;
+import inf.ed.gfd.structure.GfdTree;
+import inf.ed.gfd.structure.LiterNode;
 import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
+import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.KV;
 import inf.ed.gfd.util.Params;
 import inf.ed.gfd.util.Stat;
@@ -11,6 +16,7 @@ import inf.ed.grape.communicate.Client2Coordinator;
 import inf.ed.grape.communicate.Worker;
 import inf.ed.grape.communicate.Worker2Coordinator;
 import inf.ed.grape.interfaces.Result;
+import inf.ed.graph.structure.adaptor.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -26,6 +32,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -100,6 +107,21 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	//private Int2IntMap allborderBallSize = new Int2IntOpenHashMap();
 
 	// private Graph<VertexOString, OrthogonalEdge> KB;
+	
+	Set<Pair<String,String>> gfdResults = new HashSet<Pair<String,String>>();
+	GfdTree gfdTree = new GfdTree();
+	
+	
+	HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
+	HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
+	HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
+	
+	boolean flagP;
+	
+	
+	HashMap<Integer, String> attr_Map = new HashMap<Integer,String>();
+	
+	Set<String> dom  = new HashSet<String>();
 
 	static Logger log = LogManager.getLogger(ParDisCoordinator.class);
 
@@ -601,5 +623,149 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public synchronized void receivePartialResults(String workerID,
+			Map<Integer, Result> mapPartitionID2Result) {
 
+		log.debug("current ack set = " + this.workerAcknowledgementSet.toString());
+		log.debug("receive partitial results = " + workerID);
+
+		for (Entry<Integer, Result> entry : mapPartitionID2Result.entrySet()) {
+			resultMap.put(entry.getKey(), entry.getValue());
+		}
+
+		this.workerAcknowledgementSet.remove(workerID);
+
+		if (this.workerAcknowledgementSet.size() == 0) {
+			pivotMatchP.clear();
+			gfdPMatch.clear();
+			cIds.clear();
+			
+
+			/** receive all the partial results, assemble them. */
+			log.info("assemble the result");
+
+			try {
+
+				Result finalResult = new SuppResult();
+				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,cIds,flagP);
+				
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
+	public void extendAndGenerateWorkUnits(int superstep){
+		//the dirst time recieve the result;
+			if(superstep == 1){
+				List<DFS> edgePattern = new ArrayList<DFS>();
+				for(String s :pivotMatchP.keySet()){
+					double supp = ((double) pivotMatchP.get(s).size())/Params.GRAPHNODENUM;
+					if(supp >= Params.VAR_SUPP){
+						DFS dfs = Fuc.getDfsFromString(s);
+						edgePattern.add(dfs);
+					}
+				}
+				gfdTree.extendNode(gfdTree.getRoot(), edgePattern, dom);
+				//if != null
+				for(GfdNode g:gfdTree.getRoot().children){
+					for(LiterNode t:g.ltree.getRoot().children){
+						WorkUnit w = new WorkUnit(g.key,t.key,true,true);
+						if(!ws.containsKey(g.key)){
+							ws.put(g.key, new ArrayList<WorkUnit>());
+						}
+						ws.get(g.key).add(w);
+					}
+					
+				}
+			}
+			else{
+				if(flagP == false){
+					for(Entry<String, HashMap<String,IntSet>> entry: gfdPMatch.entrySet()){
+						String pId = entry.getKey();
+						for(Entry<String,IntSet> entry2 :gfdPMatch.get(pId).entrySet()){
+							String cId = entry2.getKey();
+							double supp = ((double) entry2.getValue().size())/Params.GRAPHNODENUM;
+							if(supp >= Params.VAR_SUPP){
+								if(cIds.get(pId).contains(cId)){
+									Pair<String,String> gfd = new Pair<String,String>(pId,cId);
+								}
+								else{
+									GfdNode g = gfdTree.pattern_Map.get(pId);
+									LiterNode t = g.ltree.condition_Map.get(cId);
+									g.ltree.updateLiteral(g, t);
+									g.ltree.extendNode(dom, t);
+								}
+							}
+						}
+						
+					}
+					boolean flagExtend = false;
+					for(String pId: gfdPMatch.keySet()){
+						for(String cId: gfdPMatch.get(pId).keySet()){
+							GfdNode g = gfdTree.pattern_Map.get(pId);
+							LiterNode t = g.ltree.condition_Map.get(cId);
+							if(t.children!=null){
+								flagExtend = true;
+								for(LiterNode tc : t.children){
+									WorkUnit w = new WorkUnit(pId,tc.key,true,true);
+									if(!ws.containsKey(pId)){
+										ws.put(pId, new ArrayList<WorkUnit>());
+									}
+								}
+							}
+						}
+					}
+					if(flagExtend == false){
+						//no more extend of literNode
+						for(String pId: gfdPMatch.keySet()){
+							GfdNode g = gfdTree.pattern_Map.get(pId);
+							if(g.children != null){
+								for(GfdNode t: g.children ){
+									// pattern workunit
+									if(!ws.containsKey(pId)){
+										ws.put(pId, new ArrayList<WorkUnit>());
+									}
+									ws.get(pId).add(t.wC2Wp);//revise
+								}
+							}
+							
+							
+						}
+						
+				}
+			
+				else{
+					for(String pId :pivotMatchP.keySet()){
+						double supp = ((double) pivotMatchP.get(pId).size())/Params.GRAPHNODENUM;
+						if(supp >= Params.VAR_SUPP){
+							// end one gfdNode
+					
+							GfdNode g = gfdTree.pattern_Map.get(pId);
+							if(g.nodeNum > g.parent.nodeNum){
+								
+								LiterNode t = g.ltree.getRoot();
+								g.ltree.updateNode(dom, t, g.nodeNum);
+							}
+							for(LiterNode t :g.ltree.getRoot().children){
+								//create WorkUnit
+								WorkUnit w = new WorkUnit(pId,t.key,true,true);
+								if(!ws.containsKey(pId)){
+									ws.put(pId, new ArrayList<WorkUnit>());
+								}
+								ws.get(pId).add(w);
+							}
+							
+							
+						}
+					}
+				}
+				}
+				
+	
+
+}
+	}
 }

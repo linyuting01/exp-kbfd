@@ -30,9 +30,9 @@ public class GfdNode {
 	
 	static Logger log = LogManager.getLogger(GfdNode.class);
 	
-	public Graph<VertexString, TypedEdge> pattern;
+	//public Graph<VertexString, TypedEdge> pattern;
 	public LiterTree ltree; 
-	public Vector<DFS> patternCode;
+	//public Vector<DFS> patternCode;
 	
 	//do what? 
 	public HashMap<Pair<Integer,Integer>,Integer> nodeSet;
@@ -40,32 +40,38 @@ public class GfdNode {
 	public GfdNode parent; 
 	public List<GfdNode> children; 
 	public String key;
+	public DFS edgePattern;
+	//public int nodeNUm = 0;
 	//private GfdNode rNeighbor;
 	
 	
 	public WorkUnit wC2Wp;
 
+	public int nodeNum = 0;
+
+
+
 	
 	
 	public GfdNode(){
-		this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
-				TypedEdge.class);
+		//this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
+			//	TypedEdge.class);
 		this.ltree = null;
 		this.parent = null;
 		this.children = new ArrayList<GfdNode>();
 		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
-		this.patternCode = new Vector<DFS>();
+		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		//this.rNeighbor = null;
 	}
 
-	public Graph<VertexString, TypedEdge> getPattern() {
-		return pattern;
-	}
+	//public Graph<VertexString, TypedEdge> getPattern() {
+	//	return pattern;
+	//}
 
-	public void setPattern(SimpleGraph<VertexString, TypedEdge> pattern) {
-		this.pattern = pattern;
-	}
+	//public void setPattern(SimpleGraph<VertexString, TypedEdge> pattern) {
+	//	this.pattern = pattern;
+	//}
 
 	public LiterTree getLtree() {
 		return ltree;
@@ -93,16 +99,16 @@ public class GfdNode {
 		this.children = children;
 	}
 	
-	public void setPattern(Graph<VertexString, TypedEdge>  pattern){
-		this.pattern = pattern;
-	}
+	//public void setPattern(Graph<VertexString, TypedEdge>  pattern){
+	//	this.pattern = pattern;
+	//}
 	
 
-	public Vector<DFS> getPatternCode(){
-		return this.patternCode;
-	}
-	public void setPatternCode(Vector<DFS> patternCode){
-		this.patternCode = patternCode;
-	}	    
+	//public Vector<DFS> getPatternCode(){
+	//	return this.patternCode;
+//	}
+	//public void setPatternCode(Vector<DFS> patternCode){
+	//	this.patternCode = patternCode;
+	//}	    
 
 }

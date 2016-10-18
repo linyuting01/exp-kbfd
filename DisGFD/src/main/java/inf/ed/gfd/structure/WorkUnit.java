@@ -15,6 +15,7 @@ public class WorkUnit implements Serializable {
 	public int partitionId;
 	public boolean isConnected;
 	public IntSet patternIds;
+	public boolean isGfdCheck;
 	
 	//for pattern;
 	public String oriPatternId;
@@ -26,11 +27,12 @@ public class WorkUnit implements Serializable {
 	}
 	
 	
-	public WorkUnit(String pId, String cId, int supp, boolean satisfy, int parId, boolean isConnected){
+	public WorkUnit(String pId, String cId, boolean isConnected,boolean gfdCheck){
 		this.patternId = pId;
 		this.conditionId = cId;;
-		this.partitionId = parId;
+		//this.partitionId = parId;
 		this.isConnected = isConnected;
+		this.isGfdCheck = gfdCheck;
 	}
 	//for worker to SC;
 	//verify pattern's local support

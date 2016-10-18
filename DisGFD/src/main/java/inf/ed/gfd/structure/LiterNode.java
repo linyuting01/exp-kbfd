@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.SimpleGraph;
+import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -28,6 +29,9 @@ public class LiterNode implements Serializable {
 	public LiterNode parent; 
 	public List<LiterNode>  children;
 	public String key;
+	public Pair<Integer,String> yl;
+	public Pair<Integer,Integer> yv;
+	
 	
 	public LiterNode() {
 		this.children = new ArrayList<LiterNode>();

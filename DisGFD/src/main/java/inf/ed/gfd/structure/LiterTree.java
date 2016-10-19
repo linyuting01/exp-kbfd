@@ -319,27 +319,35 @@ public class LiterTree {
      */
 		
 	public void updateNode(Set<String> dom, LiterNode t, int nodeId){
-		boolean flag;
+		
 		if(t == this.root){
-			newNode(dom, this.root, 1, nodeId, false);
+			for(String s : dom){
+				 addNode(t,1,nodeId,s);
+			}
+			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
+				addNode(t,1,nodeId2,nodeId);	
+			}
 		}
 		else{
-			if(t.dependency.isLiteral){
-				if(t.dependency.YEqualsLiteral.x == nodeId){
-					extendNode( dom,  t);
-				}
-				else{
-					newNode(dom, t, 0, nodeId,false);
-				}
+			for(String s : dom){
+				boolean flag = addLiteral(t, s, nodeId);
+        		if(flag == true){
+        		   addNode(t,0,nodeId,s);	
+        		}
 			}
-			if(!t.dependency.isLiteral){
-				if(t.dependency.YEqualsVariable.y == nodeId){
-					extendNode( dom,  t);
-				}
-				else{
-					newNode(dom, t, 0, nodeId,false);
-				}
+    		for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
+    			boolean flag = addVar(t, nodeId2, nodeId);
+        		if(flag == true ){
+        		   addNode(t,0,nodeId2,nodeId);	
+        		}	
 			}
+		}
+		
+			
+			
+			
+			
+		
         	   
         		
 		}

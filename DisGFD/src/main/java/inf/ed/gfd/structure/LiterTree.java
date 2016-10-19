@@ -269,47 +269,7 @@ public class LiterTree {
 	 * @param s current literal node (verified), need add the corrsponding literal for next level pattern. 
 	 */
 	
-	private void newNode(Set<String> dom, LiterNode t,int flagR, int nodeId, boolean flagE){//control the loop
-		for(String s : dom){
-			if(flagR ==0){
-				boolean flag = addLiteral(t, s, nodeId);
-        		if(flag == true){
-        		   addNode(t,0,nodeId,s);	
-        		}
-			}
-			else{
-			       addNode(t,1,nodeId,s);
-			}
-		}
-		int nodeId2 = 1;
-		if(flagE == true){
-			nodeId2 = nodeId+1;
-		}
-		 for(; nodeId2<= this.gNode.nodeNum; nodeId2++){
-			 if(flagR ==0){
-					boolean flag = addVar(t, nodeId2, nodeId);
-	        		if(flag == true && !flagE){
-	        		   addNode(t,0,nodeId2,nodeId);	
-	        		}
-	        		if(flag == true && flagE){
-		        		   addNode(t,0,nodeId,nodeId2);	
-		        		}
-				}
-				else{
-					if(nodeId2 <this.gNode.nodeNum){
-						if(!flagE){
-			        		   addNode(t,1,nodeId2,nodeId);	
-			        	}
-						else{
-				        		addNode(t,1,nodeId,nodeId2);	
-				        }
-					}
-				      
-				}
-		}
-	}
-		
-		
+
 		
     /**
      * when begin to verify a new gfdNode
@@ -341,7 +301,52 @@ public class LiterTree {
         		   addNode(t,0,nodeId2,nodeId);	
         		}	
 			}
+    		if(t.dependency.isLiteral && t.dependency.YEqualsLiteral.x == nodeId){
+    			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
+    				for(String s : dom){
+    					boolean flag = addLiteral(t, s, nodeId);
+    	        		if(flag == true){
+    	        		   addNode(t,0,nodeId2,s);	
+    	        		}
+    				}
+    				
+    			}
+    			 for(int nodeId2 = 1; nodeId< this.gNode.nodeNum; nodeId2++){
+    		        	//add variable
+    		            for(int nodeId3 = nodeId+1; nodeId3<= this.gNode.nodeNum; nodeId3++){
+    		            	//for 
+    			            	boolean flag = addVar(t, nodeId2, nodeId3);
+    			            	if(flag == true){
+    			            		addNode(t,0,nodeId2,nodeId3);
+    			            	} 
+    		            	}
+    		           }
+    		    }
+    		if(!t.dependency.isLiteral && t.dependency.YEqualsVariable.y == nodeId){
+    			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
+    				for(String s : dom){
+    					boolean flag = addLiteral(t, s, nodeId);
+    	        		if(flag == true){
+    	        		   addNode(t,0,nodeId2,s);	
+    	        		}
+    				}
+    				
+    			}
+    			 for(int nodeId2 = 1; nodeId< this.gNode.nodeNum; nodeId2++){
+    		        	//add variable
+    		            for(int nodeId3 = nodeId+1; nodeId3<= this.gNode.nodeNum; nodeId3++){
+    		            	//for 
+    			            	boolean flag = addVar(t, nodeId2, nodeId3);
+    			            	if(flag == true){
+    			            		addNode(t,0,nodeId2,nodeId3);
+    			            	} 
+    		            	}
+    		           }
+    		    }
 		}
+		
+	}
+	
 		
 			
 			
@@ -350,8 +355,7 @@ public class LiterTree {
 		
         	   
         		
-		}
-	}
+	
 	public void extendNode(Set<String> dom, LiterNode t){
 		
 		//Int2ObjectMap<VertexString> vertexMap = this.gNode.getPattern().allVertices(); 

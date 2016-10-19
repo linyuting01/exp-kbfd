@@ -421,7 +421,13 @@ public class GfdTree {
 			}
 		
 			for(GfdNode g2: g1.getChildren()){
-				g1.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
+				if(g2.nodeNum > g1.nodeNum){
+					g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
+					for(LiterNode l : g2.ltree.getRoot().children){
+						g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
+					}
+				}
+				
 		    }
 		
 		

@@ -41,7 +41,7 @@ public class Condition implements Serializable, Cloneable {
 	
 	public String conditionId;
 
-	public boolean isLiteral; 
+	public boolean isLiteral = false; 
 
 	public Condition() {
 
@@ -259,7 +259,12 @@ public class Condition implements Serializable, Cloneable {
 	      List<String> ts = new ArrayList<String>();
 	      transferIString(this.XEqualsLiteral,ts,0);
 	      transferIString(this.XEqualsVariable,ts,1);
-	      transferIString(this.YEqualsLiteral,ts,this.isLiteral);
+	      if(this.isLiteral){
+	    	  transferIString(this.YEqualsLiteral,ts,true);
+	      }
+	      else{
+	    	  transferIString(this.YEqualsVariable,ts,false);
+	      }
 	      Collections.sort(ts);
 	      StringBuffer sb = new StringBuffer();
 	      for(String s :ts)

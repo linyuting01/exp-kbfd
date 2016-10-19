@@ -26,8 +26,13 @@ private static final long serialVersionUID = 1L;
     this.tLabel = B;
     this.eLabel = e;
   }
-  
-  public DFS(DFS dfs) {
+
+
+public DFS() {
+	// TODO Auto-generated constructor stub
+}
+
+public DFS(DFS dfs) {
 	// TODO Auto-generated constructor stub
 	 
 		    this.fLabel = dfs.fLabel;

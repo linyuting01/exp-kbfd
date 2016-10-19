@@ -31,6 +31,10 @@ public class LiterNode implements Serializable {
 	public String key;
 	public Pair<Integer,String> yl;
 	public Pair<Integer,Integer> yv;
+	public Pair<Integer,String> addxl;
+	public Pair<Integer,Integer> addxv;
+	boolean addXLiteral = false;
+	
 	
 	
 	public LiterNode() {

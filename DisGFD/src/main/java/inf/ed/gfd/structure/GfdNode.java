@@ -56,12 +56,13 @@ public class GfdNode {
 	public GfdNode(){
 		//this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
 			//	TypedEdge.class);
-		this.ltree = null;
-		this.parent = null;
+		this.ltree = new LiterTree();
+		//this.parent =;
 		this.children = new ArrayList<GfdNode>();
 		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
+		this.edgePattern = new DFS();
 		//this.rNeighbor = null;
 	}
 

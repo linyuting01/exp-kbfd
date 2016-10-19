@@ -649,6 +649,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 				Result finalResult = new SuppResult();
 				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,cIds,flagP);
+				if(superstep ==1){
+					extendAndGenerateWorkUnits(1);
+				}else{
+					extendAndGenerateWorkUnits(0);
+				}
 				
 
 			} catch (Exception e) {
@@ -660,6 +665,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	public void extendAndGenerateWorkUnits(int superstep){
 		//the dirst time recieve the result;
 			if(superstep == 1){
+				log.debug("begin compute support of edge pattern and extend condition y");
 				List<DFS> edgePattern = new ArrayList<DFS>();
 				for(String s :pivotMatchP.keySet()){
 					double supp = ((double) pivotMatchP.get(s).size())/Params.GRAPHNODENUM;
@@ -670,6 +676,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 				gfdTree.extendNode(gfdTree.getRoot(), edgePattern, dom);
 				//if != null
+				log.debug("begin create workunit for edge pattern with wmpty -> y");
 				for(GfdNode g:gfdTree.getRoot().children){
 					for(LiterNode t:g.ltree.getRoot().children){
 						WorkUnit w = new WorkUnit(g.key,t.key,true,true);
@@ -683,6 +690,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			}
 			else{
 				if(flagP == false){
+					log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
 					for(Entry<String, HashMap<String,IntSet>> entry: gfdPMatch.entrySet()){
 						String pId = entry.getKey();
 						for(Entry<String,IntSet> entry2 :gfdPMatch.get(pId).entrySet()){
@@ -691,6 +699,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							if(supp >= Params.VAR_SUPP){
 								if(cIds.get(pId).contains(cId)){
 									Pair<String,String> gfd = new Pair<String,String>(pId,cId);
+									gfdResults.add(gfd);
 								}
 								else{
 									GfdNode g = gfdTree.pattern_Map.get(pId);
@@ -714,10 +723,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 									if(!ws.containsKey(pId)){
 										ws.put(pId, new ArrayList<WorkUnit>());
 									}
+									ws.get(pId).add(w);
 								}
 							}
 						}
 					}
+					log.debug("no condition more, begin to extend pattern");
 					if(flagExtend == false){
 						//no more extend of literNode
 						for(String pId: gfdPMatch.keySet()){
@@ -728,6 +739,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 									if(!ws.containsKey(pId)){
 										ws.put(pId, new ArrayList<WorkUnit>());
 									}
+									t.wC2Wp.oriPatternId = g.parent.key;
 									ws.get(pId).add(t.wC2Wp);//revise
 								}
 							}
@@ -738,6 +750,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 			
 				else{
+					log.debug("begin to verify pattern support");
 					for(String pId :pivotMatchP.keySet()){
 						double supp = ((double) pivotMatchP.get(pId).size())/Params.GRAPHNODENUM;
 						if(supp >= Params.VAR_SUPP){
@@ -767,5 +780,94 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 
 }
+	}
+	
+	
+	
+	private void assignWorkunitsToWorkers() throws RemoteException {
+
+		log.debug("begin assign work units to workers.");
+
+		long assignStartTime = System.currentTimeMillis();
+
+		int machineNum = workerProxyMap.size();
+		Stat.getInstance().totalWorkUnit = workunits.size();
+
+		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+		Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
+		Random r = new Random();
+
+		log.debug("should be very quick");
+		for (WorkUnit wu : workunits) {
+			int assignedMachine = r.nextInt(machineNum);
+			if (!assignment.containsKey(assignedMachine)) {
+				assignment.put(assignedMachine, new HashSet<WorkUnit>());
+			}
+			assignment.get(assignedMachine).add(wu);
+
+			if (!prefetchRequest.containsKey(assignedMachine)) {
+				prefetchRequest.put(assignedMachine, new Int2ObjectOpenHashMap<IntSet>());
+			}
+			prefetchRequest.get(assignedMachine).putAll(wu.prefetchRequest);
+
+			if (!crossingEdges.containsKey(assignedMachine)) {
+				crossingEdges.put(assignedMachine, new ObjectOpenHashSet<CrossingEdge>());
+			}
+			crossingEdges.get(assignedMachine).addAll(wu.transferCrossingEdge);
+		}
+		log.debug("job assignment finished. begin to dispatch.");
+
+		for (int machineID : assignment.keySet()) {
+			String workerID = partitionWorkerMap.get(machineID);
+			FragmentedGWorkerProxy workerProxy = workerProxyMap.get(workerID);
+			workerProxy.setWorkUnitsAndPrefetchRequest(assignment.get(machineID),
+					prefetchRequest.get(machineID), crossingEdges.get(machineID));
+			int prefetchSize = 0;
+			for (int key : prefetchRequest.get(machineID).keySet()) {
+				prefetchSize += prefetchRequest.get(machineID).get(key).size();
+			}
+			log.debug("now sent RANDOM assigment for machine " + machineID + " on " + workerID
+					+ " and prefetch request size = " + prefetchSize + ", crossing size = "
+					+ crossingEdges.get(machineID).size());
+			Stat.getInstance().crossingEdgeData += RamUsageEstimator.sizeOf(crossingEdges
+					.get(machineID));
+		}
+
+		localStartTime = System.currentTimeMillis();
+		Stat.getInstance().jobAssignmentTime = (localStartTime - assignStartTime) * 1.0 / 1000;
+	}
+
+	public synchronized void receivePartialWorkunitsFromWorkers(String workerID,
+			Set<WorkUnit> partialWorkunits, Int2IntMap partialBorderBallSize,
+			double findCandidateTime) {
+
+		log.debug("receive partitial workunits from " + workerID + ", size = "
+				+ partialWorkunits.size() + ", ballsizemap = " + partialBorderBallSize.size()
+				+ ", findCandidateTime = " + findCandidateTime);
+
+		if (findCandidateTime > Stat.getInstance().findCandidatesTime) {
+			Stat.getInstance().findCandidatesTime = findCandidateTime;
+		}
+
+		this.borderBallSize.putAll(partialBorderBallSize);
+		this.workunits.addAll(partialWorkunits);
+
+		this.workerAcknowledgementSet.remove(workerID);
+		this.activeWorkerSet.add(workerID);
+
+		if (this.workerAcknowledgementSet.size() == 0) {
+			log.debug("got all the paritial workunits, begin to assemble.");
+			buildAllBorderVertices();
+			log.debug("finishbuildborder.");
+			estimateCommunicationCost();
+			log.debug("finishestimate.");
+			try {
+				log.debug("begin to process.");
+				process();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

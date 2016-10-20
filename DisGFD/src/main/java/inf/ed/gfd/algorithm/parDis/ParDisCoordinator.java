@@ -115,8 +115,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
 	HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
 	HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
-	
 	boolean flagP;
+	
+	List<DFS> edgePattern = new ArrayList<DFS>();
+	HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
+	
+	
+	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	
+	
 	
 	
 	HashMap<Integer, String> attr_Map = new HashMap<Integer,String>();
@@ -392,7 +399,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			Stat.getInstance().finishGapTime = (System.currentTimeMillis() - firstPartialResultArrivalTime) * 1.0 / 1000;
 
 			superstep++;
-			if (superstep < 3) {
+			if (superstep < Params.var_K * Params.var_K) {
 				log.info("superstep =" + superstep + ", manually active all worker.");
 				for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
 					activeWorkerSet.add(entry.getKey());
@@ -481,121 +488,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		//sendGFDs2Workers(queries);
 	}
 
-	/*
-	private void estimateCommunicationCost() {
-		System.out.println("begin to estimate. total workunits = " + workunits.size());
-		double t1 = 0;
-		double t2 = 0;
-		int i = 0;
-		long start = 0;
-		for (WorkUnit wu : workunits) {
-			i++;
-			if (i % 100 == 0) {
-				log.debug("i=" + i + ", t1/t2=" + t1 + "/" + t2);
-			}
-			start = System.currentTimeMillis();
-			wu.estimateCC(wu.originParititon, this.allborderBallSize);
-			t1 += (System.currentTimeMillis() - start) * 1.0 / 1000;
-			start = System.currentTimeMillis();
-			wu.buildPrefetchRequest(this.allVertices, this.mapBorderNodesAsSource,
-					this.mapBorderNodesAsTarget, this.allBorderVertices);
-			t2 += (System.currentTimeMillis() - start) * 1.0 / 1000;
-		}
-	}
-	
 
-	private void assignWorkunitsToWorkers() throws RemoteException {
-
-		log.debug("begin assign work units to workers.");
-
-		long assignStartTime = System.currentTimeMillis();
-
-		int machineNum = workerProxyMap.size();
-		Stat.getInstance().totalWorkUnit = workunits.size();
-
-		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
-		Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-		Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
-		Random r = new Random();
-
-		log.debug("should be very quick");
-		for (WorkUnit wu : workunits) {
-			int assignedMachine = r.nextInt(machineNum);
-			if (!assignment.containsKey(assignedMachine)) {
-				assignment.put(assignedMachine, new HashSet<WorkUnit>());
-			}
-			assignment.get(assignedMachine).add(wu);
-
-			if (!prefetchRequest.containsKey(assignedMachine)) {
-				prefetchRequest.put(assignedMachine, new Int2ObjectOpenHashMap<IntSet>());
-			}
-			prefetchRequest.get(assignedMachine).putAll(wu.prefetchRequest);
-
-			if (!crossingEdges.containsKey(assignedMachine)) {
-				crossingEdges.put(assignedMachine, new ObjectOpenHashSet<CrossingEdge>());
-			}
-			crossingEdges.get(assignedMachine).addAll(wu.transferCrossingEdge);
-		}
-		log.debug("job assignment finished. begin to dispatch.");
-
-		for (int machineID : assignment.keySet()) {
-			String workerID = partitionWorkerMap.get(machineID);
-			ParDisWorkerProxy workerProxy = workerProxyMap.get(workerID);
-			workerProxy.setWorkUnitsAndPrefetchRequest(assignment.get(machineID),
-					prefetchRequest.get(machineID), crossingEdges.get(machineID));
-			int prefetchSize = 0;
-			for (int key : prefetchRequest.get(machineID).keySet()) {
-				prefetchSize += prefetchRequest.get(machineID).get(key).size();
-			}
-			log.debug("now sent RANDOM assigment for machine " + machineID + " on " + workerID
-					+ " and prefetch request size = " + prefetchSize + ", crossing size = "
-					+ crossingEdges.get(machineID).size());
-			Stat.getInstance().crossingEdgeData += RamUsageEstimator.sizeOf(crossingEdges
-					.get(machineID));
-		}
-
-		localStartTime = System.currentTimeMillis();
-		Stat.getInstance().jobAssignmentTime = (localStartTime - assignStartTime) * 1.0 / 1000;
-	}
-	
-
-	public synchronized void receivePartialWorkunitsFromWorkers(String workerID,
-			Set<WorkUnit> partialWorkunits, Int2IntMap partialBorderBallSize,
-			double findCandidateTime) {
-
-		log.debug("receive partitial workunits from " + workerID + ", size = "
-				+ partialWorkunits.size() + ", ballsizemap = " + partialBorderBallSize.size()
-				+ ", findCandidateTime = " + findCandidateTime);
-
-		if (findCandidateTime > Stat.getInstance().findCandidatesTime) {
-			Stat.getInstance().findCandidatesTime = findCandidateTime;
-		}
-
-		this.borderBallSize.putAll(partialBorderBallSize);
-		this.workunits.addAll(partialWorkunits);
-
-		this.workerAcknowledgementSet.remove(workerID);
-		this.activeWorkerSet.add(workerID);
-
-		if (this.workerAcknowledgementSet.size() == 0) {
-			log.debug("got all the paritial workunits, begin to assemble.");
-			buildAllBorderVertices();
-			log.debug("finishbuildborder.");
-			estimateCommunicationCost();
-			log.debug("finishestimate.");
-			try {
-				log.debug("begin to process.");
-				process();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	*/
 
 	@Override
 	public void process() throws RemoteException {
-		//assignWorkunitsToWorkers();
+		assignWorkunitsToWorkers();
 		nextLocalCompute();
 	}
 
@@ -645,7 +542,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			/** receive all the partial results, assemble them. */
 			log.info("assemble the result");
 
-			try {
+			
 
 				Result finalResult = new SuppResult();
 				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,cIds,flagP);
@@ -654,19 +551,22 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}else{
 					extendAndGenerateWorkUnits(0);
 				}
+				log.debug("has created the new workunit");
 				
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				try {
+					log.debug("begin to process.");
+					process();
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
 		}
 	}
-	HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
+	//List<DFS> edgePattern = new ArrayList<DFS>();
+	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	public void extendAndGenerateWorkUnits(int superstep){
 		//the dirst time recieve the result;
 			if(superstep == 1){
 				log.debug("begin compute support of edge pattern and extend condition y");
-				List<DFS> edgePattern = new ArrayList<DFS>();
 				for(String s :pivotMatchP.keySet()){
 					double supp = ((double) pivotMatchP.get(s).size())/Params.GRAPHNODENUM;
 					if(supp >= Params.VAR_SUPP){
@@ -704,7 +604,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 								else{
 									GfdNode g = gfdTree.pattern_Map.get(pId);
 									LiterNode t = g.ltree.condition_Map.get(cId);
-									g.ltree.updateLiteral(g, t);
+									gfdTree.updateLiteral(g, edgePattern, t);
 									g.ltree.extendNode(dom, t);
 								}
 							}
@@ -782,7 +682,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 }
 	}
 	
-	
+	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	
 	private void assignWorkunitsToWorkers() throws RemoteException {
 
@@ -793,81 +693,26 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		int machineNum = workerProxyMap.size();
 		Stat.getInstance().totalWorkUnit = workunits.size();
 
-		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
-		Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-		Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
+		Int2ObjectMap<HashMap<String,List<WorkUnit>>> assignment = new 
+				Int2ObjectOpenHashMap<HashMap<String,List<WorkUnit>>>();
+		//Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+		//Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
 		Random r = new Random();
 
-		log.debug("should be very quick");
-		for (WorkUnit wu : workunits) {
-			int assignedMachine = r.nextInt(machineNum);
-			if (!assignment.containsKey(assignedMachine)) {
-				assignment.put(assignedMachine, new HashSet<WorkUnit>());
+		//log.debug("should be very quick");
+		for (Entry<String,List<WorkUnit>> wu : ws.entrySet()) {
+			for(int assignedMachine = 1; assignedMachine  <= machineNum ;assignedMachine ++)
+				assignment.put(assignedMachine, new HashMap<String,List<WorkUnit>>());
 			}
-			assignment.get(assignedMachine).add(wu);
-
-			if (!prefetchRequest.containsKey(assignedMachine)) {
-				prefetchRequest.put(assignedMachine, new Int2ObjectOpenHashMap<IntSet>());
-			}
-			prefetchRequest.get(assignedMachine).putAll(wu.prefetchRequest);
-
-			if (!crossingEdges.containsKey(assignedMachine)) {
-				crossingEdges.put(assignedMachine, new ObjectOpenHashSet<CrossingEdge>());
-			}
-			crossingEdges.get(assignedMachine).addAll(wu.transferCrossingEdge);
-		}
 		log.debug("job assignment finished. begin to dispatch.");
 
 		for (int machineID : assignment.keySet()) {
 			String workerID = partitionWorkerMap.get(machineID);
-			FragmentedGWorkerProxy workerProxy = workerProxyMap.get(workerID);
-			workerProxy.setWorkUnitsAndPrefetchRequest(assignment.get(machineID),
-					prefetchRequest.get(machineID), crossingEdges.get(machineID));
-			int prefetchSize = 0;
-			for (int key : prefetchRequest.get(machineID).keySet()) {
-				prefetchSize += prefetchRequest.get(machineID).get(key).size();
-			}
-			log.debug("now sent RANDOM assigment for machine " + machineID + " on " + workerID
-					+ " and prefetch request size = " + prefetchSize + ", crossing size = "
-					+ crossingEdges.get(machineID).size());
-			Stat.getInstance().crossingEdgeData += RamUsageEstimator.sizeOf(crossingEdges
-					.get(machineID));
+			ParDisWorkerProxy workerProxy = workerProxyMap.get(workerID);
+			workerProxy.setWorkUnits(assignment.get(machineID));
 		}
-
 		localStartTime = System.currentTimeMillis();
 		Stat.getInstance().jobAssignmentTime = (localStartTime - assignStartTime) * 1.0 / 1000;
 	}
 
-	public synchronized void receivePartialWorkunitsFromWorkers(String workerID,
-			Set<WorkUnit> partialWorkunits, Int2IntMap partialBorderBallSize,
-			double findCandidateTime) {
-
-		log.debug("receive partitial workunits from " + workerID + ", size = "
-				+ partialWorkunits.size() + ", ballsizemap = " + partialBorderBallSize.size()
-				+ ", findCandidateTime = " + findCandidateTime);
-
-		if (findCandidateTime > Stat.getInstance().findCandidatesTime) {
-			Stat.getInstance().findCandidatesTime = findCandidateTime;
-		}
-
-		this.borderBallSize.putAll(partialBorderBallSize);
-		this.workunits.addAll(partialWorkunits);
-
-		this.workerAcknowledgementSet.remove(workerID);
-		this.activeWorkerSet.add(workerID);
-
-		if (this.workerAcknowledgementSet.size() == 0) {
-			log.debug("got all the paritial workunits, begin to assemble.");
-			buildAllBorderVertices();
-			log.debug("finishbuildborder.");
-			estimateCommunicationCost();
-			log.debug("finishestimate.");
-			try {
-				log.debug("begin to process.");
-				process();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }

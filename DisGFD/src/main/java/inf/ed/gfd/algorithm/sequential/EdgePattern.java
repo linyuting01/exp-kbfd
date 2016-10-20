@@ -1,6 +1,6 @@
 package inf.ed.gfd.algorithm.sequential;
 import inf.ed.gfd.structure.DFS;
-import inf.ed.gfd.structure.FileNotFoundException;
+import inf.ed.gfd.structure.DFS;
 import inf.ed.gfd.structure.GFD2;
 import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.GfdNode;
@@ -47,21 +47,19 @@ public class EdgePattern {
 	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 	  
 	  
-	  public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
+	//  public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
 	  
 	  public GfdMsg gfdMsg = new GfdMsg();
 	  
 	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
 	  
-	  public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
+	//  public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
 	  
 	  IntSet borderNodes = new IntOpenHashSet();
 	  
 	  //the ith layer , now ;
 	 // HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
-	 
-	  public Graph<VertexOString, OrthogonalEdge> KB = new OrthogonalGraph<VertexOString>(
-				VertexOString.class);
+
 	  
 	  
 	  
@@ -73,12 +71,14 @@ public class EdgePattern {
 	   * @param edgeMatch
 	   * @return
 	   */
-	 public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	// public HashMap<String, Integer> labelId = new HashMap<String, Integer>();//
 	  
-	 public List<DFS> edgePattern(HashMap<String, Integer> labelsId, Graph<VertexOString, OrthogonalEdge> KB){
+	 public List<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
+			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,  
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, GfdMsg gfdMsg){
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
-	   List<DFS> dfs = new ArrayList<DFS>(); 
+	   List<DFS> DFS = new ArrayList<DFS>(); 
       // get all edge patterns and literals for nodes ;
 	   for(OrthogonalEdge edge: KB.getAllEdges()){ 
 	     //System.out.print("success");
@@ -91,15 +91,13 @@ public class EdgePattern {
 	     tVertex = KB.getVertex(tID);
 	     String fLabel = fVertex.getAttr();
 	     String tLabel = tVertex.getAttr();
-	     int fId = labelId.get(fLabel);
-	     int tId = labelId.get(tLabel);
 	     
 	     int[] eLabel = edge.getAttr();
 	     int elNum = edge.attrCount;
 	     
-	     Pair<Integer,Integer> f = new Pair<Integer,Integer>(fId,0);
-    	 Pair<Integer,Integer> t = new Pair<Integer,Integer>(tId,0);
-    	 if(fId == tId){
+	     Pair<String,Integer> f = new Pair<String,Integer>(fLabel,0);
+    	 Pair<String,Integer> t = new Pair<String,Integer>(tLabel,0);
+    	 if(fLabel.equals(tLabel)){
     		 t.y = 1;
     	 }
 	   
@@ -110,18 +108,43 @@ public class EdgePattern {
 	      
 	         String pId = code.toString();
 	         //log.debug(pId);
-	         dfs.add(code);
+	         DFS.add(code);
 	         
 	         if(!pivotPMatch.containsKey(pId)){
 	        	 pivotPMatch.put(pId, new IntOpenHashSet());  
 	         }
-	         pivotPMatch.get(pId).add(fId);
+	         pivotPMatch.get(pId).add(fID);
 	         
 	         if(!edgePatternNodeMatch.containsKey(pId)){
 	        	 edgePatternNodeMatch.put(pId, new ArrayList<Pair<Integer,Integer>>()); 
 	        	 edgePatternNodeMatch.get(pId).add(new Pair<Integer,Integer>(fID,tID)); 
 	         }
+	         if(! patternNodeMatchesN.containsKey(pId)){
+	          	 patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());  
+	           }
+	           
+	           Int2IntMap e = new Int2IntOpenHashMap();
+	           e.put(1, fID);
+	           e.put(2, tID);
+	           
+	           
+	           patternNodeMatchesN.get(pId).add(e);
+	           
+	           VertexOString f1 = new VertexOString(fID,fLabel);
+		         VertexOString t1 = new VertexOString(tID,tLabel);
+		         
+		         if(!gfdMsg.transferingEdgeMatch.containsKey(pId)){
+		        	 gfdMsg.transferingEdgeMatch.put(pId, new ArrayList<Pair<VertexOString,VertexOString>>());
+		         }
+		         gfdMsg.transferingEdgeMatch.get(pId).add(new Pair<VertexOString,VertexOString>(f1,t1));
+	     }
+	   }
+	  
+      
+	return DFS;
+ }
 	         //Initialize matchesP;
+	         /*
 	         if(! patternNodeMatchesN.containsKey(pId)){
 	        	 patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());  
 	         }
@@ -130,18 +153,20 @@ public class EdgePattern {
 	         e.put(fId, fID);
 	         e.put(tId, tID);
 	         
+	         
 	         patternNodeMatchesN.get(pId).add(e);
+	        
 	         
 	         
-	         VertexOString f1 = new VertexOString(fId,fLabel);
-	         VertexOString t1 = new VertexOString(tId,tLabel);
+	         VertexOString f1 = new VertexOString(fID,fLabel);
+	         VertexOString t1 = new VertexOString(tID,tLabel);
 	         
 	         if(!gfdMsg.transferingEdgeMatch.containsKey(pId)){
 	        	 gfdMsg.transferingEdgeMatch.put(pId, new ArrayList<Pair<VertexOString,VertexOString>>());
 	         }
 	         gfdMsg.transferingEdgeMatch.get(pId).add(new Pair<VertexOString,VertexOString>(f1,t1));
 	         
-	         
+	         */
 	         
 	         /*
 	         //send to SC
@@ -152,28 +177,14 @@ public class EdgePattern {
 	        	 boderMatch.get(pId).add(e);   	 
 	         } 
 	         */    
-	   }
-	   }
-	   return dfs;
-	
-	 }
+	   
+	   
+	 
 	   
 	   
 	 int partitionId;
 	 
-	 
-	 @SuppressWarnings("unchecked")
-	public Set<SuppResult> InitialWorkUnit(HashMap<String, Integer> labelsId, Graph<VertexOString, OrthogonalEdge> KB){
-		 Set<SuppResult> ws  = new HashSet<SuppResult>();
-		 List<DFS> dfss = edgePattern(labelsId,KB);
-		 for(DFS dfs : dfss){
-			 String pId = dfs.toString();
-			 int supp = pivotPMatch.get(pId).size();
-	//		 SuppResult w = new SuppResult(pId, supp,partitionId);
-	//		 ws.add(w);
-		 }
-		 return ws;
-	 }
+
 	 
 	 //receive workunit wsc and create message w2c
 	public void IncrePattern(Set<WorkUnit> wsc, Set<SuppResult> w2c){

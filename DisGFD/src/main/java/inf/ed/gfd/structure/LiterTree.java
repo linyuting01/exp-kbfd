@@ -272,7 +272,7 @@ public class LiterTree {
 
 		
     /**
-     * when begin to verify a new gfdNode
+     * when begin to verify a new gfdNode g, we should first complete its literal extention. 
      * @param dom
      * @param t// extend this node
      * @param nodeId // the new added node
@@ -353,7 +353,11 @@ public class LiterTree {
 			
 			
 		
-        	   
+   /**     	   
+    * Just for the fgdtree root->children; 
+    * @param dom
+    * @param t
+    */
         		
 	
 	public void extendNode(Set<String> dom, LiterNode t){

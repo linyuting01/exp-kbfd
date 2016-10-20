@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.DFS;
+import inf.ed.gfd.structure.DFSs;
 import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
@@ -19,45 +20,51 @@ import inf.ed.grape.interfaces.LocalComputeTask;
 import inf.ed.grape.interfaces.Message;
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.OrthogonalEdge;
+import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-public class ExtendWithWorkUnit extends LocalComputeTask {
+public class ParDisWorkUnit extends LocalComputeTask {
 	
 	private Set<WorkUnit> workload;
 	private Map<String, WorkUnit> assembledWorkload;
 
 	
-	static Logger log = LogManager.getLogger(ExtendWithWorkUnit.class);
-
+	static Logger log = LogManager.getLogger(ParDisWorkUnit.class);
+	public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
+	public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
+	public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 	public void setWorkUnit(Set<WorkUnit> workload) {
 		this.workload = workload;
 	}
 	
 	
 
-	public ExtendWithWorkUnit() {
+	public ParDisWorkUnit() {
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void compute(Partition partition) {
+		
 		// TODO Auto-generated method stub
+		
 		log.debug("begin local compute current super step = " + this.getSuperstep());
 		if (this.getSuperstep() == 0) {
 			//generate edge patterns.
 			EdgePattern eP = new EdgePattern();
-			eP.KB.loadGraphFromVEFile("data/test", true);
-			Set<String> literals = new HashSet<String>();
-			eP.getLabelIds(eP.labelId,literals, eP.KB);
-			List<DFS> edgePattern = eP.edgePattern(eP.labelId, eP.KB);
-			for(DFS dfs : edgePattern){
-				String pId = dfs.toString();
-				IntSet a = eP.pivotPMatch.get(pId);
-				SuppResult w = new SuppResult(pId, a);
-			}
+			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
+					edgePatternNodeMatch,patternNodeMatchesN);
+		    SuppResult w = new SuppResult(pivotPMatch);
+		    //superstep++;
+		}
+		else{
+			
+			
+		}
 
 			
 			
@@ -75,14 +82,14 @@ public class ExtendWithWorkUnit extends LocalComputeTask {
 	@Override
 	public void incrementalCompute(Partition partition, List<Message<?>> incomingMessages) {
 		// TODO Auto-generated method stub
-		log.info("now incremental compute, got incomming message size = ");
+		    log.info("now incremental compute, got incomming message size = ");
 
-		if (getSuperstep() == 1) {
+		
 
 			log.info("superstep = 1, got prefetch request and send graph data as response.");
-			receivePrefetchRequestAndTransferData(partition, incomingMessages);
+			sendTransferData(partition, incomingMessages);
 
-		} else if (getSuperstep() == 2) {
+		
 
 			log.info("super step = 2, got prefetched request data and parse them into graph.");
 			receiveTransferedGraphData(partition, incomingMessages);
@@ -91,31 +98,12 @@ public class ExtendWithWorkUnit extends LocalComputeTask {
 
 	}
 	
-	private void receivePrefetchRequestAndTransferData(Partition partition,
+	private void sendTransferData(Partition partition,
 			List<Message<?>> incomingMessages) {
 
 		Int2ObjectMap<GfdMsg> newMessageContents = new Int2ObjectOpenHashMap<GfdMsg>();
 
-		if (incomingMessages != null) {
-
-			for (Message<?> recvMsg : incomingMessages) {
-				log.debug(recvMsg.toString());
-
-				if (!newMessageContents.containsKey(recvMsg.getSourcePartitionID())) {
-					newMessageContents.put(recvMsg.getSourcePartitionID(), new GfdMsg());
-				}
-				GfdMsg newMsgContent = newMessageContents.get(recvMsg.getSourcePartitionID());
-				GfdMsg recvContent = (GfdMsg) recvMsg.getContent();
-				for (int borderNode : recvContent.requestedBorderNodes) {
-					Ball borderNodeWithBall = partition.getGraph().getBall(borderNode, 1);
-					if (borderNodeWithBall != null) {
-						newMsgContent.transferingGraphData.add(borderNodeWithBall);
-						log.debug(borderNodeWithBall.getInfo());
-					}
-				}
-			}
-
-			for (int targetPartitionID : newMessageContents.keySet()) {
+			for (int targetPartitionID : Params.) {
 				Message<GfdMsg> nMsg = new Message<GfdMsg>(partition.getPartitionID(),
 						targetPartitionID, newMessageContents.get(targetPartitionID));
 				this.generatedMessages.add(nMsg);
@@ -123,7 +111,7 @@ public class ExtendWithWorkUnit extends LocalComputeTask {
 		}
 	}
 
-	private void receiveTransferedGraphData(Partition partition, List<Message<?>> incomingMessages) {
+	private void receiveTransferedGraphData(int workerNum, List<Message<?>> incomingMessages) {
 
 		if (incomingMessages != null) {
 			for (Message<?> recvMsg : incomingMessages) {
@@ -176,6 +164,13 @@ public class ExtendWithWorkUnit extends LocalComputeTask {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+	}
+
+
+
+	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload2) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

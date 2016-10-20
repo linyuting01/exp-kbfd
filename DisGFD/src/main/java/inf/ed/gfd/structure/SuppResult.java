@@ -20,9 +20,13 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class SuppResult extends Result implements Serializable {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
 		 * 
 		 */
-	private static final long serialVersionUID = 1L;
+	//private static final long serialVersionUID = 1L;
 
 	
 	//public String patternId; 
@@ -68,6 +72,12 @@ public class SuppResult extends Result implements Serializable {
 	public SuppResult(String pId, IntSet a) {
 		// TODO Auto-generated constructor stub
 	}*/
+
+
+	public SuppResult(HashMap<String, IntSet> pivotPMatch) {
+		// TODO Auto-generated constructor stub
+		this.pivotMatchP = pivotPMatch;
+	}
 
 
 	@Override

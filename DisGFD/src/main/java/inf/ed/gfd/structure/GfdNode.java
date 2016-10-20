@@ -35,7 +35,7 @@ public class GfdNode {
 	//public Vector<DFS> patternCode;
 	
 	//do what? 
-	public HashMap<Pair<Integer,Integer>,Integer> nodeSet;
+	public HashMap<Pair<String,Integer>,Integer> nodeSet;
 	
 	public GfdNode parent; 
 	public List<GfdNode> children; 
@@ -59,7 +59,7 @@ public class GfdNode {
 		this.ltree = new LiterTree();
 		//this.parent =;
 		this.children = new ArrayList<GfdNode>();
-		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
+		this.nodeSet = new HashMap<Pair<String,Integer>,Integer>();
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();

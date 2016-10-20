@@ -46,7 +46,35 @@ public class GfdTree {
 	/*
 	 * when this is root;	edgePattern has order		
 	 */
-	
+	/******************************************************************************************
+	 * logic: 
+	 *      Input:  gfdTree gt, K, supp;
+	 *      (1) for gt.root, call public 
+	 *      void extendNode(GfdNode g, List<DFS> edgePattern, Set<String> dom )
+	 *      to get gt.root.children {r1,r2..rn}  and Q_{ri} \empty ->y, for 
+	 *      each Q[ri] call 
+	 *       public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s) 
+	 *       to get Q[ri]+edgepattern \empty->y
+	 *       
+	 *       (2) verify each Q[ri], \empty->y, pruning when supp is not enough. 
+	 *       then  call extendNode(Set<String> dom, LiterNode t) in LiteralTree 
+	 *       to get x->y and call
+	 *       public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s)
+	 *       to update the Q+edge  x->y unitil x can not be extended;
+	 *       
+	 *       (3) call 
+	 *        updateNode(Set<String> dom, LiterNode t, int nodeId)
+	 *        to complete Q+edge to complete literal tree;s i layer, then verify 
+	 *        
+	 *        (4) reapeat (2)(3) until Q is arrive k size;
+	 *       
+	 *      
+	 *     	
+	 * 
+	 * 
+	 * 
+	 *
+	 *****************************************************************************************/
 	  
 	
 	  private void extendRootChild(GfdNode t, List<DFS> edgePattern, LiterNode s ){
@@ -111,8 +139,8 @@ public class GfdTree {
     */
    private void extendSpecial( boolean flag, DFS dfs, GfdNode g, LiterNode s){
         
- 	   Pair<Integer,Integer> b1 = addPair(dfs.tLabel);
- 	   Pair<Integer,Integer> b2 = addPair(dfs.fLabel);
+ 	   Pair<String,Integer> b1 = addPair(dfs.tLabel);
+ 	   Pair<String,Integer> b2 = addPair(dfs.fLabel);
  	   int i= dfs.fLabel.y;
  	   int j= dfs.tLabel.y;
  	   
@@ -126,7 +154,7 @@ public class GfdTree {
  			   //A_1A_3 ; add A_1A_4,A_1A_2, A_2A_3, and A_3,A_1
  			   if(i<j-1){
  				   for(i=i+1;i<j;i++){
- 					   Pair<Integer,Integer> tp = new Pair<Integer,Integer>(dfs.fLabel);
+ 					   Pair<String,Integer> tp = new Pair<String,Integer>(dfs.fLabel);
  					   tp.y = i;
  					   DFS dfs3 = new DFS(dfs.fLabel,tp,dfs.eLabel);
  					   DFS dfs4 = new DFS(tp,dfs.tLabel,dfs.eLabel);
@@ -141,7 +169,7 @@ public class GfdTree {
  			   addNode(g,  dfs1, s);
  			   if(j<i-1){
  				   for(i=i-1;i>j;i--){
- 					   Pair<Integer,Integer> tp = new Pair<Integer,Integer>(dfs.fLabel);
+ 					   Pair<String,Integer> tp = new Pair<String,Integer>(dfs.fLabel);
  					   tp.y = i;
  					   DFS dfs3 = new DFS(tp,dfs.tLabel,dfs.eLabel);
  					   DFS dfs4 = new DFS(dfs.fLabel,tp,dfs.eLabel);
@@ -211,14 +239,14 @@ public class GfdTree {
    /*
     * for AA to get AA_1
     */
-  private Pair<Integer,Integer> addPair(Pair<Integer,Integer> a){
+  private Pair<String,Integer> addPair(Pair<String,Integer> a){
 	   
 	   if(a.y == 0){
-		   Pair<Integer,Integer> b = new Pair<Integer,Integer>(a.x,1);
+		   Pair<String,Integer> b = new Pair<String,Integer>(a.x,1);
 		   return b;
 	   }
 	   else{
-		   Pair<Integer,Integer> b = new Pair<Integer,Integer>(a.x,a.y+1);
+		   Pair<String,Integer> b = new Pair<String,Integer>(a.x,a.y+1);
 		   return b;
 	   }
    }
@@ -241,8 +269,8 @@ public class GfdTree {
 			g.edgePattern = dfs;
 			t.children.add(g);
 			//how to create new node for pattern;
-			Pair<Integer,Integer> e1 = dfs.fLabel;
-			Pair<Integer,Integer> e2 = dfs.tLabel;
+			Pair<String,Integer> e1 = dfs.fLabel;
+			Pair<String,Integer> e2 = dfs.tLabel;
 			//g.getPatternCode().add(dfs);
 			if(!g.nodeSet.containsKey(e1)){
 				//String attr1 = getAttr( e1);
@@ -304,38 +332,13 @@ public class GfdTree {
 		}
 	}
 	
-	public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s){
-		log.debug(s.key);
-		if(t.children.isEmpty() || t.children == null){
-			this.extendNode(t, edgePattern, s);
-		}
-		else{
-			for(GfdNode g : t.children){
-			//if(s == this.root){
-				if(s.parent == t.ltree.getRoot()){
-					 g.ltree.addNode(g.ltree.getRoot(), s.dependency);
-				}
-				else{
-					 String key = s.getParent().key;
-					 log.debug(key);
-					 LiterNode update = g.ltree.condition_Map.get(key);
-					 if(s.addXLiteral){
-						 g.ltree.addNode(update, 0, s.addxl.x,  s.addxl.y);
-					 }else{
-						 g.ltree.addNode(update, 0, s.addxv.x, s.addxv.y);
-					 }
-				 }
-			}
-		}
-			// }
-		 
-	 }
+	
 	
 	/*
 	 * get attr from attr Id
 	 */
 	/*
-	private String getAttr( Pair<Integer,Integer> node){
+	private String getAttr( Pair<String,Integer> node){
 		int id;
 		if(node.y == 0){
 			id = node.x;
@@ -346,22 +349,13 @@ public class GfdTree {
 		return attr_Map.get(id);
 	}*/
 	
-	
-    
-	
-	 /***************************************************************************
-	  * ****************************************************************************
-	 * *
-	 *  Interface;
-	 * 
-	 ***************************************************************************
-	  * *****************************************************************************/
-	public void extendNode(GfdNode g, List<DFS> edgePattern, Set<String> dom ){	
-	   for(DFS dfs: edgePattern){
-		    addNode(root, dfs,dom);
-	   }		   
-	}
-	 public void extendNode(GfdNode g, List<DFS> edgePattern, 
+	/**
+	 * when g is not the root, according  updateLiteral to invoke
+	 * @param g
+	 * @param edgePattern
+	 * @param s
+	 */
+	 private void extendNode(GfdNode g, List<DFS> edgePattern, 
 					   LiterNode s ){
 		
 		    if(g.parent == this.getRoot()){
@@ -372,6 +366,61 @@ public class GfdTree {
 		    }
 		   
 	   }
+	 
+    
+	
+	 /***************************************************************************
+	  * ****************************************************************************
+	 * *
+	 *  Interface;
+	 * 
+	 ***************************************************************************
+	  * *****************************************************************************/
+	
+	/**
+	 * when g is the root node, extend the one edge pattern and literal \empty ->y;
+	 * @param g
+	 * @param edgePattern
+	 * @param dom
+	 */
+	public void extendNode(GfdNode g, List<DFS> edgePattern, Set<String> dom ){	
+	   for(DFS dfs: edgePattern){
+		    addNode(root, dfs,dom);
+	   }		   
+	}
+	
+	 /**
+	  * Given a gfd Q x->Y , update Q'(Q+e) X->Y
+	  * @param t is the gfdNode Q
+	  * @param edgePattern
+	  * @param s is the  X->Y in Q's literal tree
+	  */
+	 public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s){
+			log.debug(s.key);
+			if(t.children.isEmpty() || t.children == null){
+				this.extendNode(t, edgePattern, s);
+			}
+			else{
+				for(GfdNode g : t.children){
+				//if(s == this.root){
+					if(s.parent == t.ltree.getRoot()){
+						 g.ltree.addNode(g.ltree.getRoot(), s.dependency);
+					}
+					else{
+						 String key = s.getParent().key;
+						 log.debug(key);
+						 LiterNode update = g.ltree.condition_Map.get(key);
+						 if(s.addXLiteral){
+							 g.ltree.addNode(update, 0, s.addxl.x,  s.addxl.y);
+						 }else{
+							 g.ltree.addNode(update, 0, s.addxv.x, s.addxv.y);
+						 }
+					 }
+				}
+			}
+				// }
+			 
+		 }
 
 		
 	
@@ -382,10 +431,10 @@ public class GfdTree {
 		attr_Map.put(2, "b");
 		attr_Map.put(3, "c");
 		List<DFS> edgePattern = new ArrayList<DFS>();
-		Pair<Integer,Integer> t1 = new Pair<Integer,Integer>(1,0);
-		Pair<Integer,Integer> t11 = new Pair<Integer,Integer>(1,1);
-		Pair<Integer,Integer> t2 = new Pair<Integer,Integer>(2,0);
-		Pair<Integer,Integer> t3 = new Pair<Integer,Integer>(3,0);
+		Pair<String,Integer> t1 = new Pair<String,Integer>("a",0);
+		Pair<String,Integer> t11 = new Pair<String,Integer>("b",1);
+		Pair<String,Integer> t2 = new Pair<String,Integer>("c",0);
+		Pair<String,Integer> t3 = new Pair<String,Integer>("d",0);
 		
 		DFS d1 = new DFS(t1,t2,1);
 		DFS d7 =  new DFS(t1,t11,2);

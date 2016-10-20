@@ -2,6 +2,8 @@ package inf.ed.gfd.algorithm.parDis;
 
 import java.rmi.AccessException;
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -11,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.structure.Partition;
+import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.grape.communicate.Worker;
 import inf.ed.grape.communicate.Worker2Coordinator;
 import inf.ed.grape.interfaces.Result;
@@ -244,4 +247,11 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) {
+		worker.setWorkUnits(workload);
+		
+	}
+
+	
 }

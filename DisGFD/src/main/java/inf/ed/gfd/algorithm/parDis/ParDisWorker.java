@@ -1,9 +1,12 @@
 package inf.ed.gfd.algorithm.parDis;
 
+import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.Ball;
 import inf.ed.gfd.structure.CrossingEdge;
 import inf.ed.gfd.structure.GFD2;
+import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.Partition;
+import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Dev;
 import inf.ed.gfd.util.KV;
 import inf.ed.gfd.util.Params;
@@ -22,6 +25,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
@@ -120,8 +124,30 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 	/** These are for GFD project **/
 	private int holdingPartitionID = 0;
-	private Int2ObjectMap<Ball> mapBorderVertex2Ball;
-	private Int2IntMap mapBorderVertex2BallSize;
+	
+	
+	
+	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	
+	  // here String denotes the pattern string P previous, N id the extended 
+	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
+	  //the ith layer , now ;
+	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
+	  
+	  
+	 public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
+	  
+	  public GfdMsg gfdMsg = new GfdMsg();
+	  
+	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
+	  
+	 public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
+	  
+	  //IntSet borderNodes = new IntOpenHashSet();
+	  
+	  //the ith layer , now ;
+	 // HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
+
 
 	static Logger log = LogManager.getLogger(ParDisWorker.class);
 
@@ -155,8 +181,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.numThreads = 1;
 		this.stopSendingMessage = false;
 
-		this.mapBorderVertex2Ball = new Int2ObjectOpenHashMap<Ball>();
-		this.mapBorderVertex2BallSize = new Int2IntOpenHashMap();
+		//this.mapBorderVertex2Ball = new Int2ObjectOpenHashMap<Ball>();
+		//this.mapBorderVertex2BallSize = new Int2IntOpenHashMap();
 
 		for (int i = 0; i < numThreads; i++) {
 			log.debug("Starting syncThread " + (i + 1));
@@ -640,33 +666,6 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 		System.out.println("total border nodes.size = " + mapBorderVertex2Ball.size());
 	}
-/*
-	private Set<WorkUnit> generatePartialWorkUnits(List<GFD2> queries, Partition p) {
-		Set<WorkUnit> workunitSet = new HashSet<WorkUnit>();
-		int partialWorkUnitUniqueID = 0;
-		for (GFD2 gfd : queries) {
-			if (gfd.isConnected()) {
-				for (int candidate : gfd.getCandidates().get(0)) {
-					if (p.getGraph().contains(candidate)) {
-
-						// candidate in this partition.
-						WorkUnit pwu = new WorkUnit(partialWorkUnitUniqueID++, gfd.getID(),
-								candidate, p.getPartitionID());
-						// get subgraph
-						pwu.gfd = gfd;
-						pwu.ball1 = p.getGraph().getBall(candidate, gfd.getRadius());
-						pwu.computeAndSetBorderNodes(p.borderVertices);
-						workunitSet.add(pwu);
-					} else {
-						// not have candidates.
-					}
-				}
-			}
-		}
-
-		return workunitSet;
-	}
-*/
 
 	@Override
 	public void addPartitionList(List<Partition> workerPartitions) throws RemoteException {
@@ -684,6 +683,29 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	public boolean loadWholeGraph(int partitionID) throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) {
+		log.info("Get " + workload.size() + " work units from coordinator ");
+
+		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
+
+			try {
+				ParDisWorkUnit localComputeTask = new ParDisWorkUnit();
+				localComputeTask.init(entry.getKey());
+				localComputeTask.setWorkUnits(workload);
+				// add fetch
+				//localComputeTask.setPrefetchQuest(prefetchRequests);
+				//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
+				this.nextLocalComputeTasksQueue.add(localComputeTask);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

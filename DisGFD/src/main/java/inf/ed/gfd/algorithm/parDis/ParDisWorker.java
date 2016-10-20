@@ -128,21 +128,21 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	
 	
 	
-	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	//public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
 	
 	  // here String denotes the pattern string P previous, N id the extended 
-	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
+	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
 	  //the ith layer , now ;
-	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
+	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 	  
 	  
-	 public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
+	 //public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
 	  
-	  public GfdMsg gfdMsg = new GfdMsg();
+	  //public GfdMsg gfdMsg = new GfdMsg();
 	  
 	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
 	  
-	 public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
+	// public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
 	  
 	  //IntSet borderNodes = new IntOpenHashSet();
 	  

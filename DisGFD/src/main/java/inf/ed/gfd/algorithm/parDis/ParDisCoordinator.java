@@ -113,8 +113,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	
 	HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
+	HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
 	HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
-	HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
+	//HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
 	boolean flagP;
 	
 	List<DFS> edgePattern = new ArrayList<DFS>();
@@ -536,7 +537,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		if (this.workerAcknowledgementSet.size() == 0) {
 			pivotMatchP.clear();
 			gfdPMatch.clear();
-			cIds.clear();
+			satCId.clear();
 			
 
 			/** receive all the partial results, assemble them. */
@@ -545,7 +546,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			
 
 				Result finalResult = new SuppResult();
-				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,cIds,flagP);
+				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,satCId,flagP);
 				if(superstep ==1){
 					extendAndGenerateWorkUnits(1);
 				}else{
@@ -579,7 +580,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				log.debug("begin create workunit for edge pattern with wmpty -> y");
 				for(GfdNode g:gfdTree.getRoot().children){
 					for(LiterNode t:g.ltree.getRoot().children){
-						WorkUnit w = new WorkUnit(g.key,t.key,true,true);
+						WorkUnit w = new WorkUnit(g.key,t.dependency,true,true);
 						if(!ws.containsKey(g.key)){
 							ws.put(g.key, new ArrayList<WorkUnit>());
 						}
@@ -597,7 +598,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							String cId = entry2.getKey();
 							double supp = ((double) entry2.getValue().size())/Params.GRAPHNODENUM;
 							if(supp >= Params.VAR_SUPP){
-								if(cIds.get(pId).contains(cId)){
+								if(satCId.get(pId).get(cId)){
 									Pair<String,String> gfd = new Pair<String,String>(pId,cId);
 									gfdResults.add(gfd);
 								}

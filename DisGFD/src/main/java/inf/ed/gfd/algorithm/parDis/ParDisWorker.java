@@ -19,6 +19,7 @@ import inf.ed.grape.interfaces.Message;
 import inf.ed.grape.interfaces.Result;
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.OrthogonalEdge;
+import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
 import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -641,32 +642,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	}
 
 	
-	public void buildBorderNodeAndNeighbour(List<GFD2> queries, Partition p) {
-		// FIXME here we assume the radiu <=2;
-		// TODO filter border nodes with queries;
-		log.fatal("begin build. total borderVertices = " + p.borderVertices.size());
-
-		Set<String> allAppearedLabels = new ObjectOpenHashSet<String>();
-		for (GFD2 gfd : queries) {
-			for (VertexString v : gfd.getPattern().allVertices().values()) {
-				allAppearedLabels.add(v.getAttr());
-			}
-		}
-		log.fatal("got all labels");
-
-		final int radiusLimit = 1;
-		for (int borderVertex : p.borderVertices) {
-			if (allAppearedLabels.contains(p.getGraph().getVertex(borderVertex).getAttr())) {
-				Ball ball = p.getGraph().getBall(borderVertex, radiusLimit);
-				mapBorderVertex2Ball.put(borderVertex, ball);
-				mapBorderVertex2BallSize
-						.put(borderVertex, ball.vertices.size() + ball.edges.size());
-			}
-		}
-
-		System.out.println("total border nodes.size = " + mapBorderVertex2Ball.size());
-	}
-
+	
 	@Override
 	public void addPartitionList(List<Partition> workerPartitions) throws RemoteException {
 		// TODO Auto-generated method stub

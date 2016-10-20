@@ -34,8 +34,12 @@ public abstract class Result implements Serializable {
 
 
 
+	//public abstract void assemblePartialResults(Collection<Result> partialResults, HashMap<String, IntSet> pivotMatch,
+		//	HashMap<String, HashMap<String, IntSet>> gfdPMatch, HashMap<String, Set<String>> cIds, boolean flagP);
+
 	public abstract void assemblePartialResults(Collection<Result> partialResults, HashMap<String, IntSet> pivotMatch,
-			HashMap<String, HashMap<String, IntSet>> gfdPMatch, HashMap<String, Set<String>> cIds, boolean flagP);
+			HashMap<String, HashMap<String, IntSet>> gfdPMatch, HashMap<String, HashMap<String, Boolean>> cIds,
+			boolean flagP);
 }
 		
 	

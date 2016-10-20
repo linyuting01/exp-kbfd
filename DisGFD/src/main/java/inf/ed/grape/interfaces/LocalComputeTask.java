@@ -74,4 +74,12 @@ public abstract class LocalComputeTask {
 	public abstract void incrementalCompute(Partition partition, List<Message<?>> incomingMessages);
 
 	public abstract void prepareResult(Partition partition);
+
+	public abstract void incrementalCompute(Partition partition, int workNum, 
+			List<Message<?>> incomingMessages) ;
+
+	//public abstract void prepareResult();
+
+	public abstract void prepareResult(boolean flag);
+	
 }

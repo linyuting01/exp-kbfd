@@ -36,7 +36,7 @@ public class Condition implements Serializable, Cloneable {
 	public Pair<Integer,Integer> YEqualsVariable;
 	
 
-	//public HashMap<Integer, String> YEqualsLiteral;
+	//public HashMap<Integer, S tring> YEqualsLiteral;
 	//public HashMap<Integer, IntSet> YEqualsVariable;
 	
 	public String conditionId;
@@ -83,6 +83,7 @@ public class Condition implements Serializable, Cloneable {
 	 public static void main(String args[]) {  
 		 Condition cond = new Condition();
 		 cond.XEqualsLiteral.put(1,"asd");
+		 cond.XEqualsLiteral.put(2,"asd");
 		 cond.XEqualsVariable.put(1, new IntOpenHashSet());
 		 cond.XEqualsVariable.get(1).add(2);
 		 cond.XEqualsVariable.get(1).add(3);
@@ -270,6 +271,7 @@ public class Condition implements Serializable, Cloneable {
 	      for(String s :ts)
 	      {
 	        sb.append(s);
+	        sb.append(";");
 	      }
 	      return sb.toString();
     }
@@ -281,15 +283,18 @@ public class Condition implements Serializable, Cloneable {
         StringBuffer sb = new StringBuffer();
         if(i==0){
          sb.append("XEQ");
+        // sb.append(";");
         }
         if(i==1){
           sb.append("XEV");
+         // sb.append(";");
          }
         for(Entry<Integer, T> entry : literal.entrySet()){
            int i1 = entry.getKey();
            sb.append(i1);
            sb.append(":");
            sb.append(entry.getValue());
+           //sb.append(" ");
         }
         
         ts.add(sb.toString());
@@ -299,9 +304,11 @@ public class Condition implements Serializable, Cloneable {
 	      StringBuffer sb = new StringBuffer();
 	      if(isLiteral == true){
 	        sb.append("YEQ");
+	       // sb.append(";");
 	      }
 	      else{
 	        sb.append("YEV");
+	       // sb.append(";");
 	      }
 		sb.append(p.x);
 		sb.append(":");

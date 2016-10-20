@@ -85,7 +85,7 @@ public DFS(DFS dfs) {
   
   @Override
   public int hashCode() { 
-	  return  fLabel.hashCode() ^ tLabel.hashCode() ^ eLabel; 
+	  return  this.toString().hashCode(); 
   }
 	
   public DFS findDFS(){

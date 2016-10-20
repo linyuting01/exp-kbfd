@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
+import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.DFS;
 import inf.ed.graph.structure.adaptor.Pair;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
@@ -39,12 +40,13 @@ public class Fuc {
 			String s1[] = tmpt[0].split(",");
 			String s2[] = tmpt[1].split(",");
 			
-			Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(Integer.parseInt(s1[0]),Integer.parseInt(s1[1]));
-			Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(Integer.parseInt(s2[0]),Integer.parseInt(s2[1]));
+			Pair<String,Integer> p1 = new Pair<String,Integer>(s1[0].trim(),Integer.parseInt(s1[1]));
+			Pair<String,Integer> p2 = new Pair<String,Integer>(s2[0].trim(),Integer.parseInt(s2[1]));
 			DFS dfs = new DFS(p1,p2, Integer.parseInt(tmpt[2]));
 			
 			return dfs;
 		}
+		
 		
 		public static void main(String args[]) {
 			IntSet a = new IntOpenHashSet();
@@ -62,6 +64,11 @@ public class Fuc {
 			log.debug(a.size());
 			log.debug(c.size());
 			log.debug(b.size());
+			String a1 = "XEQ;;XEV;1:{2,3};YEV;1:4";
+			String tempt[] = a1.split(";");
+			for(int i=0; i<tempt.length;i++){
+				log.debug(tempt[i]);
+			}
 			
 			
 			

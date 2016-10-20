@@ -16,12 +16,14 @@ public class GfdMsg implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public  HashMap<String, List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch= new  HashMap<String, 
 			List<Pair<VertexOString,VertexOString>>>();
+	public int partitionId;
 	
 	public GfdMsg(){
 		
 	}
-	public GfdMsg( HashMap<String, List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch){
+	public GfdMsg( HashMap<String, List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch, int pId){
 		this.transferingEdgeMatch = transferingEdgeMatch;
+		this.partitionId = pId;
 	}
 
 
@@ -33,5 +35,9 @@ public class GfdMsg implements Serializable {
 		String ret = "";
 		ret += " transfering match node size = " + 2*size;
 		return ret;
+	}
+	public void clear(){
+		this.transferingEdgeMatch.clear();
+		
 	}
 }

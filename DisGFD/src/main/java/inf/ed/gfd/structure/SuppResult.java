@@ -42,7 +42,8 @@ public class SuppResult extends Result implements Serializable {
 	//public List<Int2IntMap> boderMatch;
 	public HashMap<String,IntSet> pivotMatchP;
 	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
-	public HashMap<String, Set<String>> satCIds; // satisfied 
+	//public HashMap<String, Set<String>> satCIds; // satisfied 
+	public HashMap<String, HashMap<String,Boolean>> satCId;
 	
 	public boolean extendPattern;
 	
@@ -80,9 +81,18 @@ public class SuppResult extends Result implements Serializable {
 	}
 
 
+	public SuppResult(HashMap<String, HashMap<String, IntSet>> pivotMatchGfd2,
+			HashMap<String, HashMap<String, Boolean>> satCId2) {
+		this.pivotMatchGfd = pivotMatchGfd2;
+		this.satCId = satCId2;
+		
+		// TODO Auto-generated constructor stub
+	}
+
+
 	@Override
 	public void assemblePartialResults(Collection<Result> partialResults, HashMap<String,IntSet> pivotMatch,
-			HashMap<String, HashMap<String,IntSet>> gfdPMatch, HashMap<String, Set<String>> cIds, boolean flagP) {
+			HashMap<String, HashMap<String,IntSet>> gfdPMatch,HashMap<String, HashMap<String,Boolean>> cIds, boolean flagP) {
 		// TODO Auto-generated method stub
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
 		
@@ -104,21 +114,27 @@ public class SuppResult extends Result implements Serializable {
 					if(!gfdPMatch.containsKey(entry.getKey())){
 						gfdPMatch.put(pId, new HashMap<String,IntSet>());
 					}
+					if(!cIds.containsKey(pId)){
+						satCId.put(pId, new HashMap<String,Boolean>());	
+					}
 					for(Entry<String,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
 						String cId = entry2.getKey();
 					    if(!gfdPMatch.get(pId).containsKey(cId)){
 						 gfdPMatch.get(entry.getKey()).put(entry2.getKey(), entry2.getValue());
 					    }
 					    gfdPMatch.get(pId).get(cId).retainAll(entry2.getValue());
+					    
+					    if(!satCId.get(pId).containsKey(cId)){
+							satCId.get(pId).put(cId, true);
+						}
+					    if(pr.satCId.get(pId).get(cId) == false){
+					    	satCId.get(pId).put(cId, false);
+					    }
 					}
+					
+					
 				}
-				for(Entry<String, Set<String>> entry: pr.satCIds.entrySet()){
-					if(!cIds.containsKey(entry.getKey())){
-						cIds.put(entry.getKey(), entry.getValue());
-					}
-					Set<String> a = new HashSet<String>(cIds.get(entry.getKey()));
-					a.retainAll(entry.getValue());
-				}
+			
 			}
 				
 		}		

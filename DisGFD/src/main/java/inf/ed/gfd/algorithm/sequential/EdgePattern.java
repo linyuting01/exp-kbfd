@@ -75,7 +75,7 @@ public class EdgePattern {
 	  
 	 public List<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
 			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,  
-			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, GfdMsg gfdMsg){
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN){
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
 	   List<DFS> DFS = new ArrayList<DFS>(); 
@@ -129,7 +129,7 @@ public class EdgePattern {
 	           
 	           
 	           patternNodeMatchesN.get(pId).add(e);
-	           
+	           /*
 	           VertexOString f1 = new VertexOString(fID,fLabel);
 		         VertexOString t1 = new VertexOString(tID,tLabel);
 		         
@@ -137,6 +137,7 @@ public class EdgePattern {
 		        	 gfdMsg.transferingEdgeMatch.put(pId, new ArrayList<Pair<VertexOString,VertexOString>>());
 		         }
 		         gfdMsg.transferingEdgeMatch.get(pId).add(new Pair<VertexOString,VertexOString>(f1,t1));
+		         */
 	     }
 	   }
 	  
@@ -182,56 +183,89 @@ public class EdgePattern {
 	 
 	   
 	   
-	 int partitionId;
+	// int partitionId;
 	 
-
+   
 	 
 	 //receive workunit wsc and create message w2c
-	public void IncrePattern(Set<WorkUnit> wsc, Set<SuppResult> w2c){
-		pivotPMatch.clear();
+	public static void IncrePattern(HashMap<String,List<WorkUnit>> wsc, 
+			HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch, 
+			HashMap<String,IntSet> pivotPMatch,
+			Graph<VertexOString, OrthogonalEdge> KB, 
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN,
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesP){
+		//pivotPMatch.clear();
 		patternNodeMatchesP.clear();;
 	    patternNodeMatchesP = (HashMap<String, List<Int2IntMap>>)patternNodeMatchesN.clone();
 	    patternNodeMatchesN. clear();
-	    
-	    for(WorkUnit w : wsc){
-		    //extends pattern,
-		    IntSet pivotMatch = new IntOpenHashSet();
-			String ppId = w.oriPatternId;
-			log.debug(ppId);
-			HashMap<DFS, Pair<Integer,Integer>> edgeIds = w.edgeIds;
+	    for(Entry<String,List<WorkUnit>> entry1: wsc.entrySet()){
+		    for(WorkUnit w : entry1.getValue()){
+		    	IncPattern( w, edgePatternNodeMatch, pivotPMatch,KB,  
+		    			patternNodeMatchesN,patternNodeMatchesP);
+		    }
+			   
+	    }
+}
+public static void IncPattern(WorkUnit w,
+			HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch, 
+			HashMap<String,IntSet> pivotPMatch,
+			Graph<VertexOString, OrthogonalEdge> KB, 
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN,
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesP){
+	
+	String ppId = w.oriPatternId;
+	List<Int2IntMap> pmatches = patternNodeMatchesP.get(ppId);
+	
+	//for each match of previous pattern ppId
+	for(Int2IntMap match : pmatches){
+		//for each edge wait to added into ppId
+		for(Entry<DFS, Pair<Integer,Integer>> entry : w.edgeIds.entrySet()){
+			DFS dfs = entry.getKey();
+			String opId = w.oriPatternId;
+			Pair<Integer,Integer> pair = entry.getValue();
 			
-			List<Int2IntMap> pmatches = patternNodeMatchesP.get(ppId);
-			
-			//for each match of previous pattern ppId
-			for(Int2IntMap match : pmatches){
-				//for each edge wait to added into ppId
-				for(Entry<DFS, Pair<Integer,Integer>> entry : edgeIds.entrySet()){
-					pivotMatch.clear();
-					String edgeId1 = entry.getKey().toString();
-					String pId = ppId + edgeId1.toString();
-					String edgeId = entry.getKey().findDFS().toString();	
+			IncPatterMatchEdge(match,opId,dfs, pair, edgePatternNodeMatch, 
+					pivotPMatch,KB, patternNodeMatchesN);
+		}	
+		
+		
+	}
+}
+
+	public static void IncPatterMatchEdge(Int2IntMap match, String opId,DFS dfs, Pair<Integer,Integer> pair,
+			HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch, 
+			HashMap<String,IntSet> pivotPMatch,
+			Graph<VertexOString, OrthogonalEdge> KB, 
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN){
+//for each edge wait to added into ppId
+				
+					
+					String edgeId1 = dfs.toString();
+					String pId = opId + edgeId1;
+					
+					String edgeId = dfs.findDFS().toString();	
 					List<Pair<Integer,Integer>> pairL = edgePatternNodeMatch.get(edgeId);
 					
 				
 					//edge (fId,tId,eLabel)
-					int fId = entry.getValue().x;
-					int tId = entry.getValue().y;
-					int eLabel = entry.getKey().eLabel;
+					int fId = pair.x;
+					int tId = pair.y;
+					int eLabel = dfs.eLabel;
 					
 					if(match.containsKey(fId)){//add the node AB A is in ppId
 						if(match.containsKey(tId)){// add AB AB is in ppId
 							Pair<Integer,Integer> p = new Pair<Integer,Integer>(match.get(fId),match.get(tId));
 							if(pairL.contains(p)){
-								if(matchKB(p.x,p.y,eLabel)){
-									addMatch(pivotMatch,match, pId, fId, tId, 0,0);
+								if(matchKB(p.x,p.y,eLabel,KB)){
+									addMatch(pivotPMatch,match, pId, fId, tId, 0,0, patternNodeMatchesN);
 								}
 							}
 						}
 						else{
 							for(Pair<Integer,Integer> p: pairL){
 								if(p.x == match.get(fId)){
-									if(matchKB(p.x,p.y,eLabel)){
-										addMatch(pivotMatch,match, pId, fId, tId, 1,(int)p.y);
+									if(matchKB(p.x,p.y,eLabel,KB)){
+										addMatch(pivotPMatch,match, pId, fId, tId, 1,(int)p.y, patternNodeMatchesN);
 									}
 									
 									
@@ -242,24 +276,22 @@ public class EdgePattern {
 					if(match.containsKey(tId)){
 						for(Pair<Integer,Integer> p: pairL){
 							if(p.y == match.get(fId)){
-								if(matchKB(p.x,p.y,eLabel)){
-									addMatch(pivotMatch,match, pId, fId, tId, 2,(int)p.x);
+								if(matchKB(p.x,p.y,eLabel,KB)){
+									addMatch(pivotPMatch,match, pId, fId, tId, 2,(int)p.x,patternNodeMatchesN);
 								}
-								
 							}
 						}
 					}
-					
-//				  SuppResult w1 = new SuppResult(pId,pivotMatch.size(),partitionId);
-//				  w2c.add(w1);
-				}
-				
-			}
-	    }
-}
+	
+	}
+
+
+
 
 	
-	public void addMatch(IntSet pivotMatch, Int2IntMap match, String pId, int fId, int tId, int flag, int x){
+	public static void addMatch(HashMap<String,IntSet>  pivotPMatch, Int2IntMap match, String pId, int fId, int tId, int flag, int x,
+					 HashMap<String, List<Int2IntMap> > patternNodeMatchesN){
+		
 		Int2IntMap tmpt = new Int2IntOpenHashMap(match);
 		if(flag == 1){
 			tmpt.put(tId,x);
@@ -272,10 +304,13 @@ public class EdgePattern {
 			patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());
 		}
 		patternNodeMatchesN.get(pId).add(tmpt);
-		pivotMatch.add(tmpt.get(1));
+		if(!pivotPMatch.containsKey(pId)){
+			pivotPMatch.put(pId, new IntOpenHashSet());
+		}
+		pivotPMatch.get(pId).add(tmpt.get(1));
 	}
 	
-	public boolean matchKB(int fId, int tId, int elabel){
+	public static boolean matchKB(int fId, int tId, int elabel,Graph<VertexOString, OrthogonalEdge> KB){
 		OrthogonalEdge e = KB.getEdge(fId, tId);
 		int[] attrs= e.getAttr();
 		for(int m: attrs){
@@ -287,20 +322,8 @@ public class EdgePattern {
 	
 	}
 	
-	public void getLabelIds(HashMap<String, Integer> labelsId, Set<String> literals, Graph<VertexOString, OrthogonalEdge> KB){
-		int i = 1;
-		Set<String> labels = new HashSet<String>();
-		for(VertexOString v : KB.allVertices().values()){
-			labels.add(v.getAttr());
-			literals.add(v.getAttr());
-		}
-		for(String s : labels){
-			labelsId.put(s, i++);
-			//log.debug(s);
-		}
-	}
 	
-
+/*
 		
 	public static void main(String args[]) {
 		
@@ -353,6 +376,7 @@ public class EdgePattern {
 		//Set<WorkUnitC2WEp> wsc = new HashSet<WorkUnitC2WEp>();
 		
 	}
+	*/
 	
 	
 	
@@ -367,7 +391,7 @@ public class EdgePattern {
 	
 	
 	
-	public void JoinPEdge(GfdNode g, DFS edgeId){
+	//public void JoinPEdge(GfdNode g, DFS edgeId){
 		//plan1 suppose that g has the matches of border patterns. from combination. 
 		//update delete the matches when extend from g;
 		//If AB has boder node match , then return bmatch(AB) to SC;//just send one time;
@@ -375,40 +399,10 @@ public class EdgePattern {
 		
 		
 		
-	}
+	//}
 	
 	
-	//for SC
 	
-	GfdTree gfdTree = new GfdTree();
-	public void InitialEdgePattern(HashMap<Integer,Set<SuppResult>> wsw){
-		//assembel the result
-        //for pattern
-		HashMap<String,Integer> pSupp = new HashMap<String,Integer>();
-		HashMap<String,List<Int2IntMap>> pBorder = new HashMap<String, List<Int2IntMap>>();
-		for(Set<SuppResult> ws :  wsw.values()){
-			for(SuppResult w : ws){
-				String pId = w.patternId;
-				if(!pSupp.containsKey(pId)){
-					pSupp.put(pId, w.support);
-				}
-				else{
-					pSupp.put(pId, pSupp.get(pId) + w.support);
-				}
-			
-				
-			}
-		}
-		
-		//according the supp to filter the GfdNode waitting to be extended.
-		for(Entry<String,Integer> entry : pSupp.entrySet()){
-			if(entry.getValue() >= Params.VAR_SUPP){
-				//extend pattern;
-				
-			}
-		}
-		
-	}
 	
 	
 	
@@ -435,7 +429,62 @@ public class EdgePattern {
 	}
 	*/
 }
-	   
+	/*for(Entry<DFS, Pair<Integer,Integer>> entry : edgeIds.entrySet()){
+			IntSet pivotMatch = new IntOpenHashSet();
+			String edgeId1 = entry.getKey().toString();
+			String pId = ppId + edgeId1.toString();
+			String edgeId = entry.getKey().findDFS().toString();	
+			List<Pair<Integer,Integer>> pairL = edgePatternNodeMatch.get(edgeId);
+			
+		
+			//edge (fId,tId,eLabel)
+			int fId = entry.getValue().x;
+			int tId = entry.getValue().y;
+			int eLabel = entry.getKey().eLabel;
+			
+			if(match.containsKey(fId)){//add the node AB A is in ppId
+				if(match.containsKey(tId)){// add AB AB is in ppId
+					Pair<Integer,Integer> p = new Pair<Integer,Integer>(match.get(fId),match.get(tId));
+					if(pairL.contains(p)){
+						if(matchKB(p.x,p.y,eLabel,KB)){
+							addMatch(pivotMatch,match, pId, fId, tId, 0,0, patternNodeMatchesN);
+						}
+					}
+				}
+				else{
+					for(Pair<Integer,Integer> p: pairL){
+						if(p.x == match.get(fId)){
+							if(matchKB(p.x,p.y,eLabel,KB)){
+								addMatch(pivotMatch,match, pId, fId, tId, 1,(int)p.y, patternNodeMatchesN);
+							}
+							
+							
+						}
+					}
+				}
+			}
+			if(match.containsKey(tId)){
+				for(Pair<Integer,Integer> p: pairL){
+					if(p.y == match.get(fId)){
+						if(matchKB(p.x,p.y,eLabel,KB)){
+							addMatch(pivotMatch,match, pId, fId, tId, 2,(int)p.x,patternNodeMatchesN);
+						}
+					}
+				}
+			}
+			
+//				  SuppResult w1 = new SuppResult(pId,pivotMatch.size(),partitionId);
+//				  w2c.add(w1);
+			
+			if(!pivotPMatch.containsKey(pId)){
+				pivotPMatch.put(pId, pivotMatch);
+			}else{
+				pivotMatch.retainAll(pivotPMatch.get(pId));
+			}
+
+			
+		}
+		*/   
 
 	 
 

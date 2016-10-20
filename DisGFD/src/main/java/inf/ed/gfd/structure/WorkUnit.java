@@ -16,6 +16,8 @@ public class WorkUnit implements Serializable {
 	public boolean isConnected;
 	public IntSet patternIds;
 	public boolean isGfdCheck;
+	public Condition condition;
+	
 	
 	//for pattern;
 	public String oriPatternId;
@@ -39,5 +41,15 @@ public class WorkUnit implements Serializable {
 	public WorkUnit(String opId, HashMap<DFS,Pair<Integer,Integer>> edgeIds){
 		this.oriPatternId = opId;
 		this.edgeIds = edgeIds;
+	}
+
+
+	public WorkUnit(String pId, Condition dependency, boolean isConnected,boolean gfdCheck) {
+		// TODO Auto-generated constructor stub
+		this.patternId = pId;
+		this.condition = dependency;
+		//this.partitionId = parId;
+		this.isConnected = isConnected;
+		this.isGfdCheck = gfdCheck;
 	}
 }

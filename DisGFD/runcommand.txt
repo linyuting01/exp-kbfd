@@ -1,0 +1,26 @@
+git add *
+git commit -m "sa"
+git push origin master
+git pull
+
+
+
+mvn clean package 
+java -Djava.security.policy=security.policy -jar ./parDis-coordinator.jar ./config-sample.properties  1  2 
+ java -Djava.security.policy=security.policy -jar ./parDis-worker.jar localhost ./config-sample.properties 1 2 
+java -Djava.security.policy=security.policy -jar ./client.jar localhost
+
+
+
+
+
+
+
+确认端口是否被占用：netstat -tln 9704(被占用端口号)
+ 
+2.查看该端口被哪个进程占用：lsof -i 9704(被占用端口号)
+ 
+3.确认没有问题之后，杀！kill -9 pid(占用该端口的进程id)
+
+
+

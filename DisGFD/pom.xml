@@ -107,7 +107,7 @@
 					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 					<manifest>
-						<mainClass>inf.ed.gfd.algorithm.parDis.ParDisGWorker</mainClass>
+						<mainClass>inf.ed.gfd.algorithm.parDis.ParDisWorker</mainClass>
 					</manifest>
 					</archive>
 					<descriptorRefs>

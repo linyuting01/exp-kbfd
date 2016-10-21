@@ -52,6 +52,6 @@ public interface Worker extends Remote {
 
 	public boolean loadWholeGraph(int partitionID) throws RemoteException;
 
-	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload);
+	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) throws RemoteException ;
 
 }

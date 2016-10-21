@@ -157,7 +157,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	/**
 	 * Sets the active worker set.
-	 * 
+	 * currentLocalComputeTaskQueue
 	 * @param activeWorkerSet
 	 *            the new active worker set
 	 */
@@ -427,40 +427,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 	}
 
-	public synchronized void receivePartialResults(String workerID,
-			Map<Integer, Result> mapPartitionID2Result, double communicationData) {
-
-		Stat.getInstance().communicationData += communicationData;
-
-		for (Entry<Integer, Result> entry : mapPartitionID2Result.entrySet()) {
-			resultMap.put(entry.getKey(), entry.getValue());
-		}
-
-		this.workerAcknowledgementSet.remove(workerID);
-
-		if (this.workerAcknowledgementSet.size() == 0) {
-
-			Stat.getInstance().localDetectViolationTime = (System.currentTimeMillis() - localStartTime) * 1.0 / 1000;
-			log.info("begin to assemble the final result.");
-
-			try {
-
-				SuppResult finalResult = new SuppResult();
-				finalResult.assemblePartialResults(resultMap.values());
-				finalResult.writeToFile(KV.OUTPUT_DIR + "/FINAL" + "-FragG-P"
-						+ this.workerMap.size() + "-" + finalResultSuffix + ".dat");
-				//Stat.getInstance().totalViolation = finalResult.getViolations().size();
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Stat.getInstance().totalTime = (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
-			log.info(Stat.getInstance().getInfo());
-			log.debug("Done!");
-		}
-	}
-
-
+	
 
 	private void sendPartitionInfo() throws RemoteException {
 		for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
@@ -485,6 +452,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		this.workerAcknowledgementSet.clear();
 		this.workerAcknowledgementSet.addAll(this.activeWorkerSet);
+		nextLocalCompute();
+		//process();
 
 		//sendGFDs2Workers(queries);
 	}

@@ -238,17 +238,18 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 	@Override
 	public void sendPartialResult(String workerID, Map<Integer, Result> mapPartitionID2Result) throws RemoteException {
 		// TODO Auto-generated method stub
+		this.coordinator.receivePartialResults(workerID, mapPartitionID2Result);
 		
 	}
 
 	@Override
 	public void sendPartialResult(String workerID, Map<Integer, Result> partialResults, double communicationData)
 			throws RemoteException {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
-	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) {
+	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) throws RemoteException {
 		worker.setWorkUnits(workload);
 		
 	}

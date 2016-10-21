@@ -19,6 +19,8 @@ import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
+import inf.ed.gfd.util.KV;
+import inf.ed.gfd.util.Params;
 import inf.ed.grape.interfaces.LocalComputeTask;
 import inf.ed.grape.interfaces.Message;
 import inf.ed.graph.structure.Graph;
@@ -57,7 +59,11 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
 	public HashMap<String, HashMap<String,Boolean>> satCId;
 	
+	public boolean isGfdCheck;
 	
+	public ParDisWorkUnit() {
+		// TODO Auto-generated constructor stub
+	}
 	
 	
 	
@@ -65,6 +71,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		this.workload = workload;
 	}
 	
+
 	public boolean processWorkUnitAndGfdMsg(Partition partition){
 		pivotPMatch.clear();
 		for( Entry<String, List<WorkUnit>> entry : workload.entrySet()){
@@ -72,6 +79,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				if(w.isGfdCheck){
 					checkGfd(w,partition);
 					//prepareResult(true);
+					
 					return true;
 				}
 				else{
@@ -81,6 +89,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			
 		}
 		//prepareResult(false);
+		sendTransferData(partition.getPartitionID());
 		return false;
 	}
 	
@@ -136,9 +145,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		}
 	}
 
-	public ParDisWorkUnit() {
-		// TODO Auto-generated constructor stub
-	}
+	
 
 	@Override
 	public void compute(Partition partition) {
@@ -146,50 +153,28 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 		
 		log.debug("begin local compute current super step = " + this.getSuperstep());
-		if (this.getSuperstep() == 0) {
+		log.debug(partition.getPartitionID());
+		
 			//generate edge patterns.
 			EdgePattern eP = new EdgePattern();
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
 					edgePatternNodeMatch,patternNodeMatchesN);
 		    SuppResult w = new SuppResult(pivotPMatch);
+		    w.extendPattern = true;
+		    log.debug("done!");
 		    //superstep++;
-		}
-		else{
-			
-			
-		}
-	}
-
-	@Override
-	public void incrementalCompute(Partition partition, int workerNum, List<Message<?>> incomingMessages) {
-		// TODO Auto-generated method stub
-		    
 		
-		    log.info("now incremental compute ");
-		    boolean flag = processWorkUnitAndGfdMsg(partition);
-		    if(flag){
-		    	prepareResult(true);
-		    }
-		    else{
-			 sendTransferData(partition.getPartitionID(), workerNum);
-			 receiveTransferedData(partition,  incomingMessages);
-			 IncrePattern(partition,edgePatternNodeMatch);
-			 for(HashMap<String,List<Pair<Integer,Integer>>> edgeMatch: transferMatch.values()){
-				IncrePattern(partition,edgeMatch);
-			 }
-			 prepareResult(false);
-		    }
+	}
+
 	
-			
-			
+		
 			
 
-	}
 	
 	
-	private void sendTransferData(int partitionId, int workerNum) {
+	private void sendTransferData(int partitionId) {
   
-			for (int targetPartitionID = 1; targetPartitionID <= workerNum &&  
+			for (int targetPartitionID = 1; targetPartitionID <= Params.N_PROCESSORS &&  
 					targetPartitionID!= partitionId; targetPartitionID++) {
 		        
 				Message<GfdMsg> nMsg = new Message<GfdMsg>(partitionId,
@@ -247,9 +232,11 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 		if(flag){
 			SuppResult partialResult = new SuppResult(pivotPMatch);
+			partialResult.extendPattern = true;
 		}
 		else{
 			SuppResult partialResult = new SuppResult(pivotMatchGfd,satCId);
+			partialResult.extendPattern = false;
 		}
 		
 		//send to SC
@@ -259,25 +246,51 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		ParDisWorkUnit localCompute = new ParDisWorkUnit();
+		Partition partition = new Partition(0);
+		String filepath = "data/dbpedia_sample"+ ".p" + partition.getPartitionID();
+		partition.loadPartitionDataFromEVFile(filepath);
+		localCompute.compute(partition);
+		
+	
+		
+			
 	}
 
 
 
 	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload2) {
 		// TODO Auto-generated method stub
-		
+		this.workload = workload2;
 	}
 
 	@Override
+	public boolean incrementalCompute(Partition partition){
+		log.info("now incremental compute ");
+		boolean flag = processWorkUnitAndGfdMsg(partition);
+		if(flag){
+			prepareResult(true);
+		}
+		return flag;	
+	}
 	public void incrementalCompute(Partition partition, List<Message<?>> incomingMessages) {
 		// TODO Auto-generated method stub
+
+	   // log.info("now incremental compute ");
+	   
+	     receiveTransferedData(partition,  incomingMessages);
+		 IncrePattern(partition,edgePatternNodeMatch);
+		 for(HashMap<String,List<Pair<Integer,Integer>>> edgeMatch: transferMatch.values()){
+			IncrePattern(partition,edgeMatch);
+		 }
+		 prepareResult(false);
+	    }
+
 		
-	}
 	
 
 	
-	public  void IncrePattern(Partition partition, HashMap<String, List<Pair<Integer,Integer>>> edgeMatch){
+private  void IncrePattern(Partition partition, HashMap<String, List<Pair<Integer,Integer>>> edgeMatch){
 		//pivotPMatch.clear();
 		patternNodeMatchesP.clear();;
 	    patternNodeMatchesP = (HashMap<String, List<Int2IntMap>>)patternNodeMatchesN.clone();
@@ -398,6 +411,14 @@ private void addMatch(Int2IntMap match, String pId, int fId, int tId, int flag, 
 
 	@Override
 	public void prepareResult(Partition partition) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void prepareResult() {
 		// TODO Auto-generated method stub
 		
 	}

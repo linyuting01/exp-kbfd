@@ -83,7 +83,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	private String workerID;
 
 	/** Coordinator Proxy object to interact with Master. */
-	private Worker2Coordinator coordinatorProxy;
+	private Worker2Coordinator coordinatorProxy ;
 
 	/** VertexID 2 PartitionID Map */
 	// private Map<Integer, Integer> mapVertexIdToPartitionId;
@@ -183,6 +183,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.outgoingMessages = new HashMap<String, List<Message<?>>>();
 		this.numThreads = 1;
 		this.stopSendingMessage = false;
+		//this.coordinatorProxy = new ParDisWorkerProxy();
 		/////////////////////////////////////////////////////
 		//this.localComputeTask.
 		//this.currentLocalComputeTaskQueue.add(localComputeTask);
@@ -266,7 +267,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					try {
 						if(superstep == 0){
 							flagLocalCompute = false;
-							log.debug(holdingPartitionID);
+							//log.debug(holdingPartitionID);
 							localComputeTask.init(holdingPartitionID);
 							Partition workingPartition = partitions.get(holdingPartitionID);
 							localComputeTask.compute(workingPartition);
@@ -280,11 +281,11 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 								/** not begin step. incremental compute */
 								boolean isGfdCheck = localComputeTask.incrementalCompute(workingPartition);
 								if(!isGfdCheck){
-								checkAndSendMessage();	
-								List<Message<?>> messageForWorkingPartition = previousIncomingMessages
-										.get(localComputeTask.getPartitionID());
-								localComputeTask.incrementalCompute(workingPartition,
-										messageForWorkingPartition);
+									checkAndSendMessage();	
+									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+											.get(localComputeTask.getPartitionID());
+									localComputeTask.incrementalCompute(workingPartition,
+											messageForWorkingPartition);
 								}
 							}
 						
@@ -292,6 +293,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 									localComputeTask.getPartialResult());
 						//nextLocalComputeTasksQueue.add(localComputeTask);
 						checkAndSendPartialResult();
+						log.debug("send suppreslut done" );
 					
 				}catch (Exception e) {
 					e.printStackTrace();

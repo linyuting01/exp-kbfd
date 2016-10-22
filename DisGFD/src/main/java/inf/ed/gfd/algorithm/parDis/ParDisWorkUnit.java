@@ -55,7 +55,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			new HashMap<Integer,HashMap<String,List<Pair<Integer,Integer>>>>();
 	
 	
-	SuppResult suppResult = new SuppResult();
+	//SuppResult suppResult = new SuppResult();
 	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
 	public HashMap<String, HashMap<String,Boolean>> satCId;
 	
@@ -153,7 +153,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 		
 		log.debug("begin local compute current super step = " + this.getSuperstep());
-		log.debug(partition.getPartitionID());
+		//log.debug(partition.getPartitionID());
 		
 			//generate edge patterns.
 			EdgePattern eP = new EdgePattern();
@@ -161,7 +161,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 					edgePatternNodeMatch,patternNodeMatchesN);
 		    SuppResult w = new SuppResult(pivotPMatch);
 		    w.extendPattern = true;
-		    log.debug("done!");
+		    log.debug("set suppreslut done!");
 		    //superstep++;
 		
 	}
@@ -233,10 +233,12 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		if(flag){
 			SuppResult partialResult = new SuppResult(pivotPMatch);
 			partialResult.extendPattern = true;
+			this.generatedResult = partialResult;
 		}
 		else{
 			SuppResult partialResult = new SuppResult(pivotMatchGfd,satCId);
 			partialResult.extendPattern = false;
+			this.generatedResult = partialResult;
 		}
 		
 		//send to SC

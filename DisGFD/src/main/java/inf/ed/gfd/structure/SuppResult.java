@@ -105,6 +105,7 @@ public class SuppResult extends Result implements Serializable {
 		for(Result r : partialResults){
 			SuppResult pr = (SuppResult) r;
 			flagP = pr.extendPattern;
+			log.debug(flagP);
 			if(flagP == true){
 				for(Entry<String, IntSet> entry: pr.pivotMatchP.entrySet()){
 					if(!pivotMatch.containsKey(entry.getKey())){

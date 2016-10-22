@@ -224,6 +224,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	 * @throws Exception
 	 *             the exception
 	 */
+
 	public static void main(String[] args) throws Exception {
 		if (args.length < 3) {
 			 System.out.println("paras: config-file, n, opt");
@@ -515,7 +516,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			
 
 				Result finalResult = new SuppResult();
+				log.debug(resultMap.values().size());
 				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,satCId,flagP);
+				log.debug("assembel done!");
 				if(superstep ==1){
 					extendAndGenerateWorkUnits(1);
 				}else{
@@ -531,6 +534,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 		}
 	}
+	
+	
+	
 	//List<DFS> edgePattern = new ArrayList<DFS>();
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	public void extendAndGenerateWorkUnits(int superstep){

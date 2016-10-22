@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class WorkUnit implements Serializable {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 10L;
 	
 	public String patternId;
 	public String conditionId;

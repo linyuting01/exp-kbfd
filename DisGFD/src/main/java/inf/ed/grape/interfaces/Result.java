@@ -16,6 +16,7 @@ public abstract class Result implements Serializable {
 	 * 
 	 */
 	
+	
 	private static final long serialVersionUID = 1L;
 	static Logger log = LogManager.getLogger(Result.class);
 
@@ -31,17 +32,10 @@ public abstract class Result implements Serializable {
 		// TODO Auto-generated method stub
 
 
-
-
-
-	//public abstract void assemblePartialResults(Collection<Result> partialResults, HashMap<String, IntSet> pivotMatch,
-		//	HashMap<String, HashMap<String, IntSet>> gfdPMatch, HashMap<String, Set<String>> cIds, boolean flagP);
-
-	public abstract void assemblePartialResults(Collection<Result> partialResults, HashMap<String, IntSet> pivotMatch,
-			HashMap<String, HashMap<String, IntSet>> gfdPMatch, HashMap<String, HashMap<String, Boolean>> cIds,
-			boolean flagP);
 }
-		
+
+
+
 	
 
 

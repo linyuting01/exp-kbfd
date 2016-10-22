@@ -127,6 +127,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	private int holdingPartitionID = 0;
 	
 	private ParDisWorkUnit localComputeTask = new ParDisWorkUnit();
+
+	private boolean flagSetWorkUnit = true;
 	
 	
 	
@@ -218,6 +220,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		String filename = KV.GRAPH_FILE_PATH + ".p" + partitionID;
 		Partition partition = new Partition(partitionID);
 		partition.loadPartitionDataFromEVFile(filename.trim());
+		Params.GRAPHNODENUM = partition.getGraph().vertexSize();
 		//partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
 		this.partitions.put(partitionID, partition);
 		totalPartitionsAssigned = 1;
@@ -294,6 +297,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 						//nextLocalComputeTasksQueue.add(localComputeTask);
 						checkAndSendPartialResult();
 						log.debug("send suppreslut done" );
+						flagSetWorkUnit = false;
 					
 				}catch (Exception e) {
 					e.printStackTrace();
@@ -311,6 +315,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		flagLocalCompute = false;
 		
 		try {
+			log.debug("patilResult size"+ partialResults.size());
 			coordinatorProxy.sendPartialResult(workerID, partialResults);
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -581,7 +586,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.currentIncomingMessages.clear();
 
 		this.stopSendingMessage = false;
+		if(flagSetWorkUnit == true){
 		this.flagLocalCompute = true;
+		}
 
 		this.outgoingMessages.clear();
 
@@ -647,7 +654,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload)throws RemoteException {
 		log.info("Get " + workload.size() + " work units from coordinator ");
-
+        log.debug("this.partitions's size" + this.partitions.size());
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
 
 			try {
@@ -657,6 +664,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				//localComputeTask.setPrefetchQuest(prefetchRequests);
 				//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
+				this.flagSetWorkUnit = true;
 
 			} catch (Exception e) {
 				e.printStackTrace();

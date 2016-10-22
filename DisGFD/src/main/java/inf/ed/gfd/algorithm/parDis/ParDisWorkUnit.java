@@ -159,8 +159,11 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			EdgePattern eP = new EdgePattern();
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
 					edgePatternNodeMatch,patternNodeMatchesN);
+			log.debug(edgePattern.size());
 		    SuppResult w = new SuppResult(pivotPMatch);
+		    log.debug(w.pivotMatchP.size());
 		    w.extendPattern = true;
+		    w.nodeNum = Params.GRAPHNODENUM;
 		    log.debug("set suppreslut done!");
 		    //superstep++;
 		
@@ -233,11 +236,13 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		if(flag){
 			SuppResult partialResult = new SuppResult(pivotPMatch);
 			partialResult.extendPattern = true;
+			 partialResult.nodeNum = Params.GRAPHNODENUM;
 			this.generatedResult = partialResult;
 		}
 		else{
 			SuppResult partialResult = new SuppResult(pivotMatchGfd,satCId);
 			partialResult.extendPattern = false;
+			 partialResult.nodeNum = Params.GRAPHNODENUM;
 			this.generatedResult = partialResult;
 		}
 		

@@ -58,7 +58,9 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 	/**
 	 * Instantiates a new worker proxy.
 	 */
-
+	public ParDisWorkerProxy() {
+		// TODO Auto-generated constructor stub
+	}
 	public ParDisWorkerProxy(Worker worker, String workerID, int numWorkerThreads,
 			ParDisCoordinator coordinator) throws AccessException, RemoteException {
 		this.worker = worker;
@@ -70,6 +72,8 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 		t = new Thread(this);
 		t.start();
 	}
+
+	
 
 	@Override
 	public void run() {
@@ -250,7 +254,7 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 	}
 
 	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) throws RemoteException {
-		worker.setWorkUnits(workload);
+		this.worker.setWorkUnits(workload);
 		
 	}
 

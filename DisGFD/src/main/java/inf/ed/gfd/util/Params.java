@@ -5,7 +5,7 @@ public class Params {
 	public static final int VAR_BASE = 0;
 	public static final int VAR_RANDOM = 1;
 	public static final int VAR_OPT = 2;
-	public static final double VAR_SUPP = 2;
+	public static final double VAR_SUPP = 0;
 
 	public static int RUN_MODE;
 	public static int N_PROCESSORS;

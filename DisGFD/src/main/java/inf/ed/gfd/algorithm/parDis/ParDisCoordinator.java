@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import java.awt.geom.FlatteningPathIterator;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -96,6 +97,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	long superstep = 0;
 
 	private String finalResultSuffix = "";
+	private boolean beginNextCompute = false;
 
 	/** for project Disgfd **/
 	//private Int2ObjectMap<IntSet> allBorderVertices = new Int2ObjectOpenHashMap<IntSet>();
@@ -112,11 +114,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	GfdTree gfdTree = new GfdTree();
 	
 	
-	HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
-	HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
-	HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
+	//HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
+	//HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
+	//HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
 	//HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
-	boolean flagP;
+	//boolean flagP;
 	
 	List<DFS> edgePattern = new ArrayList<DFS>();
 	HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
@@ -369,7 +371,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	 *             the remote exception
 	 */
 	public void nextLocalCompute() throws RemoteException {
+		
 		log.info("---------------next begin super step " + superstep + "---------------");
+		log.debug("activeWorkerSet size " + this.activeWorkerSet.size());
 		this.workerAcknowledgementSet.clear();
 		this.workerAcknowledgementSet.addAll(this.activeWorkerSet);
 
@@ -378,7 +382,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		for (String workerID : this.activeWorkerSet) {
 			this.workerProxyMap.get(workerID).nextLocalCompute(superstep);
 		}
-		this.activeWorkerSet.clear();
+		superstep++;
+		//this.activeWorkerSet.clear();
 	}
 
 	@Override
@@ -393,24 +398,26 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			firstPartialResultArrivalTime = System.currentTimeMillis();
 		}
 
-		this.activeWorkerSet.addAll(activeWorkerIDs);
-		this.workerAcknowledgementSet.remove(workerID);
+		//this.activeWorkerSet.addAll(activeWorkerIDs);
+		//this.workerAcknowledgementSet.remove(workerID);
 
 		if (this.workerAcknowledgementSet.size() == 0) {
 
 			Stat.getInstance().finishGapTime = (System.currentTimeMillis() - firstPartialResultArrivalTime) * 1.0 / 1000;
 
-			superstep++;
+			//superstep++;
 			if (superstep < Params.var_K * Params.var_K) {
 				log.info("superstep =" + superstep + ", manually active all worker.");
-				for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
-					activeWorkerSet.add(entry.getKey());
-				}
+				//for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
+					//activeWorkerSet.add(entry.getKey());
+				//}
 			}
-			if (activeWorkerSet.size() != 0)
-				nextLocalCompute();
+			if (activeWorkerSet.size() != 0){
+				//beginNextCompute = true;
+			}
 			else {
 				finishLocalCompute();
+				log.debug("all process done!");
 			}
 		}
 	}
@@ -493,7 +500,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	}
 	
 	public synchronized void receivePartialResults(String workerID,
-			Map<Integer, Result> mapPartitionID2Result) {
+			Map<Integer, Result> mapPartitionID2Result) throws RemoteException {
 
 		log.debug("current ack set = " + this.workerAcknowledgementSet.toString());
 		log.debug("receive partitial results = " + workerID);
@@ -505,9 +512,6 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		this.workerAcknowledgementSet.remove(workerID);
 
 		if (this.workerAcknowledgementSet.size() == 0) {
-			pivotMatchP.clear();
-			gfdPMatch.clear();
-			satCId.clear();
 			
 
 			/** receive all the partial results, assemble them. */
@@ -515,16 +519,20 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 			
 
-				Result finalResult = new SuppResult();
+				SuppResult finalResult = new SuppResult();
+				log.debug(finalResult.pivotMatchP.size());
 				log.debug(resultMap.values().size());
-				finalResult.assemblePartialResults(resultMap.values(),pivotMatchP,gfdPMatch,satCId,flagP);
+				finalResult.assemblePartialResults(resultMap.values());
+				log.debug(finalResult.pivotMatchP.size());
+				log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
 				if(superstep ==1){
-					extendAndGenerateWorkUnits(1);
+					extendAndGenerateWorkUnits(1,finalResult);
 				}else{
-					extendAndGenerateWorkUnits(0);
+					extendAndGenerateWorkUnits(0,finalResult);
 				}
 				log.debug("has created the new workunit");
+				
 				
 				try {
 					log.debug("begin to process.");
@@ -539,13 +547,14 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	//List<DFS> edgePattern = new ArrayList<DFS>();
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
-	public void extendAndGenerateWorkUnits(int superstep){
+	public void extendAndGenerateWorkUnits(int superstep,SuppResult finalResult) throws RemoteException{
 		//the dirst time recieve the result;
 			if(superstep == 1){
 				log.debug("begin compute support of edge pattern and extend condition y");
-				for(String s :pivotMatchP.keySet()){
-					double supp = ((double) pivotMatchP.get(s).size())/Params.GRAPHNODENUM;
+				for(String s :finalResult.pivotMatchP.keySet()){
+					double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
 					if(supp >= Params.VAR_SUPP){
+						log.debug("supp value " + supp);
 						DFS dfs = Fuc.getDfsFromString(s);
 						edgePattern.add(dfs);
 					}
@@ -565,15 +574,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 			}
 			else{
-				if(flagP == false){
+				if(finalResult.extendPattern == false){
 					log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
-					for(Entry<String, HashMap<String,IntSet>> entry: gfdPMatch.entrySet()){
+					for(Entry<String, HashMap<String,IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
 						String pId = entry.getKey();
-						for(Entry<String,IntSet> entry2 :gfdPMatch.get(pId).entrySet()){
+						for(Entry<String,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
 							String cId = entry2.getKey();
-							double supp = ((double) entry2.getValue().size())/Params.GRAPHNODENUM;
+							double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
 							if(supp >= Params.VAR_SUPP){
-								if(satCId.get(pId).get(cId)){
+								if(finalResult.satCId.get(pId).get(cId)){
 									Pair<String,String> gfd = new Pair<String,String>(pId,cId);
 									gfdResults.add(gfd);
 								}
@@ -588,8 +597,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						
 					}
 					boolean flagExtend = false;
-					for(String pId: gfdPMatch.keySet()){
-						for(String cId: gfdPMatch.get(pId).keySet()){
+					for(String pId: finalResult.pivotMatchGfd.keySet()){
+						for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
 							GfdNode g = gfdTree.pattern_Map.get(pId);
 							LiterNode t = g.ltree.condition_Map.get(cId);
 							if(t.children!=null){
@@ -606,10 +615,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					}
 					log.debug("no condition more, begin to extend pattern");
 					if(flagExtend == false){
+						boolean flagExtendP = false;
 						//no more extend of literNode
-						for(String pId: gfdPMatch.keySet()){
+						for(String pId:finalResult.pivotMatchGfd.keySet()){
 							GfdNode g = gfdTree.pattern_Map.get(pId);
 							if(g.children != null){
+								flagExtendP = true;
 								for(GfdNode t: g.children ){
 									// pattern workunit
 									if(!ws.containsKey(pId)){
@@ -622,16 +633,22 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 							
 						}
+						if(flagExtendP == false){
+							finishLocalCompute();
+							log.debug("all process done!");
+						}
 						
+				}
 				}
 			
 				else{
+					boolean flagExtend = false;
 					log.debug("begin to verify pattern support");
-					for(String pId :pivotMatchP.keySet()){
-						double supp = ((double) pivotMatchP.get(pId).size())/Params.GRAPHNODENUM;
+					for(String pId :finalResult.pivotMatchP.keySet()){
+						double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
 						if(supp >= Params.VAR_SUPP){
 							// end one gfdNode
-					
+							flagExtend = true;
 							GfdNode g = gfdTree.pattern_Map.get(pId);
 							if(g.nodeNum > g.parent.nodeNum){
 								
@@ -650,24 +667,29 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 						}
 					}
+					if(flagExtend == false){
+						finishLocalCompute();
+						log.debug("all process done!");
+					}
 				}
 				}
 				
 	
 
 }
-	}
+	
 	
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	
 	private void assignWorkunitsToWorkers() throws RemoteException {
 
 		log.debug("begin assign work units to workers.");
+		log.debug("workload size" + ws.size());
 
 		long assignStartTime = System.currentTimeMillis();
 
 		int machineNum = workerProxyMap.size();
-		Stat.getInstance().totalWorkUnit = workunits.size();
+		//Stat.getInstance().totalWorkUnit = workunits.size();
 
 		Int2ObjectMap<HashMap<String,List<WorkUnit>>> assignment = new 
 				Int2ObjectOpenHashMap<HashMap<String,List<WorkUnit>>>();
@@ -677,7 +699,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		//log.debug("should be very quick");
 		for (Entry<String,List<WorkUnit>> wu : ws.entrySet()) {
-			for(int assignedMachine = 1; assignedMachine  <= machineNum ;assignedMachine ++)
+			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++)
 				assignment.put(assignedMachine, new HashMap<String,List<WorkUnit>>());
 			}
 		log.debug("job assignment finished. begin to dispatch.");

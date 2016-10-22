@@ -27,7 +27,7 @@ public class SuppResult extends Result implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 111222L;
 	/**
 		 * 
 		 */
@@ -50,10 +50,16 @@ public class SuppResult extends Result implements Serializable {
 	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
 	public HashMap<String, HashMap<String,Boolean>> satCId;
+	public int nodeNum;
 	
 	public boolean extendPattern;
 	
 	public SuppResult(){
+		this.pivotMatchP = new HashMap<String,IntSet>();
+		this. pivotMatchGfd = new HashMap<String, HashMap<String,IntSet>>();
+		//public HashMap<String, Set<String>> satCIds; // satisfied 
+		this.satCId = new HashMap<String, HashMap<String,Boolean>>() ;
+		this.extendPattern = false;
 		
 	}
 	/*
@@ -97,45 +103,44 @@ public class SuppResult extends Result implements Serializable {
 
 
 	@Override
-	public void assemblePartialResults(Collection<Result> partialResults, HashMap<String,IntSet> pivotMatch,
-			HashMap<String, HashMap<String,IntSet>> gfdPMatch,HashMap<String, HashMap<String,Boolean>> cIds, boolean flagP) {
+	public void assemblePartialResults(Collection<Result> partialResults) {
 		// TODO Auto-generated method stub
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
 		
 		for(Result r : partialResults){
 			SuppResult pr = (SuppResult) r;
-			flagP = pr.extendPattern;
-			log.debug(flagP);
-			if(flagP == true){
+			this.extendPattern = pr.extendPattern;
+			this.nodeNum = this.nodeNum + pr.nodeNum;
+			//log.debug(this.extendPattern);
+			if(this.extendPattern == true){
 				for(Entry<String, IntSet> entry: pr.pivotMatchP.entrySet()){
-					if(!pivotMatch.containsKey(entry.getKey())){
-						pivotMatch.put(entry.getKey(), entry.getValue());
+					if(!this.pivotMatchP.containsKey(entry.getKey())){
+						this.pivotMatchP.put(entry.getKey(), entry.getValue());
 					}
-					IntSet a = new IntOpenHashSet(pivotMatch.get(entry.getKey()));
-					a.retainAll(entry.getValue());
+					this.pivotMatchP.get(entry.getKey()).retainAll(entry.getValue());
 				}
 			}
 			else{
 				for(Entry<String, HashMap<String,IntSet>> entry: pr.pivotMatchGfd.entrySet()){
 					String pId = entry.getKey();
-					if(!gfdPMatch.containsKey(entry.getKey())){
-						gfdPMatch.put(pId, new HashMap<String,IntSet>());
+					if(!this.pivotMatchGfd.containsKey(entry.getKey())){
+						this.pivotMatchGfd.put(pId, new HashMap<String,IntSet>());
 					}
-					if(!cIds.containsKey(pId)){
-						satCId.put(pId, new HashMap<String,Boolean>());	
+					if(!this.satCId.containsKey(pId)){
+						this.satCId.put(pId, new HashMap<String,Boolean>());	
 					}
 					for(Entry<String,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
 						String cId = entry2.getKey();
-					    if(!gfdPMatch.get(pId).containsKey(cId)){
-						 gfdPMatch.get(entry.getKey()).put(entry2.getKey(), entry2.getValue());
+					    if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
+					    	this.pivotMatchGfd.get(entry.getKey()).put(entry2.getKey(), entry2.getValue());
 					    }
-					    gfdPMatch.get(pId).get(cId).retainAll(entry2.getValue());
+					    this.pivotMatchGfd.get(pId).get(cId).retainAll(entry2.getValue());
 					    
-					    if(!satCId.get(pId).containsKey(cId)){
-							satCId.get(pId).put(cId, true);
+					    if(!this.satCId.get(pId).containsKey(cId)){
+							this.satCId.get(pId).put(cId, true);
 						}
 					    if(pr.satCId.get(pId).get(cId) == false){
-					    	satCId.get(pId).put(cId, false);
+							this.satCId.get(pId).put(cId, false);
 					    }
 					}
 					
@@ -167,13 +172,13 @@ public class SuppResult extends Result implements Serializable {
 		
 		SuppResult sp1 = new SuppResult(pmap);
 		sp1.extendPattern = true;
-		SuppResult sp2 = new SuppResult(pmap);
-		sp2.extendPattern = true;
+		//SuppResult sp2 = new SuppResult(pmap);
+		//sp2.extendPattern = true;
 		Collection<Result> partialResults = new HashSet<Result>();
 		partialResults.add(sp1);
-		partialResults.add(sp2);
+		//partialResults.add(sp2);
 		SuppResult sp = new SuppResult();
-		sp.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
+		//sp.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
 		log.debug("done"+pivotMatchP.size());
 		
 		HashMap<String, HashMap<String,IntSet>> gfdmatch = new HashMap<String,HashMap<String,IntSet>>();
@@ -194,12 +199,12 @@ public class SuppResult extends Result implements Serializable {
 			c.put(s, cid);
 		}
 		SuppResult sp3 = new SuppResult(gfdmatch,c);
-		SuppResult sp4 = new SuppResult(gfdmatch,c);
+		//SuppResult sp4 = new SuppResult(gfdmatch,c);
 		Collection<Result> partialResults2 = new HashSet<Result>();
 		partialResults2.add(sp3);
-		partialResults2.add(sp4);
+		//partialResults2.add(sp4);
 		SuppResult s = new SuppResult();
-		s.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
+		//s.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
 		log.debug("done");
 		
 		
@@ -215,11 +220,7 @@ public class SuppResult extends Result implements Serializable {
 	}
 
 
-	@Override
-	public void assemblePartialResults(Collection<Result> partialResults) {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 
 

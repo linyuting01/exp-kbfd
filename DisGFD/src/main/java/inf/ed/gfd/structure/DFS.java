@@ -44,9 +44,9 @@ public DFS(DFS dfs) {
   public String toString(){
     StringBuffer sb = new StringBuffer();
     sb.append(this.fLabel.toString());
-    sb.append(";");
+    sb.append(";;");
     sb.append(this.tLabel.toString());
-    sb.append(";");
+    sb.append(";;");
     sb.append(this.eLabel);
     return sb.toString();
     
@@ -67,12 +67,12 @@ public DFS(DFS dfs) {
   
   public static void main(String args[]) throws CloneNotSupportedException {  
     
-	// Pair<String,Integer> a = new Pair<String,Integer> (3,5);
-	// Pair<String,Integer> b = new Pair<String,Integer> (4,1);
-	// int c = 2;
-	// DFS dfs = new DFS(a,b,c);
+	Pair<String,Integer> a = new Pair<String,Integer> ("a",5);
+	Pair<String,Integer> b = new Pair<String,Integer> ("b",1);
+	 int c = 2;
+	DFS dfs = new DFS(a,b,c);
 	// DFS dfsn = (DFS) dfs.clone();
-	// log.debug(dfs.toString());
+	log.debug(dfs.toString());
   }
   @Override
   public boolean equals(Object o) {
@@ -100,14 +100,14 @@ public DFS(DFS dfs) {
 	   return dfsn;
   }
   public boolean isEqualL(){
-	   if(this.fLabel.x == this.tLabel.x){
+	   if(this.fLabel.x.equals(this.tLabel.x)){
 		   return true;
 	   }
 	   return false;
   }
   
   public boolean isEqualL(DFS dfs2){
-	   if(this.fLabel.x == dfs2.fLabel.x && this.tLabel.x == dfs2.tLabel.x){
+	   if(this.fLabel.x.equals( dfs2.fLabel.x) && this.tLabel.x.equals(dfs2.tLabel.x)){
 		   return true;
 	   } 
 	   return false;

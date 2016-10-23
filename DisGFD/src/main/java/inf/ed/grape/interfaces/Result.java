@@ -19,6 +19,7 @@ public abstract class Result implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	static Logger log = LogManager.getLogger(Result.class);
+	
 
 	/** a function how to assemble partial results to a final result. */
 	public abstract void assemblePartialResults(

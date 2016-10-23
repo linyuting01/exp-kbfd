@@ -383,6 +383,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			this.workerProxyMap.get(workerID).nextLocalCompute(superstep);
 		}
 		superstep++;
+		resultMap.clear();
 		//this.activeWorkerSet.clear();
 	}
 
@@ -520,7 +521,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			
 
 				SuppResult finalResult = new SuppResult();
-				log.debug(finalResult.pivotMatchP.size());
+				//log.debug(finalResult.pivotMatchP.size());
 				log.debug(resultMap.values().size());
 				finalResult.assemblePartialResults(resultMap.values());
 				log.debug(finalResult.pivotMatchP.size());
@@ -636,6 +637,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						if(flagExtendP == false){
 							finishLocalCompute();
 							log.debug("all process done!");
+							this.shutdown();
 						}
 						
 				}
@@ -670,6 +672,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					if(flagExtend == false){
 						finishLocalCompute();
 						log.debug("all process done!");
+						this.shutdown();
 					}
 				}
 				}

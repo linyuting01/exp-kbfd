@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 public class ParDisWorkUnit extends LocalComputeTask {
 	
 	//private Set<WorkUnit> workload;
-	private Map<String, WorkUnit> assembledWorkload;
+	//private Map<String, WorkUnit> assembledWorkload;
 	public GfdMsg gfdMsg = new GfdMsg();
 	private int partitionId;
 	
@@ -56,8 +56,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 	
 	//SuppResult suppResult = new SuppResult();
-	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
-	public HashMap<String, HashMap<String,Boolean>> satCId;
+	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd = new HashMap<String, HashMap<String,IntSet>>() ;
+	public HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String, HashMap<String,Boolean>>();
 	
 	public boolean isGfdCheck;
 	
@@ -160,7 +160,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
 					edgePatternNodeMatch,patternNodeMatchesN);
 			log.debug(edgePattern.size());
-		    SuppResult w = new SuppResult(pivotPMatch);
+		    SuppResult w = (SuppResult)this.generatedResult;
+		    w.pivotMatchP =	pivotPMatch;
 		    log.debug(w.pivotMatchP.size());
 		    w.extendPattern = true;
 		    w.nodeNum = Params.GRAPHNODENUM;
@@ -234,16 +235,18 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public void prepareResult(boolean flag) {
 		// TODO Auto-generated method stub
 		if(flag){
-			SuppResult partialResult = new SuppResult(pivotPMatch);
-			partialResult.extendPattern = true;
-			 partialResult.nodeNum = Params.GRAPHNODENUM;
-			this.generatedResult = partialResult;
+			 SuppResult w = (SuppResult)this.generatedResult;
+			    w.pivotMatchP =	pivotPMatch;
+			    w.extendPattern = true;
+			    w.nodeNum = Params.GRAPHNODENUM;
 		}
 		else{
-			SuppResult partialResult = new SuppResult(pivotMatchGfd,satCId);
-			partialResult.extendPattern = false;
-			 partialResult.nodeNum = Params.GRAPHNODENUM;
-			this.generatedResult = partialResult;
+			SuppResult w = (SuppResult)this.generatedResult;
+			w.extendPattern = false;
+			w.pivotMatchGfd = pivotMatchGfd;
+			w.satCId = satCId;
+			 w.nodeNum = Params.GRAPHNODENUM;
+			
 		}
 		
 		//send to SC
@@ -274,6 +277,9 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	@Override
 	public boolean incrementalCompute(Partition partition){
 		log.info("now incremental compute ");
+		pivotMatchGfd.clear();
+		satCId.clear();
+		pivotPMatch.clear();
 		boolean flag = processWorkUnitAndGfdMsg(partition);
 		if(flag){
 			prepareResult(true);

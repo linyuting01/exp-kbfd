@@ -11,5 +11,6 @@ public class Params {
 	public static int N_PROCESSORS;
 	public static String CONFIG_FILENAME;
 	public static int GRAPHNODENUM;
+
 }
 

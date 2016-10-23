@@ -65,7 +65,7 @@ public class Pair<T,T1> implements Comparable<Pair<String,Integer>>, Serializabl
 	}
 
 	public String toString() {
-		return x + "," + y ;
+		return x + ",," + y ;
 	}
 
 

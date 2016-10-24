@@ -587,7 +587,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 		this.stopSendingMessage = false;
 		if(flagSetWorkUnit == true){
-		this.flagLocalCompute = true;
+			this.flagLocalCompute = true;
 		}
 
 		this.outgoingMessages.clear();
@@ -658,11 +658,17 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
 
 			try {
+				localComputeTask.workload.clear();
+				
 				localComputeTask.init(entry.getKey());
 				localComputeTask.setWorkUnits(workload);
+				localComputeTask.patternNodeMatchesP.clear();
+				localComputeTask.patternNodeMatchesP = new HashMap<String,List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
 				// add fetch
 				//localComputeTask.setPrefetchQuest(prefetchRequests);
 				//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
+				localComputeTask.patternNodeMatchesN.clear();
+				localComputeTask.pivotPMatch.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
 				this.flagSetWorkUnit = true;
 
@@ -670,6 +676,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				e.printStackTrace();
 			}
 		}
+		this.flagLocalCompute = true;
 		
 		
 	}

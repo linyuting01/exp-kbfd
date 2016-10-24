@@ -61,6 +61,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 	public boolean isGfdCheck;
 	
+	Set<String> dom = new HashSet<String>();
+	
 	public ParDisWorkUnit() {
 		// TODO Auto-generated constructor stub
 	}
@@ -158,13 +160,14 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			//generate edge patterns.
 			EdgePattern eP = new EdgePattern();
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
-					edgePatternNodeMatch,patternNodeMatchesN);
+					edgePatternNodeMatch,patternNodeMatchesN,dom);
 			log.debug(edgePattern.size());
 		    SuppResult w = (SuppResult)this.generatedResult;
 		    w.pivotMatchP =	pivotPMatch;
 		    log.debug(w.pivotMatchP.size());
 		    w.extendPattern = true;
 		    w.nodeNum = Params.GRAPHNODENUM;
+		    w.dom = dom;
 		    log.debug("set suppreslut done!");
 		    //superstep++;
 		
@@ -305,9 +308,9 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 private  void IncrePattern(Partition partition, HashMap<String, List<Pair<Integer,Integer>>> edgeMatch){
 		//pivotPMatch.clear();
-		patternNodeMatchesP.clear();;
-	    patternNodeMatchesP = (HashMap<String, List<Int2IntMap>>)patternNodeMatchesN.clone();
-	    patternNodeMatchesN. clear();
+		//patternNodeMatchesP.clear();;
+	    //patternNodeMatchesP = (HashMap<String, List<Int2IntMap>>)patternNodeMatchesN.clone();
+	   // patternNodeMatchesN. clear();
 	    for(Entry<String,List<WorkUnit>> entry1: workload.entrySet()){
 		    for(WorkUnit w : entry1.getValue()){
 		    	

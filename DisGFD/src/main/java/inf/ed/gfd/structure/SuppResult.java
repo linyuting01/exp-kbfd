@@ -51,6 +51,7 @@ public class SuppResult extends Result implements Serializable {
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
 	public HashMap<String, HashMap<String,Boolean>> satCId;
 	public int nodeNum;
+	public Set<String> dom;
 	
 	public boolean extendPattern;
 	
@@ -60,6 +61,7 @@ public class SuppResult extends Result implements Serializable {
 		//public HashMap<String, Set<String>> satCIds; // satisfied 
 		this.satCId = new HashMap<String, HashMap<String,Boolean>>() ;
 		this.extendPattern = false;
+		this.dom = new HashSet<String>();
 		
 	}
 	/*
@@ -90,6 +92,12 @@ public class SuppResult extends Result implements Serializable {
 	public SuppResult(HashMap<String, IntSet> pivotPMatch) {
 		// TODO Auto-generated constructor stub
 		this.pivotMatchP = pivotPMatch;
+	}
+	
+	public SuppResult(HashMap<String, IntSet> pivotPMatch, HashSet<String> domx) {
+		// TODO Auto-generated constructor stub
+		this.pivotMatchP = pivotPMatch;
+		this.dom = domx;
 	}
 
 

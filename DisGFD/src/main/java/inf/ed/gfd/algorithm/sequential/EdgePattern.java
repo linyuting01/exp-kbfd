@@ -75,7 +75,7 @@ public class EdgePattern {
 	  
 	 public List<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
 			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,  
-			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN){
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, Set<String> dom){
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
 	   List<DFS> DFS = new ArrayList<DFS>(); 
@@ -91,6 +91,8 @@ public class EdgePattern {
 	     tVertex = KB.getVertex(tID);
 	     String fLabel = fVertex.getAttr();
 	     String tLabel = tVertex.getAttr();
+	     dom.add(fLabel);
+	     dom.add(tLabel);
 	     
 	     int[] eLabel = edge.getAttr();
 	     int elNum = edge.attrCount;

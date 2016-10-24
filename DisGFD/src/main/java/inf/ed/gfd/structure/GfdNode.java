@@ -41,15 +41,20 @@ public class GfdNode {
 	public List<GfdNode> children; 
 	public String key;
 	public DFS edgePattern;
+	//public List<String> disConnectedP;
 	//public int nodeNUm = 0;
 	//private GfdNode rNeighbor;
 	
-	
+	public boolean isConnected;
+	//public boolean isNegative;
 	public WorkUnit wC2Wp;
 
 	public int nodeNum = 0;
 
-
+ /**
+  * for disconnected pattern 
+  * GfdNode keep : disConnectedP ;key; isConnected;
+  */
 
 	
 	

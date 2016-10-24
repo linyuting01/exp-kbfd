@@ -276,6 +276,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 							localComputeTask.compute(workingPartition);
 						}
 						else {
+							    partialResults.clear();
 								LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
 	
 								Partition workingPartition = partitions.get(localComputeTask
@@ -283,7 +284,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 								/** not begin step. incremental compute */
 								boolean isGfdCheck = localComputeTask.incrementalCompute(workingPartition);
+								log.debug("isGFDCheck" + isGfdCheck);
 								if(!isGfdCheck){
+									updateOutgoingMessages(localComputeTask.getMessages());
 									checkAndSendMessage();	
 									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
 											.get(localComputeTask.getPartitionID());
@@ -420,7 +423,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 			if (workerID.equals(this.workerID)) {
 
 				/** for gfd, discard these message */
-				// updateIncomingMessages(partitionID, message);
+				 updateIncomingMessages(partitionID, message);
 			} else {
 				if (outgoingMessages.containsKey(workerID)) {
 					outgoingMessages.get(workerID).add(message);
@@ -662,12 +665,14 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				
 				localComputeTask.init(entry.getKey());
 				localComputeTask.setWorkUnits(workload);
-				localComputeTask.patternNodeMatchesP.clear();
-				localComputeTask.patternNodeMatchesP = new HashMap<String,List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
-				// add fetch
-				//localComputeTask.setPrefetchQuest(prefetchRequests);
-				//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
-				localComputeTask.patternNodeMatchesN.clear();
+				if(!localComputeTask.patternNodeMatchesN.isEmpty()){
+					localComputeTask.patternNodeMatchesP.clear();
+					localComputeTask.patternNodeMatchesP = new HashMap<String,List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
+					// add fetch
+					//localComputeTask.setPrefetchQuest(prefetchRequests);
+					//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
+					localComputeTask.patternNodeMatchesN.clear();
+				}
 				localComputeTask.pivotPMatch.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
 				this.flagSetWorkUnit = true;

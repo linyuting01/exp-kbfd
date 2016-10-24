@@ -128,7 +128,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		if(!satCId.get(pId).containsKey(cId)){
 			satCId.get(pId).put(cId, true);
 		}
-		for(Int2IntMap match : patternNodeMatchesN.get(pId)){
+		for(Int2IntMap match : patternNodeMatchesP.get(pId)){
 			boolean flag = c.verify(match, partition.getGraph());
 			if(flag){
 				if(!pivotMatchGfd.containsKey(pId)){
@@ -162,6 +162,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
 					edgePatternNodeMatch,patternNodeMatchesN,dom);
 			log.debug(edgePattern.size());
+			log.debug("dom size" +dom.size());
 		    SuppResult w = (SuppResult)this.generatedResult;
 		    w.pivotMatchP =	pivotPMatch;
 		    log.debug(w.pivotMatchP.size());
@@ -180,7 +181,6 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 	
 	private void sendTransferData(int partitionId) {
-  
 			for (int targetPartitionID = 1; targetPartitionID <= Params.N_PROCESSORS &&  
 					targetPartitionID!= partitionId; targetPartitionID++) {
 		        
@@ -273,13 +273,14 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 
 	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload2) {
+		this.workload.clear();
 		// TODO Auto-generated method stub
 		this.workload = workload2;
 	}
 
 	@Override
 	public boolean incrementalCompute(Partition partition){
-		log.info("now incremental compute ");
+		log.info("now incremental compute to verify  ");
 		pivotMatchGfd.clear();
 		satCId.clear();
 		pivotPMatch.clear();

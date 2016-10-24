@@ -527,10 +527,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				log.debug(finalResult.pivotMatchP.size());
 				log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
+				ws.clear();
 				if(superstep ==1){
-					extendAndGenerateWorkUnits(1,finalResult);
+					intialExtendAndGenerateWorkUnits(finalResult);
 				}else{
-					extendAndGenerateWorkUnits(0,finalResult);
+					extendAndGenerateWorkUnits(finalResult);
 				}
 				log.debug("has created the new workunit");
 				
@@ -548,102 +549,117 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	//List<DFS> edgePattern = new ArrayList<DFS>();
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
-	public void extendAndGenerateWorkUnits(int superstep,SuppResult finalResult) throws RemoteException{
+	//superstep 1;
+	public void intialExtendAndGenerateWorkUnits(SuppResult finalResult){
+		log.debug("begin compute support of edge pattern and extend condition y");
+		dom = finalResult.dom;
+		log.debug("dom size " +dom.size());
+		for(String s :finalResult.pivotMatchP.keySet()){	
+			double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
+			if(supp >= Params.VAR_SUPP){
+				log.debug("supp value " + supp);
+				DFS dfs = Fuc.getDfsFromString(s);
+				edgePattern.add(dfs);
+				log.debug("edgePattern size" +edgePattern.size());
+			}		
+		}
+		gfdTree.extendNode(gfdTree.getRoot(), edgePattern, dom);
+		log.debug("begin create workunit for edge pattern with wmpty -> y");
+		for(GfdNode g:gfdTree.getRoot().children){
+			for(LiterNode t:g.ltree.getRoot().children){
+				WorkUnit w = new WorkUnit(g.key,t.dependency,true,true);
+				if(!ws.containsKey(g.key)){
+					ws.put(g.key, new ArrayList<WorkUnit>());
+				}
+				ws.get(g.key).add(w);
+				
+			}	
+		}
+	}
+	
+	public void extendAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
+		if(finalResult.extendPattern == false){
+			verifyGfdAndGenerateWorkUnits(finalResult);
+		}else{
+			verifyPatternAndGenerateWorkUnits(finalResult);
+		}
+	}
+	public void verifyGfdAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
 		//the dirst time recieve the result;
-			if(superstep == 1){
-				log.debug("begin compute support of edge pattern and extend condition y");
-				for(String s :finalResult.pivotMatchP.keySet()){
-					double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
+	
+			log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
+			for(Entry<String, HashMap<String,IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
+				String pId = entry.getKey();
+				for(Entry<String,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
+					String cId = entry2.getKey();
+					double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
+					log.debug("supp value " + supp);
 					if(supp >= Params.VAR_SUPP){
-						log.debug("supp value " + supp);
-						DFS dfs = Fuc.getDfsFromString(s);
-						edgePattern.add(dfs);
-					}
-				}
-				gfdTree.extendNode(gfdTree.getRoot(), edgePattern, dom);
-				//if != null
-				log.debug("begin create workunit for edge pattern with wmpty -> y");
-				for(GfdNode g:gfdTree.getRoot().children){
-					for(LiterNode t:g.ltree.getRoot().children){
-						WorkUnit w = new WorkUnit(g.key,t.dependency,true,true);
-						if(!ws.containsKey(g.key)){
-							ws.put(g.key, new ArrayList<WorkUnit>());
+						if(finalResult.satCId.get(pId).get(cId)){
+							Pair<String,String> gfd = new Pair<String,String>(pId,cId);
+							gfdResults.add(gfd);
 						}
-						ws.get(g.key).add(w);
-					}
-					
-				}
-			}
-			else{
-				if(finalResult.extendPattern == false){
-					log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
-					for(Entry<String, HashMap<String,IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
-						String pId = entry.getKey();
-						for(Entry<String,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
-							String cId = entry2.getKey();
-							double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
-							if(supp >= Params.VAR_SUPP){
-								if(finalResult.satCId.get(pId).get(cId)){
-									Pair<String,String> gfd = new Pair<String,String>(pId,cId);
-									gfdResults.add(gfd);
-								}
-								else{
-									GfdNode g = gfdTree.pattern_Map.get(pId);
-									LiterNode t = g.ltree.condition_Map.get(cId);
-									gfdTree.updateLiteral(g, edgePattern, t);
-									g.ltree.extendNode(dom, t);
-								}
-							}
-						}
-						
-					}
-					boolean flagExtend = false;
-					for(String pId: finalResult.pivotMatchGfd.keySet()){
-						for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
+						else{
 							GfdNode g = gfdTree.pattern_Map.get(pId);
 							LiterNode t = g.ltree.condition_Map.get(cId);
-							if(t.children!=null){
-								flagExtend = true;
-								for(LiterNode tc : t.children){
-									WorkUnit w = new WorkUnit(pId,tc.key,true,true);
-									if(!ws.containsKey(pId)){
-										ws.put(pId, new ArrayList<WorkUnit>());
-									}
-									ws.get(pId).add(w);
-								}
-							}
+							gfdTree.updateLiteral(g, edgePattern, t);
+							g.ltree.extendNode(dom, t);
 						}
 					}
-					log.debug("no condition more, begin to extend pattern");
-					if(flagExtend == false){
-						boolean flagExtendP = false;
-						//no more extend of literNode
-						for(String pId:finalResult.pivotMatchGfd.keySet()){
-							GfdNode g = gfdTree.pattern_Map.get(pId);
-							if(g.children != null){
-								flagExtendP = true;
-								for(GfdNode t: g.children ){
-									// pattern workunit
-									if(!ws.containsKey(pId)){
-										ws.put(pId, new ArrayList<WorkUnit>());
-									}
-									t.wC2Wp.oriPatternId = g.parent.key;
-									ws.get(pId).add(t.wC2Wp);//revise
+				}
+				
+			}
+			boolean flagExtend = false;
+			for(String pId: finalResult.pivotMatchGfd.keySet()){
+				for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
+					GfdNode g = gfdTree.pattern_Map.get(pId);
+					LiterNode t = g.ltree.condition_Map.get(cId);
+					if(t.children!=null ){
+						if(!t.children.isEmpty()){
+							flagExtend = true;
+							for(LiterNode tc : t.children){
+								WorkUnit w = new WorkUnit(pId,tc.key,true,true);
+								if(!ws.containsKey(pId)){
+									ws.put(pId, new ArrayList<WorkUnit>());
 								}
+								ws.get(pId).add(w);
 							}
-							
-							
-						}
-						if(flagExtendP == false){
-							finishLocalCompute();
-							log.debug("all process done!");
-							this.shutdown();
-						}
-						
+					}
 				}
-				}
+			}
+	    	}
 			
-				else{
+			if(flagExtend == false){
+				log.debug("no condition more, begin to extend pattern");
+				boolean flagExtendP = false;
+				//no more extend of literNode
+				for(String pId:finalResult.pivotMatchGfd.keySet()){
+					GfdNode g = gfdTree.pattern_Map.get(pId);
+					if(g.children != null){
+						if(!g.children.isEmpty()){
+							flagExtendP = true;
+							for(GfdNode t: g.children ){
+								// pattern workunit
+								if(!ws.containsKey(pId)){
+									ws.put(pId, new ArrayList<WorkUnit>());
+								}
+								t.wC2Wp.oriPatternId = g.parent.key;
+								t.wC2Wp.isGfdCheck = false;
+								ws.get(pId).add(t.wC2Wp);//revise
+						}
+						}
+					}
+				}
+				if(flagExtendP == false){
+					finishLocalCompute();
+					log.debug("all process done!");
+					this.shutdown();
+				}
+				
+	}
+	}
+		
+	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
 					boolean flagExtend = false;
 					log.debug("begin to verify pattern support");
 					for(String pId :finalResult.pivotMatchP.keySet()){
@@ -659,7 +675,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							}
 							for(LiterNode t :g.ltree.getRoot().children){
 								//create WorkUnit
-								WorkUnit w = new WorkUnit(pId,t.key,true,true);
+								WorkUnit w = new WorkUnit(pId,t.key,true,false);
 								if(!ws.containsKey(pId)){
 									ws.put(pId, new ArrayList<WorkUnit>());
 								}
@@ -675,11 +691,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						this.shutdown();
 					}
 				}
-				}
 				
 	
 
-}
 	
 	
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
@@ -703,7 +717,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		//log.debug("should be very quick");
 		for (Entry<String,List<WorkUnit>> wu : ws.entrySet()) {
 			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++)
-				assignment.put(assignedMachine, new HashMap<String,List<WorkUnit>>());
+				assignment.put(assignedMachine, ws);
 			}
 		log.debug("job assignment finished. begin to dispatch.");
 

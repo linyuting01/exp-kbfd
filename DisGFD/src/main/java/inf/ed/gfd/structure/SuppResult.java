@@ -126,6 +126,7 @@ public class SuppResult extends Result implements Serializable {
 						this.pivotMatchP.put(entry.getKey(), entry.getValue());
 					}
 					this.pivotMatchP.get(entry.getKey()).retainAll(entry.getValue());
+					if(this.dom.addAll(pr.dom));
 				}
 			}
 			else{

@@ -14,6 +14,7 @@ public class SimP implements Comparable<SimP>, Serializable {
 	 
 	String patternId;
 	double supp;
+	int nodeNum;
 
 	public SimP() {
 		// TODO Auto-generated constructor stub

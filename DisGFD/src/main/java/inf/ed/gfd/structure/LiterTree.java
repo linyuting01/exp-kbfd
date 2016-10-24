@@ -5,6 +5,7 @@ package inf.ed.gfd.structure;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -453,5 +454,62 @@ public class LiterTree {
 		
 	}
 
-
+	 
+	 
+	 ///////////////////////////////////////////////////////////////////////////////
+	 /*
+	  * fir disconnected pattern literal extention;// condition xy x : pattern num;
+	  * 
+	  */////////////////////////////////////////////////////////////////////////////
+	 
+	
+	 
+	 
+	 public void disExtendY(DisConnectedNode n, DisconnectedTree t, Set<String> dom, LiterNode g){
+		 int pIdenttity = 1;
+		 int num[] = new int[n.patterns.size()];
+		 for(int p :n.patterns){
+			 String pId = t.connectdPatternIndex.get(p);
+			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
+			 num[pIdenttity-1] = nodeNum;
+			 for(int i = 0; i< nodeNum ; i++){
+				 String s = ""+pIdenttity+i;
+				 int nodeId = Integer.parseInt(s);
+				 for(String s2 : dom){
+					 addNode(g, 1, nodeId, s2);
+				 }
+			 }
+			 pIdenttity++; 
+		 }
+		 for(int i = 1;i<=n.patterns.size();i++){
+			 for(int j= i+1;j<=n.patterns.size();j++){
+				 yVarTwoPattern(i,j,num[i-1],num[j-1],g);
+			 }
+		 }
+		 
+		 
+	 }
+	 public void yVarTwoPattern(int m,int n, int num1,int num2, LiterNode g){
+		 if(num1>num2){
+			 int tmpt1 = num2;
+			 num2 = num1;
+			 num1 = tmpt1;
+			 int tmpt = n;
+			 n = m;
+			 m= tmpt;
+			 
+		 }
+		 else{
+		 for(int i=1 ;i<= num1;i++){
+			 for(int j=i;i<num2;j++){
+				 String s1 = ""+m+i;
+				 String s2 = ""+n+i;
+				 int nodeId1 = Integer.parseInt(s1);
+				 int nodeId2 = Integer.parseInt(s2);
+				 addNode(g, 1, nodeId1, nodeId2);
+				 
+			 }
+		 }
+	 }
+	 }
 }

@@ -45,10 +45,17 @@ public class DisconnectedTree {
 			addRoorChildren(pa);
 		}
 		List<DisConnectedNode> flist = this.root.children;
+		
 		boolean loopfor = true;
-		while(!flist.isEmpty()){
+		boolean klayer = true;
+		while(!flist.isEmpty() && klayer){
 			this.flag = Integer.MAX_VALUE;
 			for(DisConnectedNode t: flist){
+				if(t.layer > Params.var_K){
+					klayer = false;
+	        		break;
+					
+				}
 				if(loopfor){
 					if(t.lastPId<= begin){
 						index = begin;
@@ -80,10 +87,14 @@ public class DisconnectedTree {
 					}
 				}
 			}
-			//flist = 
+			List<DisConnectedNode> tmptList = new ArrayList<DisConnectedNode>();
+			for(DisConnectedNode x: flist){
+				tmptList.addAll(x.children);
+			}
+			flist.clear();
+			flist = tmptList;
 		}
-		
-	}
+}
 
 	
 	public int filters(DisConnectedNode parent, int pattern){
@@ -110,6 +121,7 @@ public class DisconnectedTree {
 		p.supp = pattern.supp;
 		p.lastPId = num+1;
 		p.flag = Integer.MAX_VALUE;
+		p.pNodeNum = pattern.nodeNum;
 	}
 		
 	/**
@@ -119,17 +131,20 @@ public class DisconnectedTree {
 	 */
 
 	public void addNode(DisConnectedNode parent, int padd, SimP pattern){
-		DisConnectedNode p = new DisConnectedNode();
-		p.parent = parent;
-		parent.children.add(p);
-		p.patterns = new ArrayList<Integer>(parent.patterns);
-		p.patterns.add(padd);
-		p.layer = parent.layer+1;
-		p.supp = parent.supp* pattern.supp;
-		String newId = p.getpId();
-		disConnectedPatternIndex.put(newId, p);
-		p.lastPId = padd;
-		p.flag = Integer.MAX_VALUE;
+		if(parent.pNodeNum +pattern.nodeNum <= Params.var_K){
+			DisConnectedNode p = new DisConnectedNode();
+			p.parent = parent;
+			parent.children.add(p);
+			p.patterns = new ArrayList<Integer>(parent.patterns);
+			p.patterns.add(padd);
+			p.layer = parent.layer+1;
+			p.supp = parent.supp* pattern.supp;
+			String newId = p.getpId();
+			disConnectedPatternIndex.put(newId, p);
+			p.lastPId = padd;
+			p.flag = Integer.MAX_VALUE;
+			p.pNodeNum = parent.pNodeNum + pattern.nodeNum;
+		}
 	}
 	
 

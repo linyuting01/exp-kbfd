@@ -22,6 +22,8 @@ public class DisConnectedNode {
 	double supp;
 	public int flag; // for prune
 	public int lastPId;
+	public int pNodeNum = 0;
+	public LiterTree ltree;
 
 	public DisConnectedNode() {
 		// TODO Auto-generated constructor stub
@@ -41,5 +43,8 @@ public class DisConnectedNode {
 		return s;
 	}
 	
+	public int getCompontNum(){
+		return this.patterns.size();
+	}
 
 }

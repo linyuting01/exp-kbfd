@@ -614,14 +614,21 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
 					t.supp = supp;
 					log.debug("supp value " + supp);
-					if(supp == 0){
-						negGfdXCands.add(new Pair<String,String>(pId,cId));
+					t.supp = supp;
+					log.debug("supp value " + supp);
+					if(supp == 0 && t.negCheck){
+						//negGfdXCands.add(new Pair<String,String>(pId,cId));
+						negGfdXF.add(new Pair<String,Condition>(pId,t.dependency));
 					}
 					
+					if(!t.negCheck){
 					if(supp >= Params.VAR_SUPP){
 						if(finalResult.satCId.get(pId).get(cId)){
 							Pair<String,String> gfd = new Pair<String,String>(pId,cId);
 							gfdResults.add(gfd);
+							//for negative gfd checking 
+							t.isSat = true;	
+							g.ltree.addNegCheck(t);
 						}
 						else{
 							
@@ -629,10 +636,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							g.ltree.extendNode(dom, t);
 						}
 					}
+					}
 				}
 				
 			}
-			processNegGfdXFCands();
+			//processNegGfdXFCands();
 			boolean flagExtend = false;
 			for(String pId: finalResult.pivotMatchGfd.keySet()){
 				for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
@@ -693,7 +701,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					    double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
 					    g.supp = supp;
 					    if(supp == 0){
-							negCands.add(pId);
+					    	negGfdP.add(pId);
+							//negCands.add(pId);
 						}
 						if(supp >= Params.VAR_SUPP){
 					        // end one gfdNode
@@ -724,7 +733,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						}
 					}
 					//for negative p
-					processNegativePCands();
+					//processNegativePCands();
 					//for disconnected
 					if(!patterns.isEmpty()){
 						Collections.sort(patterns);
@@ -737,9 +746,48 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						this.shutdown();
 					}
 				}
-				
+	
+	
+	 public void processNegativePCands(){
+		  
+		   List<DFS> pattern = new ArrayList<DFS>();
+		   List<String> pCands = new ArrayList<String>(); 
+		   if(!negCands.isEmpty()){
+			   for(String pId: negCands){
+				   GfdNode g = gfdTree.pattern_Map.get(pId);
+				   pCands.clear();
+				   pattern.clear();
+				   //find all possible parent
+				   while(g!= gfdTree.getRoot()){
+					   pattern.add(g.edgePattern);
+					   g = g.parent;
+				   }
+				   for(int i=0;i< pattern.size();i++){
+					   List<DFS> newPattern = new ArrayList<DFS>();
+					   for(int j = pattern.size()-1;j!= i && j>=0;j--){
+						  newPattern.add(pattern.get(j));
+					   }
+					   StringBuffer sb = new StringBuffer();
+					   for(DFS dfs : newPattern){
+						   sb.append(dfs.toString());
+					   }
+					   String ppId = sb.toString();
+					   if(gfdTree.pattern_Map.containsKey(ppId)){
+						   GfdNode nt = gfdTree.pattern_Map.get(ppId);
+						   if(nt.supp>=Params.var_K){
+							   negGfdP.add(ppId);
+							   break;
+						   }
+					   }
+				   }
+			   }
+		   }
+		   
+		   
+	   }			
 
 //public Set<String> negGfdP = new HashSet<String>();
+	/*
    public void processNegativePCands(){
 	  
 	   List<DFS> pattern = new ArrayList<DFS>();
@@ -779,6 +827,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
    }
    //suppose no order;
    //HashMap<Integer,String> simDependency();
+   
    public void processNegGfdXFCands(){
 	   if(!negGfdXCands.isEmpty()){
 		   for(Pair<String,String> p : negGfdXCands){
@@ -843,7 +892,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			  }
 		  }
 		  return false;
-	}
+	}*/
 	
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	

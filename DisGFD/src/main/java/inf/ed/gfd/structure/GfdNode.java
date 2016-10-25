@@ -3,6 +3,7 @@
  */
 package inf.ed.gfd.structure;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ import inf.ed.graph.structure.adaptor.VertexString;
  * @author v1xliu33
  *
  */
-public class GfdNode {
+public class GfdNode implements Comparable<GfdNode> {
 
 	/**
 	 * 
@@ -41,6 +42,10 @@ public class GfdNode {
 	public List<GfdNode> children; 
 	public String key;
 	public DFS edgePattern;
+	public String newAttr;
+	public HashMap<String,Integer> attrs;
+	public Set<DFS> extendDfss;
+	public int pos;
 	//public List<String> disConnectedP;
 	//public int nodeNUm = 0;
 	//private GfdNode rNeighbor;
@@ -73,6 +78,9 @@ public class GfdNode {
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
 		this.patternDom = new HashMap<Integer, Set<String>>();
+		this.attrs = new HashMap<String,Integer>();
+		this.extendDfss = new HashSet<DFS>();
+		
 		//this.rNeighbor = null;
 	}
 
@@ -83,6 +91,7 @@ public class GfdNode {
 	//public void setPattern(SimpleGraph<VertexString, TypedEdge> pattern) {
 	//	this.pattern = pattern;
 	//}
+ 
 
 	public LiterTree getLtree() {
 		return ltree;
@@ -133,6 +142,13 @@ public class GfdNode {
 				}
 			}
 		}
+	}
+
+	@Override
+	public int compareTo(GfdNode arg0) {
+		// TODO Auto-generated method stub
+		
+		return this.edgePattern.compareTo(arg0.edgePattern);
 	}
 
 }

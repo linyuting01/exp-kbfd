@@ -48,8 +48,12 @@ public class GfdNode {
 	public boolean isConnected;
 	//public boolean isNegative;
 	public WorkUnit wC2Wp;
+	public double supp;
 
 	public int nodeNum = 0;
+	
+	
+	public HashMap<Integer, Set<String>> patternDom; 
 
  /**
   * for disconnected pattern 
@@ -68,6 +72,7 @@ public class GfdNode {
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
+		this.patternDom = new HashMap<Integer, Set<String>>();
 		//this.rNeighbor = null;
 	}
 
@@ -115,6 +120,19 @@ public class GfdNode {
 //	}
 	//public void setPatternCode(Vector<DFS> patternCode){
 	//	this.patternCode = patternCode;
-	//}	    
+	//}	
+	public void getDom(){
+		for(LiterNode t:this.ltree.getRoot().children){
+			if(t.supp > 0){
+				if(t.dependency.isLiteral){
+					Pair<Integer,String> p = t.dependency.YEqualsLiteral;
+					if(!patternDom.containsKey(p.x)){
+						patternDom.put(p.x, new HashSet<String>());
+					}
+					patternDom.get(p.x).add(p.y);
+				}
+			}
+		}
+	}
 
 }

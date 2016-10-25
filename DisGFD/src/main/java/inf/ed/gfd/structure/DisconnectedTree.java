@@ -2,13 +2,16 @@ package inf.ed.gfd.structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.event.ConnectedComponentTraversalEvent;
 
 import inf.ed.gfd.util.Params;
+import inf.ed.graph.structure.adaptor.Pair;
 
 public class DisconnectedTree {
 	static Logger log = LogManager.getLogger(DisconnectedTree.class);
@@ -18,6 +21,9 @@ public class DisconnectedTree {
 	public HashMap<String, DisConnectedNode> disConnectedPatternIndex;
 	public int preConnectedPNum = 0;
 	public int flag = Integer.MAX_VALUE;
+	public Set<String> dom; //zhuyifuzhi
+	
+	//public WorkUnit disws ;
 
 	
 	//public int connectPatternNum = 0;
@@ -29,6 +35,8 @@ public class DisconnectedTree {
 		this.root = new DisConnectedNode();
 		this.disConnectedPatternIndex = new HashMap<String, DisConnectedNode>();
 		this.connectdPatternIndex = new HashMap<Integer, String>();
+		this.dom = new HashSet<String>();
+		//this.disws = new WorkUnit();
 		
 	}
 	
@@ -144,7 +152,29 @@ public class DisconnectedTree {
 			p.lastPId = padd;
 			p.flag = Integer.MAX_VALUE;
 			p.pNodeNum = parent.pNodeNum + pattern.nodeNum;
+			/*
+			p.ltree.dom = dom;
+			p.ltree.extendSpace(p,this);
+			p.ltree.disExtendRoot();
+			List<String> ps = new ArrayList<String>();
+			for(int patt : p.patterns){
+				String s = connectdPatternIndex.get(patt);
+				ps.add(s);
+			}
+			*/
+			
+			
 		}
+	}
+	/***
+	 * validation
+	 */
+	public void intialVerifyPivotMatch(LiterNode t){
+		//first partition dependency
+		Condition c = t.dependency;
+		Pair<Integer,Integer> yv = c.YEqualsVariable;
+		
+		
 	}
 	
 

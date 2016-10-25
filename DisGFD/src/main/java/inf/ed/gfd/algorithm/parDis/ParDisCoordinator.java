@@ -1,11 +1,14 @@
 package inf.ed.gfd.algorithm.parDis;
 
+import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.CrossingEdge;
 import inf.ed.gfd.structure.DFS;
+import inf.ed.gfd.structure.DisconnectedTree;
 import inf.ed.gfd.structure.GFD2;
 import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.GfdTree;
 import inf.ed.gfd.structure.LiterNode;
+import inf.ed.gfd.structure.SimP;
 import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Fuc;
@@ -34,6 +37,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +55,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.Patterns;
 
 import com.carrotsearch.sizeof.RamUsageEstimator;
 
@@ -110,7 +115,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	// private Graph<VertexOString, OrthogonalEdge> KB;
 	
-	Set<Pair<String,String>> gfdResults = new HashSet<Pair<String,String>>();
+	
 	GfdTree gfdTree = new GfdTree();
 	
 	
@@ -125,6 +130,16 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	
 	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+	
+	DisconnectedTree distree = new DisconnectedTree();
+	
+	
+	
+	Set<Pair<String,String>> gfdResults = new HashSet<Pair<String,String>>();
+	//for negative gfds;
+	public Set<String> negCands = new HashSet<String>();
+	public Set<String> negGfdP = new HashSet<String>();
+	public Set<Pair<String,Condition>> negGfdXF = new HashSet<Pair<String,Condition>>();
 	
 	
 	
@@ -584,24 +599,32 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			verifyPatternAndGenerateWorkUnits(finalResult);
 		}
 	}
+	
+	public Set<Pair<String,String>> negGfdXCands = new HashSet<Pair<String,String>>();
 	public void verifyGfdAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
 		//the dirst time recieve the result;
-	
+		    negGfdXCands.clear();
 			log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
 			for(Entry<String, HashMap<String,IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
 				String pId = entry.getKey();
 				for(Entry<String,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
 					String cId = entry2.getKey();
+					GfdNode g = gfdTree.pattern_Map.get(pId);
+					LiterNode t = g.ltree.condition_Map.get(cId);
 					double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
+					t.supp = supp;
 					log.debug("supp value " + supp);
+					if(supp == 0){
+						negGfdXCands.add(new Pair<String,String>(pId,cId));
+					}
+					
 					if(supp >= Params.VAR_SUPP){
 						if(finalResult.satCId.get(pId).get(cId)){
 							Pair<String,String> gfd = new Pair<String,String>(pId,cId);
 							gfdResults.add(gfd);
 						}
 						else{
-							GfdNode g = gfdTree.pattern_Map.get(pId);
-							LiterNode t = g.ltree.condition_Map.get(cId);
+							
 							gfdTree.updateLiteral(g, edgePattern, t);
 							g.ltree.extendNode(dom, t);
 						}
@@ -609,6 +632,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 				
 			}
+			processNegGfdXFCands();
 			boolean flagExtend = false;
 			for(String pId: finalResult.pivotMatchGfd.keySet()){
 				for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
@@ -660,14 +684,28 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	}
 		
 	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
+		            negCands.clear();
 					boolean flagExtend = false;
+					List<SimP> patterns = new ArrayList<SimP>();
 					log.debug("begin to verify pattern support");
 					for(String pId :finalResult.pivotMatchP.keySet()){
-						double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
+						GfdNode g = gfdTree.pattern_Map.get(pId);
+					    double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
+					    g.supp = supp;
+					    if(supp == 0){
+							negCands.add(pId);
+						}
 						if(supp >= Params.VAR_SUPP){
-							// end one gfdNode
+					        // end one gfdNode
 							flagExtend = true;
-							GfdNode g = gfdTree.pattern_Map.get(pId);
+							
+							
+							//for disconnected
+							SimP simp = new SimP(pId,supp,g.nodeNum);
+							patterns.add(simp);
+							/////////////////
+							
+							//
 							if(g.nodeNum > g.parent.nodeNum){
 								
 								LiterNode t = g.ltree.getRoot();
@@ -685,6 +723,14 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 						}
 					}
+					//for negative p
+					processNegativePCands();
+					//for disconnected
+					if(!patterns.isEmpty()){
+						Collections.sort(patterns);
+						distree.extendTree(patterns);
+						
+					}
 					if(flagExtend == false){
 						finishLocalCompute();
 						log.debug("all process done!");
@@ -692,9 +738,112 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					}
 				}
 				
-	
 
-	
+//public Set<String> negGfdP = new HashSet<String>();
+   public void processNegativePCands(){
+	  
+	   List<DFS> pattern = new ArrayList<DFS>();
+	   List<String> pCands = new ArrayList<String>(); 
+	   if(!negCands.isEmpty()){
+		   for(String pId: negCands){
+			   GfdNode g = gfdTree.pattern_Map.get(pId);
+			   pCands.clear();
+			   pattern.clear();
+			   //find all possible parent
+			   while(g!= gfdTree.getRoot()){
+				   pattern.add(g.edgePattern);
+				   g = g.parent;
+			   }
+			   for(int i=0;i< pattern.size();i++){
+				   List<DFS> newPattern = new ArrayList<DFS>();
+				   for(int j = pattern.size()-1;j!= i && j>=0;j--){
+					  newPattern.add(pattern.get(j));
+				   }
+				   StringBuffer sb = new StringBuffer();
+				   for(DFS dfs : newPattern){
+					   sb.append(dfs.toString());
+				   }
+				   String ppId = sb.toString();
+				   if(gfdTree.pattern_Map.containsKey(ppId)){
+					   GfdNode nt = gfdTree.pattern_Map.get(ppId);
+					   if(nt.supp>=Params.var_K){
+						   negGfdP.add(ppId);
+						   break;
+					   }
+				   }
+			   }
+		   }
+	   }
+	   
+	   
+   }
+   //suppose no order;
+   //HashMap<Integer,String> simDependency();
+   public void processNegGfdXFCands(){
+	   if(!negGfdXCands.isEmpty()){
+		   for(Pair<String,String> p : negGfdXCands){
+			   GfdNode g = gfdTree.pattern_Map.get(p.x);
+			   LiterNode t = g.ltree.condition_Map.get(p.y);
+			   if(t.dependency.isLiteral){
+				   Pair<Integer,String> yl = t.dependency.YEqualsLiteral;
+				   if(t.dependency.XEqualsLiteral.containsKey(yl.x)){
+					   if(t.dependency.XEqualsLiteral.get(yl.x) == yl.y){
+						   getNegCond(g, t);
+					    }
+			       }
+		       }
+			   else{
+				   Pair<Integer,Integer> yv = t.dependency.YEqualsVariable;
+				   if(t.dependency.XEqualsVariable.containsKey(yv.x)){
+					   if(t.dependency.XEqualsVariable.get(yv.x).contains(yv.y)){ 
+						   getNegCond(g, t);
+					    }
+				   }
+			   }
+		   }
+	   }
+   }
+	 
+			   
+    public void getNegCond(GfdNode g, LiterNode t){
+    	boolean flag = false;
+		  for(Entry<Integer,String> entry1 :t.dependency.XEqualsLiteral.entrySet()){
+			  Condition c = (Condition) t.dependency.clone();
+			  c.XEqualsLiteral.remove(entry1.getKey());
+			  flag = verifyNeg(g,c);
+			  if(flag){
+				  break;
+			  }
+		  }
+		  if(flag == false){
+			  boolean loop = true;
+				  for(Entry<Integer,IntSet> entry2 :t.dependency.XEqualsVariable.entrySet()){
+					if(loop){
+					  for(int a : entry2.getValue()){
+						  Condition c = (Condition) t.dependency.clone();
+						  c.XEqualsVariable.get(entry2.getKey()).remove(c);
+						  
+						  flag = verifyNeg(g,c); 
+						  if(flag){
+							  loop = false;
+							  break;
+						  }
+					  }
+				  }
+		     }
+	     }
+    }
+	public boolean  verifyNeg(GfdNode g,Condition c){
+		 String newcId = c.toString();
+		  if(g.ltree.condition_Map.containsKey(newcId)){
+			  if(g.ltree.condition_Map.get(newcId).supp >= Params.var_K  &&
+					  g.ltree.condition_Map.get(newcId).isSat){
+				  negGfdXF.add(new Pair<String,Condition>(g.key,c));
+				  return true;
+			  }
+		  }
+		  return false;
+	}
 	
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	

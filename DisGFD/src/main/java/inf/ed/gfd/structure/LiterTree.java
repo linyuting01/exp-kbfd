@@ -3,6 +3,7 @@
  */
 package inf.ed.gfd.structure;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,12 +39,21 @@ public class LiterTree {
 	public HashMap<String, LiterNode> condition_Map;
 	public int layer = 0;
 	
+	
+	//for disconnected
+	List<Set<Pair<Integer,String>>> spacexl;
+	List<Set<Pair<Integer,Integer>>> spacexv;
+	Set<String> dom;
+	
+	
 
 	public LiterTree() {
 		// TODO Auto-generated constructor stub
 		this.root = new LiterNode();
 		//this.gNode = new GfdNode();
 		this.condition_Map = new HashMap<String, LiterNode>();
+		List<Set<Pair<Integer,String>>> spacexl = new ArrayList<Set<Pair<Integer,String>>>();
+		List<Set<Pair<Integer,Integer>>> spacexv = new ArrayList<Set<Pair<Integer,Integer>>>();
 	}
 	public LiterTree(GfdNode gNode) {
 		// TODO Auto-generated constructor stub
@@ -462,9 +472,146 @@ public class LiterTree {
 	  * 
 	  */////////////////////////////////////////////////////////////////////////////
 	 
+	 
 	
+	 public void disExtendRoot(){
+		 //initialize; component size =2;
+		 for(Pair<Integer,String> p1 : spacexl.get(0)){
+			 for(Pair<Integer,String> p2 : spacexl.get(1)){
+				 List<Pair<Integer,String>> xl = new ArrayList<Pair<Integer,String>>();
+				 xl.add(p1);
+				 xl.add(p2);
+				 for(Pair<Integer,Integer> p3 : spacexv.get(0)){
+					 extendRootNodeXl(xl,p3);
+				 }
+			 }
+		}
+		 for(Pair<Integer,Integer> p3 : spacexv.get(0)){
+			 for(Pair<Integer,Integer> p4 : spacexv.get(0)){
+				 if(!p3.equals(p4)){
+					 extendRootNodeXv(p3, p4);
+				 }
+			 }
+		 }
+		 
+	 }
 	 
+	 public void disExtendGeneral(LiterNode t){
+		 for(Pair<Integer,String> p1 : spacexl.get(0)){
+			boolean flag = addLiteral(t, p1.y, p1.x);
+     		if(flag == true){
+     			addNode(t,0,p1.x,p1.y);	
+     		}
+		 }
+		 for(Pair<Integer,Integer> p3 : spacexv.get(0)){
+			 boolean flag = addVar(t, p3.x, p3.y);
+	     		if(flag == true){
+	     			addNode(t,0,p3.x,p3.y);	
+	     		} 
+		 }
+	 }
+		 
+	 		 
+	
+	 private LiterNode extendRootNodeXl(List<Pair<Integer,String>> xl, Pair<Integer, Integer> vy){
+			LiterNode t = new LiterNode();
+			t.setParent(this.root);
+			this.root.children.add(t);
+			
+				t.setDependency((Condition) this.root.getDependency().clone());
+				t.addXLiteral = true;
+				for(Pair<Integer,String> p : xl){
+				   t.getDependency().XEqualsLiteral.put(p.x,p.y);
+				}
+				t.getDependency().setYEqualsVariable(vy.x, vy.y);
+			
+			t.key = t.getDependency().toString();
+			condition_Map.put(t.key, t);
+			return t;
+		 }
+	 private LiterNode extendRootNodeXv(Pair<Integer,Integer> xv, Pair<Integer, Integer> vy){
+			LiterNode t = new LiterNode();
+			t.setParent(this.root);
+			this.root.children.add(t);
+			
+				t.setDependency((Condition) this.root.getDependency().clone());
+				t.addXLiteral = false;
+				t.getDependency().XEqualsVariable.put(xv.x,new IntOpenHashSet());
+				t.getDependency().XEqualsVariable.get(xv.x).add(xv.y);
+				
+				t.getDependency().setYEqualsVariable(vy.x, vy.y);
+			
+			t.key = t.getDependency().toString();
+			condition_Map.put(t.key, t);
+			return t;
+		 }
+		
+	 public void extendSpace(DisConnectedNode n, DisconnectedTree t){
+		 int pIdenttity = 1;
+		 int size = n.patterns.size();
+		 int num[] = new int[size];
+		 for(int p :n.patterns){
+			 String pId = t.connectdPatternIndex.get(p);
+			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
+			 num[pIdenttity-1] = nodeNum;
+		 }
+		 //suppose only two components
+		// List<Set<Pair<Integer,String>>> spacexl = new  ArrayList<Set<Pair<Integer,String>>>();
+		// List<Set<Pair<Integer,Integer>>> spacexv = new  ArrayList<Set<Pair<Integer,Integer>>>();
+		 //test
+		 for(int i = 0; i< size; i++){
+			 Set<Pair<Integer,String>> xls =  extendLSpace(dom, num[i],i+1);
+			 spacexl.add(xls);
+			 for(int j=i+1;j<size;j++){
+				 Set<Pair<Integer,Integer>> xvs = extendVSpace(i,j,num[i],num[j]);
+				 spacexv.add(xvs);
+		     }
+		 }
+	 }
+		
+	 private Set<Pair<Integer,String>> extendLSpace(Set<String> dom, int nodenum, int pIdentity){
+		 Set<Pair<Integer,String>> space = new HashSet<Pair<Integer,String>>();
+		 for(int i = 0; i< nodenum ; i++){
+			 String s = ""+pIdentity+i;
+			 int nodeId = Integer.parseInt(s);
+			 for(String s2 : dom){
+				Pair<Integer,String> p =new Pair<Integer,String>(nodeId,s2);
+				space.add(p);
+			 }
+		 }
+		 return space;
+		 
+	 }
+	 private Set<Pair<Integer,Integer>> extendVSpace(int m,int n, int num1,int num2){
+		 Set<Pair<Integer,Integer>> space = new HashSet<Pair<Integer,Integer>>();
+			 if(num1>num2){
+				 int tmpt1 = num2;
+				 num2 = num1;
+				 num1 = tmpt1;
+				 int tmpt = n;
+				 n = m;
+				 m= tmpt;
+				 
+			 }
+			 else{
+			 for(int i=1 ;i<= num1;i++){
+				 for(int j=i;i<num2;j++){
+					 String s1 = ""+m+i;
+					 String s2 = ""+n+i;
+					 int nodeId1 = Integer.parseInt(s1);
+					 int nodeId2 = Integer.parseInt(s2);
+					 Pair<Integer,Integer> p= new Pair<Integer,Integer>(nodeId1,nodeId2);
+					 space.add(p);
+					 
+				 }
+			 }
+		 }
+	
+		 return space;
+		 
+	 }
 	 
+	 /*
 	 public void disExtendY(DisConnectedNode n, DisconnectedTree t, Set<String> dom, LiterNode g){
 		 int pIdenttity = 1;
 		 int num[] = new int[n.patterns.size()];
@@ -480,6 +627,24 @@ public class LiterTree {
 				 }
 			 }
 			 pIdenttity++; 
+		 }
+		 for(int i = 1;i<=n.patterns.size();i++){
+			 for(int j= i+1;j<=n.patterns.size();j++){
+				 yVarTwoPattern(i,j,num[i-1],num[j-1],g);
+			 }
+		 }
+		 
+		 
+	 }
+	 
+
+	 public void disExtendY(DisConnectedNode n, DisconnectedTree t, Set<String> dom, LiterNode g){
+		 int pIdenttity = 1;
+		 int num[] = new int[n.patterns.size()];
+		 for(int p :n.patterns){
+			 String pId = t.connectdPatternIndex.get(p);
+			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
+			 num[pIdenttity-1] = nodeNum;
 		 }
 		 for(int i = 1;i<=n.patterns.size();i++){
 			 for(int j= i+1;j<=n.patterns.size();j++){
@@ -512,4 +677,5 @@ public class LiterTree {
 		 }
 	 }
 	 }
+	 */
 }

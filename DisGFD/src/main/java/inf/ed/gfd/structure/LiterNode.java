@@ -34,6 +34,11 @@ public class LiterNode implements Serializable {
 	public Pair<Integer,String> addxl;
 	public Pair<Integer,Integer> addxv;
 	boolean addXLiteral = false;
+	public double supp;
+	public boolean isSat;
+	
+	//for disconnected
+	public List<DCPartialCond> cands;
 	
 	
 	

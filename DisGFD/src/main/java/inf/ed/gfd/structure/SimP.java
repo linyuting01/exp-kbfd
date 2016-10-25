@@ -20,6 +20,13 @@ public class SimP implements Comparable<SimP>, Serializable {
 		// TODO Auto-generated constructor stub
 	}
 
+	public SimP(String pId, double supp2, int nodeNum2) {
+		// TODO Auto-generated constructor stub
+		this.patternId = pId;
+		this.supp = supp2;
+		this.nodeNum = nodeNum2;
+	}
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 

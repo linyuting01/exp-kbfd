@@ -116,7 +116,7 @@ public class GfdTree {
 			  int i = 0 ;
 			 
 			  for(GfdNode gx : t.children){
-				  log.debug(tdfs.toString() + "children"+ gx.edgePattern.toString());
+				  log.debug("root children " + tdfs.toString() + "children "+ gx.edgePattern.toString());
 				  gx.pos = i;
 				  i++;
 			  }
@@ -144,7 +144,7 @@ public class GfdTree {
 			  int i = 0 ;
 			  //log.debug( dfs.toString() +"children");
 			  for(GfdNode gx : g.children){
-				  log.debug(dfs.toString() + "children"+ gx.edgePattern.toString());
+				  log.debug("general node " +dfs.toString() + "children "+ gx.edgePattern.toString());
 				  gx.pos = i;
 				  i++;
 			  }
@@ -224,7 +224,7 @@ public class GfdTree {
 			  newNode(t,dfs1);
 			   
 		   }
-		   if(t.parent.nodeNum< t.nodeNum){
+		   if(!t.newAttr.isEmpty()){
 			   String attr = t.newAttr;
 			   //add attr begin's edgePattern
 			   for(DFS dfs : edgePattern){
@@ -502,7 +502,7 @@ public class GfdTree {
 	  if(!t.extendDfss.contains(dfs)){
 		  
 	        t.extendDfss.add(dfs);
-			log.debug(dfs.toString());
+			//log.debug(dfs.toString());
 			GfdNode g = new GfdNode();
 			g.setParent(t);
 			//g.setPattern(ColoneUtils.clone((SimpleGraph<VertexString, TypedEdge>)t.pattern));
@@ -721,13 +721,15 @@ public class GfdTree {
 		gtree.extendRoot(edgePattern);
 		for(GfdNode t : gtree.getRoot().children){
 			gtree.extendRootChild(t, edgePattern);
+		}
+		for(GfdNode t : gtree.getRoot().children){
 			for(GfdNode t21 : t.children){
 				gtree.extendNodeGeneral(t21, edgePattern);
-				log.debug(t21.children.size());
+				//log.debug(t21.children.size());
 			}
 		}
 		//gtree.extendNode(gtree.getRoot(),edgePattern, dom );
-		log.debug( gtree.root.getChildren().size());
+		//log.debug( gtree.root.getChildren().size());
 		//gtree.initialExtend(edgePattern,attr_Map);
 		/*
 		for(GfdNode g1: gtree.root.getChildren()){

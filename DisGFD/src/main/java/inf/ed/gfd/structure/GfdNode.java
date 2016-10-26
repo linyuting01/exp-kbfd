@@ -41,7 +41,8 @@ public class GfdNode implements Comparable<GfdNode> {
 	public GfdNode parent; 
 	public List<GfdNode> children; 
 	
-	public String newAttr;
+	public String newAttr = "";
+	
 	public HashMap<String,Integer> attrs;
 	public Set<DFS> extendDfss;
 	public int pos;

@@ -224,6 +224,8 @@ public class LiterTree {
 			t.getDependency().isLiteral = true;
 			log.debug(this.root.children.size());
 		}
+		t.pos = g.childPos;//
+		g.childPos++;
 		t.key = t.getDependency().toString();
 		condition_Map.put(t.key, t);
 		return t;
@@ -256,6 +258,8 @@ public class LiterTree {
 		}
 		
 		t.key = t.getDependency().toString();
+		t.pos = g.childPos;//
+		g.childPos++;
 		log.debug(nodeId+ "+"+ nodeId2);
 		log.debug(t.key);
 		condition_Map.put(t.key, t);
@@ -288,7 +292,8 @@ public class LiterTree {
      * @param t// extend this node
      * @param nodeId // the new added node
      */
-		
+    ///revise  do not update the literal but update the literaldom and vardom
+	/*	
 	public void updateNode(Set<String> dom, LiterNode t, int nodeId){
 		
 		if(t == this.root){
@@ -356,9 +361,73 @@ public class LiterTree {
     		    }
 		}
 		
-	}
+	}*/
 	
+public void extendNode(LiterNode t){
+		if(t == this.root){
+			for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
+				for(String s : this.gNode.literDom.get(nodeId)){
+	        	    	addNode(this.root,1,nodeId,s);
+	        	    }
+			}
+			for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
+		        	//add variable
+		           for(int nodeId2 : this.gNode.varDom.get(nodeId)){
+		            		addNode(this.root,1,nodeId,nodeId2);
+		           }
+			}
+		}
 		
+		if(t.parent == this.root){
+			  for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
+		        	
+		        	// add Literal: for all possible equal constant
+		        	for(String s : this.gNode.literDom.get(nodeId)){
+		        		boolean flag = addLiteral(t, s, nodeId);
+		        		if(flag == true){
+		        			addNode(t,0,nodeId,s);	
+		        		}
+		        	}
+			  }
+			  for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
+		        	//add variable
+				  for(int nodeId2 : this.gNode.varDom.get(nodeId)){
+		        	   boolean flag = addVar(t, nodeId, nodeId2);
+		            	if(flag == true){
+		            		addNode(t,0,nodeId,nodeId2);
+		            	} 
+		           }
+			 }
+			
+		}
+		else{
+			LiterNode parent = t.parent;
+			for(int i = t.pos; i<parent.children.size();i++){
+				if(parent.children.get(i).extend){
+					LiterNode tmp = parent.children.get(i);
+					if(tmp.addXLiteral){
+						boolean flag = addLiteral(t, tmp.addxl.y, tmp.addxl.x);
+		        		if(flag == true){
+		        			addNode(t,0,tmp.addxl.x,tmp.addxl.y);	
+		        		}
+					}else{
+						boolean flag = addVar(t, tmp.addxv.x, tmp.addxv.y);
+		        		if(flag == true){
+		        			addNode(t,0, tmp.addxv.x, tmp.addxv.y);	
+		        		}
+					}
+					
+				}
+			}
+			
+			
+			
+		}
+}
+		
+	 
+
+	 	
 			
 			
 			
@@ -370,7 +439,7 @@ public class LiterTree {
     * @param t
     */
         		
-	
+	/*
 	public void extendNode(Set<String> dom, LiterNode t){
 		
 		//Int2ObjectMap<VertexString> vertexMap = this.gNode.getPattern().allVertices(); 
@@ -389,6 +458,7 @@ public class LiterTree {
 	    }
 	}
 	*/
+	/*
 		boolean flag;
         for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
         	
@@ -422,7 +492,7 @@ public class LiterTree {
         }
        }
    
-	 
+	 */
 
 	 
 	
@@ -459,7 +529,7 @@ public class LiterTree {
 		 Set<String> s = new HashSet<String>();
 		 s.add("a");
 		 s.add("b");
-		 tree.extendNode(s, tree.getRoot());
+		// tree.extendNode(s, tree.getRoot());
 		 log.debug("t has children"+ t.getChildren().size());	 
 		
 	}

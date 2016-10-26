@@ -560,7 +560,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 	}
 	
-	
+	//put them into paraResult;
+	HashMap<Integer,Set<String>> literDom;
+	HashMap<Integer,IntSet> varDom;
 	
 	//List<DFS> edgePattern = new ArrayList<DFS>();
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
@@ -611,6 +613,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					String cId = entry2.getKey();
 					GfdNode g = gfdTree.pattern_Map.get(pId);
 					LiterNode t = g.ltree.condition_Map.get(cId);
+					
 					double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
 					t.supp = supp;
 					log.debug("supp value " + supp);
@@ -627,6 +630,27 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 							gfdTree.updateLiteral(g, edgePattern, t);
 							g.ltree.extendNode(dom, t);
+						}
+					}else{
+						//update literal
+						if(t.dependency.XEqualsLiteral.isEmpty() && t.dependency.XEqualsVariable.isEmpty()){
+							//update literdom and vardom;
+							if(t.dependency.isLiteral){
+								Pair<Integer,String> p = t.dependency.YEqualsLiteral;
+								for(String s: g.literDom.get(p.x)){
+								  if(s.equals(p.y)){
+									  g.literDom.get(p.x).remove(s);
+								  }
+								}
+							}
+							else{
+								Pair<Integer,Integer> p = t.dependency.YEqualsVariable;
+								for(int s: g.varDom.get(p.x)){
+								  if(s == p.y){
+									  g.varDom.get(p.x).remove(s);
+								  }
+								}
+							}
 						}
 					}
 				}

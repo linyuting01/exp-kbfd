@@ -53,6 +53,9 @@ public class SuppResult extends Result implements Serializable {
 	public int nodeNum;
 	public Set<String> dom;
 	
+	HashMap<Integer,Set<String>> literDom;
+	HashMap<Integer,IntSet> varDom;
+	
 	public boolean extendPattern;
 	
 	public SuppResult(){
@@ -62,6 +65,8 @@ public class SuppResult extends Result implements Serializable {
 		this.satCId = new HashMap<String, HashMap<String,Boolean>>() ;
 		this.extendPattern = false;
 		this.dom = new HashSet<String>();
+		this.literDom = new HashMap<Integer,Set<String>>();
+		this.varDom = new HashMap<Integer,IntSet>();
 		
 	}
 	/*
@@ -126,7 +131,10 @@ public class SuppResult extends Result implements Serializable {
 						this.pivotMatchP.put(entry.getKey(), entry.getValue());
 					}
 					this.pivotMatchP.get(entry.getKey()).retainAll(entry.getValue());
-					if(this.dom.addAll(pr.dom));
+					//if(this.dom.addAll(pr.dom));
+					combineLiterDom(this.literDom,pr.literDom);
+					combineVarDom(this.varDom,pr.varDom);
+					
 				}
 			}
 			else{
@@ -161,7 +169,19 @@ public class SuppResult extends Result implements Serializable {
 		}		
 			
 	}
-		
+	
+	public void combineLiterDom(HashMap<Integer,Set<String>> dom1, HashMap<Integer,Set<String>> dom2){
+		for(Entry<Integer,Set<String>> entry : dom2.entrySet()){
+			dom1.get(entry.getKey()).addAll(entry.getValue());
+		}
+	}
+	
+	
+	public void combineVarDom(HashMap<Integer,IntSet> dom1, HashMap<Integer,IntSet> dom2){
+		for(Entry<Integer,IntSet> entry : dom2.entrySet()){
+			dom1.get(entry.getKey()).addAll(entry.getValue());
+		}
+	}
 	
 	public static void main(String[] args){
 		HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();

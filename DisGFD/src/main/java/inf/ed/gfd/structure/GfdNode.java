@@ -17,6 +17,7 @@ import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * @author v1xliu33
@@ -53,7 +54,8 @@ public class GfdNode {
 	public int nodeNum = 0;
 	
 	
-	public HashMap<Integer, Set<String>> patternDom; 
+	public HashMap<Integer, Set<String>> literDom; 
+	public HashMap<Integer,IntSet> varDom;
 
  /**
   * for disconnected pattern 
@@ -72,7 +74,9 @@ public class GfdNode {
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
-		this.patternDom = new HashMap<Integer, Set<String>>();
+		this.literDom = new HashMap<Integer, Set<String>>();
+		this.varDom = new HashMap<Integer,IntSet>();
+		
 		//this.rNeighbor = null;
 	}
 

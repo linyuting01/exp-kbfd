@@ -36,6 +36,9 @@ public class LiterNode implements Serializable {
 	boolean addXLiteral = false;
 	public double supp;
 	public boolean isSat;
+	public int pos = 0;//begine 0 1 2 3 4
+	public int childPos = 0;
+	public boolean extend;
 	
 	//for disconnected
 	public List<DCPartialCond> cands;

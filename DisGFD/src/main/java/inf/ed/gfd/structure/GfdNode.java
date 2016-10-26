@@ -3,6 +3,7 @@
  */
 package inf.ed.gfd.structure;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
  * @author v1xliu33
  *
  */
-public class GfdNode {
+public class GfdNode implements Comparable<GfdNode> {
 
 	/**
 	 * 
@@ -42,6 +43,10 @@ public class GfdNode {
 	public List<GfdNode> children; 
 	public String key;
 	public DFS edgePattern;
+	public String newAttr;
+	public HashMap<String,Integer> attrs;
+	public Set<DFS> extendDfss;
+	public int pos;
 	//public List<String> disConnectedP;
 	//public int nodeNUm = 0;
 	//private GfdNode rNeighbor;
@@ -74,8 +79,14 @@ public class GfdNode {
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
+<<<<<<< HEAD
 		this.literDom = new HashMap<Integer, Set<String>>();
 		this.varDom = new HashMap<Integer,IntSet>();
+=======
+		this.patternDom = new HashMap<Integer, Set<String>>();
+		this.attrs = new HashMap<String,Integer>();
+		this.extendDfss = new HashSet<DFS>();
+>>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
 		
 		//this.rNeighbor = null;
 	}
@@ -87,6 +98,7 @@ public class GfdNode {
 	//public void setPattern(SimpleGraph<VertexString, TypedEdge> pattern) {
 	//	this.pattern = pattern;
 	//}
+ 
 
 	public LiterTree getLtree() {
 		return ltree;
@@ -137,6 +149,13 @@ public class GfdNode {
 				}
 			}
 		}
+	}
+
+	@Override
+	public int compareTo(GfdNode arg0) {
+		// TODO Auto-generated method stub
+		
+		return this.edgePattern.compareTo(arg0.edgePattern);
 	}
 
 }

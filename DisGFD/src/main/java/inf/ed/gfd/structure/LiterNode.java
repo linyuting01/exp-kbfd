@@ -40,6 +40,8 @@ public class LiterNode implements Serializable {
 	public int childPos = 0;
 	public boolean extend;
 	
+	public boolean negCheck = false;
+	
 	//for disconnected
 	public List<DCPartialCond> cands;
 	

@@ -534,7 +534,23 @@ public void extendNode(LiterNode t){
 		
 	}
 
-	 
+	 //////////////////////////////////////
+	 /**
+	  * add node for negative checking 
+	  * 
+	  */
+	 public void addNegCheck(LiterNode t){
+		 if(t.dependency.isLiteral){
+			 Pair<Integer,String> p = t.dependency.YEqualsLiteral;
+			 LiterNode x = addNode(t,0, p.x,p.y);
+			 x.negCheck = true;
+		 }
+		 else{
+			 Pair<Integer,Integer> p = t.dependency.YEqualsVariable;
+			 LiterNode x = addNode(t,0, p.x,p.y);
+			 x.negCheck = true;
+		 }
+	 }
 	 
 	 ///////////////////////////////////////////////////////////////////////////////
 	 /*

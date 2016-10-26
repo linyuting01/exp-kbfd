@@ -25,22 +25,40 @@ public class LiterNode implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	static Logger log = LogManager.getLogger(LiterNode.class);
+	
+	public String key = "";
 	public Condition dependency;
+
 	public LiterNode parent; 
 	public List<LiterNode>  children;
-	public String key;
-	public Pair<Integer,String> yl;
-	public Pair<Integer,Integer> yv;
-	public Pair<Integer,String> addxl;
-	public Pair<Integer,Integer> addxv;
-	boolean addXLiteral = false;
-	public double supp;
-	public boolean isSat;
+	
+	public double supp = 0;
+	public boolean isSat = false;
+	public IntSet pivotMatch;
+	public boolean extend = true;
+	
+	
 	public int pos = 0;//begine 0 1 2 3 4
 	public int childPos = 0;
-	public boolean extend;
+
+	boolean addXLiteral = false;
+	public Pair<Integer,String> addxl;
+	public Pair<Integer,Integer> addxv;
 	
+	//for disconnected gfd; ;may be add flag
+	boolean addXLiteral1;
+	boolean addXLiteral2;
+
+	//for negative gfd;
 	public boolean negCheck = false;
+	
+	
+	
+
+	//for disconnected
+	public IntSet pivot1;
+	public IntSet pivot2;
+	
 	
 	//for disconnected
 	public List<DCPartialCond> cands;

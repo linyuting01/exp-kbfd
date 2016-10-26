@@ -32,17 +32,15 @@ public class GfdNode implements Comparable<GfdNode> {
 	
 	static Logger log = LogManager.getLogger(GfdNode.class);
 	
-	//public Graph<VertexString, TypedEdge> pattern;
+	public String key;
+	public DFS edgePattern;
 	public LiterTree ltree; 
-	//public Vector<DFS> patternCode;
 	
-	//do what? 
 	public HashMap<Pair<String,Integer>,Integer> nodeSet;
 	
 	public GfdNode parent; 
 	public List<GfdNode> children; 
-	public String key;
-	public DFS edgePattern;
+	
 	public String newAttr;
 	public HashMap<String,Integer> attrs;
 	public Set<DFS> extendDfss;
@@ -79,14 +77,16 @@ public class GfdNode implements Comparable<GfdNode> {
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		this.literDom = new HashMap<Integer, Set<String>>();
 		this.varDom = new HashMap<Integer,IntSet>();
-=======
-		this.patternDom = new HashMap<Integer, Set<String>>();
+
+		//this.patternDom = new HashMap<Integer, Set<String>>();
 		this.attrs = new HashMap<String,Integer>();
 		this.extendDfss = new HashSet<DFS>();
->>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
+		this.literDom = new HashMap<Integer, Set<String>>();
+		this.varDom = new HashMap<Integer,IntSet>();
+//>>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
 		
 		//this.rNeighbor = null;
 	}
@@ -137,6 +137,7 @@ public class GfdNode implements Comparable<GfdNode> {
 	//public void setPatternCode(Vector<DFS> patternCode){
 	//	this.patternCode = patternCode;
 	//}	
+	/*
 	public void getDom(){
 		for(LiterNode t:this.ltree.getRoot().children){
 			if(t.supp > 0){
@@ -149,7 +150,7 @@ public class GfdNode implements Comparable<GfdNode> {
 				}
 			}
 		}
-	}
+	}*/
 
 	@Override
 	public int compareTo(GfdNode arg0) {

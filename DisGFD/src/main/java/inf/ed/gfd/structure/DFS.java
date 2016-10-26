@@ -44,9 +44,9 @@ public DFS(DFS dfs) {
   public String toString(){
     StringBuffer sb = new StringBuffer();
     sb.append(this.fLabel.toString());
-    sb.append(";;");
+    sb.append(";");
     sb.append(this.tLabel.toString());
-    sb.append(";;");
+    sb.append(";");
     sb.append(this.eLabel);
     return sb.toString();
     

@@ -3,8 +3,11 @@ package inf.ed.gfd.structure;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
+import java.util.Queue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +15,8 @@ import org.jgrapht.event.ConnectedComponentTraversalEvent;
 
 import inf.ed.gfd.util.Params;
 import inf.ed.graph.structure.adaptor.Pair;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class DisconnectedTree {
 	static Logger log = LogManager.getLogger(DisconnectedTree.class);
@@ -22,6 +27,9 @@ public class DisconnectedTree {
 	public int preConnectedPNum = 0;
 	public int flag = Integer.MAX_VALUE;
 	public Set<String> dom; //zhuyifuzhi
+	public int nodeNum;
+	
+	public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
 	
 	//public WorkUnit disws ;
 
@@ -44,13 +52,14 @@ public class DisconnectedTree {
 	 * here extendPatterns has ordered by support; from large to small
 	 * @param t
 	 */
-	public void extendTree(List<SimP> extendPatterns){
+	public Queue<DisConnectedNode>  extendTree(List<SimP> extendPatterns){
+		Queue<DisConnectedNode> disQue = new LinkedList<DisConnectedNode>();
 		int begin = connectdPatternIndex.size()+1;
 		int end = begin+extendPatterns.size()-1;
 		preConnectedPNum = begin-1;
 		int index =0;
 		for(SimP pa : extendPatterns){
-			addRoorChildren(pa);
+			addRootChildren(pa);
 		}
 		List<DisConnectedNode> flist = this.root.children;
 		
@@ -88,7 +97,11 @@ public class DisconnectedTree {
 								this.flag = index;
 							}
 							else{
-								addNode(t, pattern,extendPatterns.get(index-begin));
+								SimP patt = extendPatterns.get(index-begin);
+								if(t.pNodeNum +patt.nodeNum <= Params.var_K){
+								    DisConnectedNode g = addNode(t, pattern, patt);
+								    disQue.add(g);
+								}
 							}
 						}
 							
@@ -102,6 +115,7 @@ public class DisconnectedTree {
 			flist.clear();
 			flist = tmptList;
 		}
+		return disQue;
 }
 
 	
@@ -116,7 +130,7 @@ public class DisconnectedTree {
 		
 	}
 	
-	public void addRoorChildren(SimP pattern){
+	public void addRootChildren(SimP pattern){
 		DisConnectedNode p = new DisConnectedNode();
 		p.parent = this.root;
 		this.root.children.add(p);
@@ -130,16 +144,19 @@ public class DisconnectedTree {
 		p.lastPId = num+1;
 		p.flag = Integer.MAX_VALUE;
 		p.pNodeNum = pattern.nodeNum;
+		p.ltree.dNode = p;
 	}
+
 		
 	/**
 	 * add node to compose disconnected pattern	
 	 * @param parent
 	 * @param pattern
+	 * @return 
 	 */
 
-	public void addNode(DisConnectedNode parent, int padd, SimP pattern){
-		if(parent.pNodeNum +pattern.nodeNum <= Params.var_K){
+	public DisConnectedNode addNode(DisConnectedNode parent, int padd, SimP pattern){
+		
 			DisConnectedNode p = new DisConnectedNode();
 			p.parent = parent;
 			parent.children.add(p);
@@ -152,6 +169,8 @@ public class DisconnectedTree {
 			p.lastPId = padd;
 			p.flag = Integer.MAX_VALUE;
 			p.pNodeNum = parent.pNodeNum + pattern.nodeNum;
+			p.ltree.dNode = p;
+			return p;
 			/*
 			p.ltree.dom = dom;
 			p.ltree.extendSpace(p,this);
@@ -164,7 +183,7 @@ public class DisconnectedTree {
 			*/
 			
 			
-		}
+		
 	}
 	/***
 	 * validation
@@ -176,7 +195,134 @@ public class DisconnectedTree {
 		
 		
 	}
+	public void addNode(DisConnectedNode t, int pattern){
+		DisConnectedNode p = new DisConnectedNode();
+		p.parent = t;
+		t.children.add(p);
+		p.layer = t.layer+1;
+		p.patterns.add(pattern);
+		String newId = p.getpId();
+		disConnectedPatternIndex.put(newId, p);
+		t.ltree.dNode = t;
+	}
+
+	
+	
+	
+	
+	public void updateTree(DisWorkUnit w){
+		for(Pair<Integer,Integer> p :w.disPatterns){
+			if(!this.connectdPatternIndex.containsKey(p.x)){
+				addNode(this.root,p.x);
+			}
+			if(!this.connectdPatternIndex.containsKey(p.y)){
+				addNode(this.root,p.y);
+			}
+			addNode(this.disConnectedPatternIndex.get(p.x), p.y);	
+		}
+	}
+	
+	public void updateTreeRootChild(DisConnectedNode dn ,GfdTree gfdtree){
+			int patternId = dn.patterns.get(0);
+			String pId = this.connectdPatternIndex.get(patternId);
+			GfdNode g = gfdtree.pattern_Map.get(pId);
+			for(LiterNode ln : g.ltree.getRoot().children){
+				if(ln.dependency.isLiteral){
+					Pair<Integer,String> yl = ln.dependency.YEqualsLiteral;
+					if(dn.stringCands == null){
+						dn.stringCands = new HashMap<String,HashMap<Integer,IntSet>>();
+					}
+					if(!dn.stringCands.containsKey(yl.y)){
+						dn.stringCands.put(yl.y, new HashMap<Integer,IntSet>());
+					}
+					dn.stringCands.get(yl.y).put(yl.x, ln.pivotMatch);
+					if(ln.supp >= Params.VAR_SUPP){
+						if(dn.allLiterCands == null){
+							dn.allLiterCands = new HashMap<Integer,HashMap<String,IntSet>>();
+						}
+						if(!dn.allLiterCands.containsKey(yl.x)){
+							dn.allLiterCands.put(yl.x, new HashMap<String,IntSet>());
+						}
+						dn.allLiterCands.get(yl.x).put(yl.y, ln.pivotMatch);
+						
+					}
+					
+				}
+			}
+		}
+			
+	
+		
+	public void updateTree(DisConnectedNode t, GfdTree gfdtree){
+		HashMap<Integer,HashMap<Integer,Set<String>>> varCands = new HashMap<Integer,HashMap<Integer,Set<String>>>();
+		//for disconnected pattens;
+		int pId1 = t.patterns.get(0);
+		int pId2 = t.patterns.get(1);
+		String key1 = ""+pId1;
+		String key2 = ""+pId2;
+		DisConnectedNode d1 = this.disConnectedPatternIndex.get(key1);
+		DisConnectedNode d2 = this.disConnectedPatternIndex.get(key2);
+		HashMap<String, HashMap<Integer,IntSet>> tmpt1 = d1.stringCands;
+		HashMap<String, HashMap<Integer,IntSet>> tmpt2 = d2.stringCands;
+		for(String s1 : tmpt1.keySet()){
+			for(String s2 : tmpt2.keySet()){
+				if(s1.equals(s2)){
+					for(int i: tmpt1.get(s1).keySet()){
+						for(int j : tmpt2.get(s2).keySet()){
+							if(!varCands.containsKey(i)){
+								varCands.put(i, new HashMap<Integer,Set<String>>());	
+							}
+							if(!varCands.get(i).containsKey(j)){
+								varCands.get(i).put(j, new HashSet<String>());
+							}
+							varCands.get(i).get(j).add(s1);	
+						}
+					}
+				}
+			}
+		}
+		for(int fId : varCands.keySet()){
+			for(int tId: varCands.get(fId).keySet()){
+				IntSet a = new IntOpenHashSet();
+				IntSet b = new IntOpenHashSet();
+				for(String s:varCands.get(fId).get(tId)){
+					a.addAll(tmpt1.get(s).get(fId));
+					b.addAll(tmpt2.get(s).get(tId));
+				}
+				double supp = (double)(a.size()*b.size())/(nodeNum*nodeNum);
+				if(supp >= Params.VAR_SUPP){
+					if(t.allVarCands == null){
+						t.allVarCands = new HashMap<Integer,HashMap<Integer,List<IntSet>>>();
+					}
+					if(!t.allVarCands.containsKey(fId)){
+						t.allVarCands.put(fId, new HashMap<Integer,List<IntSet>>());
+					}
+				    if(!t.allVarCands.get(fId).containsKey(tId)){
+				    	t.allVarCands.get(fId).put(tId, new ArrayList<IntSet>());
+				    }
+				    t.allVarCands.get(fId).get(tId).add(a);
+				    t.allVarCands.get(fId).get(tId).add(b);		    
+				}
+			}
+		}
+	}
+		
+		public void DisConnectedGFD(List<SimP> extendPatterns){
+			
+			Queue<DisConnectedNode> disQue = extendTree(extendPatterns);
+			while(!disQue.isEmpty()){
+				DisConnectedNode t = disQue.poll();
+				t.ltree.extendDisConnected(this);
+			}
+				
+			
+			
+			
+		}
+	
+	
+}
+		
+		
 	
 
-
-}

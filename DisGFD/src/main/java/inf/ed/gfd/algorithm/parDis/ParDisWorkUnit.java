@@ -14,11 +14,14 @@ import org.apache.logging.log4j.Logger;
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.DFS;
+import inf.ed.gfd.structure.DisWorkUnit;
+import inf.ed.gfd.structure.DisconnectedTree;
 import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
+import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.KV;
 import inf.ed.gfd.util.Params;
 import inf.ed.grape.interfaces.LocalComputeTask;
@@ -440,5 +443,8 @@ private void addMatch(Int2IntMap match, String pId, int fId, int tId, int flag, 
 		
 	}
 	
+	
+	
 
+	
 }

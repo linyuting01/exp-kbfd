@@ -45,48 +45,16 @@ public class GfdTree {
 		this.root = root;
 	}
 	
-	/*
-	 * when this is root;	edgePattern has order		
-	 */
+	
 	/******************************************************************************************
-	 * logic: 
-	 *      Input:  gfdTree gt, K, supp;
-	 *      (1) for gt.root, call public 
-	 *      void extendNode(GfdNode g, List<DFS> edgePattern, Set<String> dom )
-	 *      to get gt.root.children {r1,r2..rn}  and Q_{ri} \empty ->y, for 
-	 *      each Q[ri] call 
-	 *       public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s) 
-	 *       to get Q[ri]+edgepattern \empty->y
-	 *       
-	 *       (2) verify each Q[ri], \empty->y, pruning when supp is not enough. 
-	 *       then  call extendNode(Set<String> dom, LiterNode t) in LiteralTree 
-	 *       to get x->y and call
-	 *       public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s)
-	 *       to update the Q+edge  x->y unitil x can not be extended;
-	 *       
-	 *       (3) call 
-	 *        updateNode(Set<String> dom, LiterNode t, int nodeId)
-	 *        to complete Q+edge to complete literal tree;s i layer, then verify 
-	 *        
-	 *        (4) reapeat (2)(3) until Q is arrive k size;
-	 *       
-	 *      
-	 *     	
-	 * 
-	 * 
-	 * 
-	 *
-	 *****************************************************************************************/
-	  // extenndNode basic princle:
-	 /**
-	  * first add the right neigbors of the current node;
+	  * first add the right neighbours of the current node;
 	  * then check if it has new node to add in , 
 	  * if so, add the new node from edge pattern. 
-	  * 
-	  * 
-	  */
+	 *****************************************************************************************/
+
 	
-	 private void extendRoot(List<DFS> edgePattern){
+	
+	 public void extendRoot(List<DFS> edgePattern){
 		 for(DFS dfs: edgePattern){
 			newNode(root,dfs);
 		   }
@@ -96,11 +64,11 @@ public class GfdTree {
 	 }
 	
 	
-	 private void extendRootChild(GfdNode t, List<DFS> edgePattern){
+	 public void extendRootChild(GfdNode t, List<DFS> edgePattern){
 		  // extend root's children
 		      //t.wC2Wp.oriPatternId = t.key;
 			  DFS tdfs = t.edgePattern;
-			 log.debug(tdfs.toString() + ":");
+			// log.debug(tdfs.toString() + ":");
 			  int index = edgePattern.indexOf(tdfs);
 			  index++;
 			  //for AA_1 , add AA_2, A_1A, and A{C},{C}A  and A_1{C} and {C}A_1
@@ -146,7 +114,9 @@ public class GfdTree {
 			  
 			  Collections.sort(t.children);
 			  int i = 0 ;
+			 
 			  for(GfdNode gx : t.children){
+				  log.debug(tdfs.toString() + "children"+ gx.edgePattern.toString());
 				  gx.pos = i;
 				  i++;
 			  }
@@ -154,9 +124,10 @@ public class GfdTree {
 		 }
 	 
 	 
-	 private void extendNodeGeneral(GfdNode g, List<DFS> edgePattern, LiterNode s){
+	 public void extendNodeGeneral(GfdNode g, List<DFS> edgePattern){
 		   //g.wC2Wp.oriPatternId = g.key;
 		   DFS dfs = g.edgePattern;
+		  // log.debug(dfs.toString());
 			int index = findIndex(dfs,edgePattern);
 			DFS dfsn = edgePattern.get(index);
 			List<GfdNode> gfds = root.getChildren().get(index).getChildren();
@@ -171,7 +142,9 @@ public class GfdTree {
 			}
 			 Collections.sort(g.children);
 			  int i = 0 ;
+			  //log.debug( dfs.toString() +"children");
 			  for(GfdNode gx : g.children){
+				  log.debug(dfs.toString() + "children"+ gx.edgePattern.toString());
 				  gx.pos = i;
 				  i++;
 			  }
@@ -502,6 +475,7 @@ public class GfdTree {
 	
   private int findIndex(DFS dfs,List<DFS> edgePattern){
 	  DFS dfsn = dfs.findDFS();
+	 // log.debug(dfsn.toString());
 	  return edgePattern.indexOf(dfsn);
   }
   private Pair<String,Integer> addPair(Pair<String,Integer> a){
@@ -720,32 +694,42 @@ public class GfdTree {
 		attr_Map.put(3, "c");
 		List<DFS> edgePattern = new ArrayList<DFS>();
 		Pair<String,Integer> t1 = new Pair<String,Integer>("a",0);
-		Pair<String,Integer> t11 = new Pair<String,Integer>("b",1);
+		Pair<String,Integer> t11 = new Pair<String,Integer>("b",0);
 		Pair<String,Integer> t2 = new Pair<String,Integer>("c",0);
 		Pair<String,Integer> t3 = new Pair<String,Integer>("d",0);
 		
-		DFS d1 = new DFS(t1,t2,1);
 		DFS d7 =  new DFS(t1,t11,2);
+		DFS d1 = new DFS(t1,t2,1);
+		
 		DFS d2 = new DFS(t1,t2,2);
 		DFS d3 = new DFS(t1,t3,2);
 		DFS d4 = new DFS(t2,t3,1);
 		DFS d5 = new DFS(t3,t1,1);
 		DFS d6 = new DFS(t3,t1,2);
-		edgePattern.add(d7);
-		edgePattern.add(d1);
-		edgePattern.add(d2);
-		edgePattern.add(d3);
-		edgePattern.add(d4);
-		edgePattern.add(d5);
-		edgePattern.add(d6);
+		edgePattern.add(d7); //ABl
+		edgePattern.add(d1); //AC1
+		//edgePattern.add(d2); //AC2
+		//edgePattern.add(d3); //AD
+		edgePattern.add(d4); //CD
+		edgePattern.add(d5); //DA1
+		//edgePattern.add(d6); //DA2
 		Set<String> dom = new HashSet<String>();
 		dom.add("a");
 		dom.add("b");
 		
 		GfdTree gtree = new GfdTree();
+		gtree.extendRoot(edgePattern);
+		for(GfdNode t : gtree.getRoot().children){
+			gtree.extendRootChild(t, edgePattern);
+			for(GfdNode t21 : t.children){
+				gtree.extendNodeGeneral(t21, edgePattern);
+				log.debug(t21.children.size());
+			}
+		}
 		//gtree.extendNode(gtree.getRoot(),edgePattern, dom );
 		log.debug( gtree.root.getChildren().size());
 		//gtree.initialExtend(edgePattern,attr_Map);
+		/*
 		for(GfdNode g1: gtree.root.getChildren()){
 			
 			log.debug(g1.key);
@@ -754,14 +738,14 @@ public class GfdTree {
 			for(LiterNode s :g1.ltree.getRoot().children){
 				log.debug(s.key);
 				//gtree.updateLiteral(g1,edgePattern, s);
-				g1.ltree.extendNode(dom, s);
+			//	g1.ltree.extendNode(dom, s);
 			}
 		
 			for(GfdNode g2: g1.getChildren()){
 				if(g2.nodeNum > g1.nodeNum){
-					g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
-					for(LiterNode l : g2.ltree.getRoot().children){
-						g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
+				//	g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
+				//	for(LiterNode l : g2.ltree.getRoot().children){
+				//		g2.ltree.updateNode(dom, g2.ltree.getRoot(), g2.nodeNum);
 					}
 				}
 				
@@ -770,10 +754,11 @@ public class GfdTree {
 		
 			//gtree.extendNode(g1,edgePattern, dom );
 		}
+		*/
 	
-		log.debug("sucess");
+	//	log.debug("sucess");
 		
 	    
 	}
-
 }
+

@@ -1,7 +1,7 @@
 package inf.ed.gfd.util;
 
 public class Params {
-    public static final int var_K = 5;
+    public static final int var_K = 10;
 	public static final int VAR_BASE = 0;
 	public static final int VAR_RANDOM = 1;
 	public static final int VAR_OPT = 2;

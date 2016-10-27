@@ -52,7 +52,7 @@ public class DisconnectedTree {
 	 * here extendPatterns has ordered by support; from large to small
 	 * @param t
 	 */
-	public Queue<DisConnectedNode>  extendTree(List<SimP> extendPatterns){
+	private Queue<DisConnectedNode>  extendTree(List<SimP> extendPatterns){
 		Queue<DisConnectedNode> disQue = new LinkedList<DisConnectedNode>();
 		int begin = connectdPatternIndex.size()+1;
 		int end = begin+extendPatterns.size()-1;
@@ -119,7 +119,7 @@ public class DisconnectedTree {
 }
 
 	
-	public int filters(DisConnectedNode parent, int pattern){
+	private int filters(DisConnectedNode parent, int pattern){
 		if(this.flag <= pattern){
 			return 1;//parent's neighbour filter;
 		}
@@ -130,7 +130,7 @@ public class DisconnectedTree {
 		
 	}
 	
-	public void addRootChildren(SimP pattern){
+	private void addRootChildren(SimP pattern){
 		DisConnectedNode p = new DisConnectedNode();
 		p.parent = this.root;
 		this.root.children.add(p);
@@ -155,7 +155,7 @@ public class DisconnectedTree {
 	 * @return 
 	 */
 
-	public DisConnectedNode addNode(DisConnectedNode parent, int padd, SimP pattern){
+	private DisConnectedNode addNode(DisConnectedNode parent, int padd, SimP pattern){
 		
 			DisConnectedNode p = new DisConnectedNode();
 			p.parent = parent;
@@ -188,14 +188,14 @@ public class DisconnectedTree {
 	/***
 	 * validation
 	 */
-	public void intialVerifyPivotMatch(LiterNode t){
+	private void intialVerifyPivotMatch(LiterNode t){
 		//first partition dependency
 		Condition c = t.dependency;
 		Pair<Integer,Integer> yv = c.YEqualsVariable;
 		
 		
 	}
-	public void addNode(DisConnectedNode t, int pattern){
+	private void addNode(DisConnectedNode t, int pattern){
 		DisConnectedNode p = new DisConnectedNode();
 		p.parent = t;
 		t.children.add(p);
@@ -210,7 +210,7 @@ public class DisconnectedTree {
 	
 	
 	
-	public void updateTree(DisWorkUnit w){
+	private void updateTree(DisWorkUnit w){
 		for(Pair<Integer,Integer> p :w.disPatterns){
 			if(!this.connectdPatternIndex.containsKey(p.x)){
 				addNode(this.root,p.x);
@@ -222,7 +222,7 @@ public class DisconnectedTree {
 		}
 	}
 	
-	public void updateTreeRootChild(DisConnectedNode dn ,GfdTree gfdtree){
+	private void updateTreeRootChild(DisConnectedNode dn ,GfdTree gfdtree){
 			int patternId = dn.patterns.get(0);
 			String pId = this.connectdPatternIndex.get(patternId);
 			GfdNode g = gfdtree.pattern_Map.get(pId);
@@ -253,7 +253,7 @@ public class DisconnectedTree {
 			
 	
 		
-	public void updateTree(DisConnectedNode t, GfdTree gfdtree){
+	private void updateTree(DisConnectedNode t, GfdTree gfdtree){
 		HashMap<Integer,HashMap<Integer,Set<String>>> varCands = new HashMap<Integer,HashMap<Integer,Set<String>>>();
 		//for disconnected pattens;
 		int pId1 = t.patterns.get(0);
@@ -307,7 +307,7 @@ public class DisconnectedTree {
 		}
 	}
 		
-		public void DisConnectedGFD(List<SimP> extendPatterns){
+		public void disConnectedGFD(List<SimP> extendPatterns){
 			
 			Queue<DisConnectedNode> disQue = extendTree(extendPatterns);
 			while(!disQue.isEmpty()){

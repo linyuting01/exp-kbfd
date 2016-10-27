@@ -53,10 +53,12 @@ public class SuppResult extends Result implements Serializable {
 	public int nodeNum;
 	public Set<String> dom;
 	
-	HashMap<Integer,Set<String>> literDom;
-	HashMap<Integer,IntSet> varDom;
+	public HashMap<String,HashMap<Integer,Set<String>>> literDom;
+	public HashMap<String,HashMap<Integer,IntSet>> varDom;
 	
 	public boolean extendPattern;
+	
+	
 	
 	public SuppResult(){
 		this.pivotMatchP = new HashMap<String,IntSet>();
@@ -65,8 +67,8 @@ public class SuppResult extends Result implements Serializable {
 		this.satCId = new HashMap<String, HashMap<String,Boolean>>() ;
 		this.extendPattern = false;
 		this.dom = new HashSet<String>();
-		this.literDom = new HashMap<Integer,Set<String>>();
-		this.varDom = new HashMap<Integer,IntSet>();
+		this.literDom = new HashMap<String,HashMap<Integer,Set<String>>>();
+		this.varDom = new HashMap<String,HashMap<Integer,IntSet>>();
 		
 	}
 	/*
@@ -117,7 +119,8 @@ public class SuppResult extends Result implements Serializable {
 
 	@Override
 	public void assemblePartialResults(Collection<Result> partialResults) {
-		// TODO Auto-generated method stub
+		
+		
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
 		
 		for(Result r : partialResults){
@@ -131,9 +134,29 @@ public class SuppResult extends Result implements Serializable {
 						this.pivotMatchP.put(entry.getKey(), entry.getValue());
 					}
 					this.pivotMatchP.get(entry.getKey()).retainAll(entry.getValue());
+					
+					
+					
 					//if(this.dom.addAll(pr.dom));
-					combineLiterDom(this.literDom,pr.literDom);
-					combineVarDom(this.varDom,pr.varDom);
+					if(!this.literDom.containsKey(entry.getKey())){
+						HashMap<Integer,Set<String>> domLiteral = new HashMap<Integer,Set<String>>();
+						combineLiterDom(domLiteral,pr.literDom.get(entry.getKey()));
+						this.literDom.put(entry.getKey(), domLiteral);
+					}
+					else{
+						combineLiterDom(this.literDom.get(entry.getKey()),pr.literDom.get(entry.getKey()));
+					}
+					
+					if(!this.varDom.containsKey(entry.getKey())){
+						HashMap<Integer,IntSet> domVar = new HashMap<Integer,IntSet>();
+						combineVarDom(domVar,pr.varDom.get(entry.getKey()));
+						this.varDom.put(entry.getKey(), domVar);
+					}
+					else{
+						combineVarDom(this.varDom.get(entry.getKey()),pr.varDom.get(entry.getKey()));
+					}
+					
+					
 					
 				}
 			}
@@ -170,16 +193,27 @@ public class SuppResult extends Result implements Serializable {
 			
 	}
 	
-	public void combineLiterDom(HashMap<Integer,Set<String>> dom1, HashMap<Integer,Set<String>> dom2){
+	public void combineLiterDom(HashMap<Integer,Set<String>> dom1, 
+			HashMap<Integer,Set<String>> dom2){
 		for(Entry<Integer,Set<String>> entry : dom2.entrySet()){
-			dom1.get(entry.getKey()).addAll(entry.getValue());
+			if(!dom1.containsKey(entry.getKey())){
+				dom1.put(entry.getKey(), entry.getValue());
+			}
+			else{
+				dom1.get(entry.getKey()).addAll(entry.getValue());
+			}
 		}
 	}
 	
 	
 	public void combineVarDom(HashMap<Integer,IntSet> dom1, HashMap<Integer,IntSet> dom2){
 		for(Entry<Integer,IntSet> entry : dom2.entrySet()){
-			dom1.get(entry.getKey()).addAll(entry.getValue());
+			if(!dom1.containsKey(entry.getKey())){
+				dom1.put(entry.getKey(), entry.getValue());
+			}
+			else{
+				dom1.get(entry.getKey()).addAll(entry.getValue());
+			}
 		}
 	}
 	

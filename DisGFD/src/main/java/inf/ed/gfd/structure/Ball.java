@@ -1,5 +1,7 @@
 package inf.ed.gfd.structure;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -10,7 +12,7 @@ import java.util.Set;
 public class Ball implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public Int2ObjectMap<String> vertices;
+	public Int2IntMap vertices;
 	public Set<TransEdge> edges;
 	public int center = -1;
 	public int radius = -1;
@@ -18,7 +20,7 @@ public class Ball implements Serializable {
 	public Ball(int center, int radius) {
 		this.center = center;
 		this.radius = radius;
-		vertices = new Int2ObjectOpenHashMap<String>();
+		vertices = new Int2IntOpenHashMap();
 		edges = new ObjectOpenHashSet<TransEdge>();
 	}
 

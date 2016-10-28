@@ -36,16 +36,17 @@ public class GfdNode implements Comparable<GfdNode> {
 	public DFS edgePattern;
 	public LiterTree ltree; 
 	
-	public HashMap<Pair<String,Integer>,Integer> nodeSet;
+	public HashMap<Pair<Integer,Integer>,Integer> nodeSet;
 	
 	public GfdNode parent; 
 	public List<GfdNode> children; 
 	
-	public String newAttr = "";
 	
-	public HashMap<String,Integer> attrs;
+	
+	public HashMap<Integer,Integer> attrs;
 	public Set<DFS> extendDfss;
-	public int pos;
+	public String orderId;
+	//public int pos;
 	//public List<String> disConnectedP;
 	//public int nodeNUm = 0;
 	//private GfdNode rNeighbor;
@@ -74,7 +75,7 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.ltree = new LiterTree();
 		//this.parent =;
 		this.children = new ArrayList<GfdNode>();
-		this.nodeSet = new HashMap<Pair<String,Integer>,Integer>();
+		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
 		//this.patternCode = new Vector<DFS>();
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
@@ -83,7 +84,7 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.varDom = new HashMap<Integer,IntSet>();
 
 		//this.patternDom = new HashMap<Integer, Set<String>>();
-		this.attrs = new HashMap<String,Integer>();
+		this.attrs = new HashMap<Integer,Integer>();
 		this.extendDfss = new HashSet<DFS>();
 		this.literDom = new HashMap<Integer, Set<String>>();
 		this.varDom = new HashMap<Integer,IntSet>();

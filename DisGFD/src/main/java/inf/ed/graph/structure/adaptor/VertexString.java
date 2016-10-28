@@ -9,9 +9,9 @@ public class VertexString implements Vertex, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	int ID;
-	String attr;
+	int attr;
 
-	public VertexString(int ID, String attr) {
+	public VertexString(int ID, int attr) {
 		this.ID = ID;
 		this.attr = attr;
 	}
@@ -21,7 +21,7 @@ public class VertexString implements Vertex, Serializable {
 			String[] eles = line.split("\t");
 			this.ID = Integer.parseInt(eles[1].trim());
 			if (eles.length == 3) {
-				this.attr = eles[2].trim();
+				this.attr = Integer.parseInt(eles[2].trim());
 			} else {
 				this.attr = KV.ANY;
 			}
@@ -32,16 +32,16 @@ public class VertexString implements Vertex, Serializable {
 		return this.ID;
 	}
 
-	public String getAttr() {
+	public int getAttr() {
 		return attr;
 	}
 
 	public boolean match(Object other) {
-		if (this.attr.equals(KV.ANY)) {
+		if (this.attr == KV.ANY) {
 			return true;
 		} else if (other instanceof VertexOString) {
 			VertexOString ov = (VertexOString) other;
-			return this.attr.equals(ov.getAttr());
+			return this.attr == ov.getAttr();
 		}
 		return false;
 	}

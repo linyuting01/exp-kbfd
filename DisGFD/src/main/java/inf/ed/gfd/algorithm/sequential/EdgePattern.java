@@ -75,7 +75,9 @@ public class EdgePattern {
 	  
 	 public List<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
 			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,  
-			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, Set<String> dom){
+			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, 
+		    HashMap<String,HashMap<Integer,Set<String>>> literDom,
+			 HashMap<String,HashMap<Integer, IntSet>> varDom){
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
 	   List<DFS> DFS = new ArrayList<DFS>(); 
@@ -89,17 +91,15 @@ public class EdgePattern {
 	     int tID = tNode.getID();
 	     fVertex = KB.getVertex(fID);
 	     tVertex = KB.getVertex(tID);
-	     String fLabel = fVertex.getAttr();
-	     String tLabel = tVertex.getAttr();
-	     dom.add(fLabel);
-	     dom.add(tLabel);
+	     int fLabel = fVertex.getAttr();
+	     int tLabel = tVertex.getAttr();
 	     
 	     int[] eLabel = edge.getAttr();
 	     int elNum = edge.attrCount;
 	     
-	     Pair<String,Integer> f = new Pair<String,Integer>(fLabel,0);
-    	 Pair<String,Integer> t = new Pair<String,Integer>(tLabel,0);
-    	 if(fLabel.equals(tLabel)){
+	     Pair<Integer,Integer> f = new Pair<Integer,Integer>(fLabel,0);
+    	 Pair<Integer,Integer> t = new Pair<Integer,Integer>(tLabel,0);
+    	 if(fVertex.match(tVertex)){
     		 t.y = 1;
     	 }
 	   
@@ -131,6 +131,31 @@ public class EdgePattern {
 	           
 	           
 	           patternNodeMatchesN.get(pId).add(e);
+	           if(!literDom.containsKey(pId)){
+	        	  literDom.put(pId, new HashMap<Integer, Set<String>>());
+	           }
+	           if(!literDom.get(pId).containsKey(0)){
+	        	   literDom.get(pId).put(0, new HashSet<String>());
+	           }
+	           literDom.get(pId).get(0).add(fVertex.getValue());
+	           if(!literDom.get(pId).containsKey(1)){
+	        	   literDom.get(pId).put(1, new HashSet<String>());
+	           }
+	           literDom.get(pId).get(1).add(tVertex.getValue());
+	           
+	           if(fVertex.getValue().equals(tVertex.getValue())){
+	        	   if(!varDom.containsKey(pId)){
+	 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+	 	           }
+	 	           if(!varDom.get(pId).containsKey(0)){
+	 	        	   varDom.get(pId).put(0, new IntOpenHashSet());
+	 	           }
+	 	           varDom.get(pId).get(0).add(1);
+	           }
+	           
+	           
+	           
+	        		   
 	           /*
 	           VertexOString f1 = new VertexOString(fID,fLabel);
 		         VertexOString t1 = new VertexOString(tID,tLabel);
@@ -142,6 +167,7 @@ public class EdgePattern {
 		         */
 	     }
 	   }
+	  
 	  
       
 	return DFS;

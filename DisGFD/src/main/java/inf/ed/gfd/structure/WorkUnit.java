@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 
+import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
+import inf.ed.graph.structure.adaptor.TypedEdge;
+import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class WorkUnit implements Serializable {
@@ -19,7 +22,8 @@ public class WorkUnit implements Serializable {
 	public Condition condition;
 	public List<String> patterns;
 	
-	
+	//for isomorphism checking
+	public HashMap<Integer,Graph<VertexString, TypedEdge>> isoPatterns;
 	//for pattern;
 	public String oriPatternId;
 	// String and the pattrn node in the new pattern;

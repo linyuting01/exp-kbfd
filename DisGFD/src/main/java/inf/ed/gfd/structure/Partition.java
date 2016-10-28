@@ -60,11 +60,11 @@ public class Partition implements Serializable {
 	public void addCrossingEdges(Set<CrossingEdge> crossingEdges) {
 		for (CrossingEdge e : crossingEdges) {
 			if (!this.graph.contains(e.source)) {
-				VertexOString vo = new VertexOString(e.source, e.sourceLabel);
+				VertexOString vo = new VertexOString(e.source, e.sourceAttr, e.sourceLabel);
 				this.graph.addVertex(vo);
 			}
 			if (!this.graph.contains(e.target)) {
-				VertexOString vo = new VertexOString(e.target, e.targetLabel);
+				VertexOString vo = new VertexOString(e.target, e.sourceAttr,e.targetLabel);
 				this.graph.addVertex(vo);
 			}
 			if (!this.graph.contains(e.source, e.target)) {

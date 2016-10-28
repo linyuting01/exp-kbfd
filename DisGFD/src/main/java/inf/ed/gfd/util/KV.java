@@ -5,7 +5,7 @@ public class KV {
 	/** coordinator service name */
 	public static final String COORDINATOR_SERVICE_NAME = "grape-coordinator";
 
-	public static final String ANY = "ANY";
+	public static final int ANY = 0;
 	public static final int ATTR_LIMIT = 3;
 	public static final int ALL_CANDIDATES_LIMIT = 1000;
 	public static final int FREQ_EDGE_LIMIT = 150;

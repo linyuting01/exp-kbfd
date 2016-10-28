@@ -155,7 +155,7 @@ public class GFD2 implements Serializable {
 
 	public boolean verify2Candidate(int cand1, int cand2, Graph<VertexOString, OrthogonalEdge> KB) {
 		// cand1 attribute should equals cand2 attribute.
-		return KB.getVertex(cand1).getAttr().equals(KB.getVertex(cand2).getAttr());
+		return KB.getVertex(cand1).getAttr() == KB.getVertex(cand2).getAttr();
 	}
 
 	public int findCandidates(Graph<VertexOString, OrthogonalEdge> KB) {

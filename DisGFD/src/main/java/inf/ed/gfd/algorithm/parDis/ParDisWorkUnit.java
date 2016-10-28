@@ -61,7 +61,9 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	//SuppResult suppResult = new SuppResult();
 	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd = new HashMap<String, HashMap<String,IntSet>>() ;
 	public HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String, HashMap<String,Boolean>>();
-	
+	public HashMap<String, HashMap<Integer,IntSet>> varDom = new HashMap<String, HashMap<Integer,IntSet>>();
+	public HashMap<String, HashMap<Integer,Set<String>>> literDom = new HashMap<String, HashMap<Integer,Set<String>>>();
+
 	public boolean isGfdCheck;
 	
 	Set<String> dom = new HashSet<String>();
@@ -163,7 +165,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			//generate edge patterns.
 			EdgePattern eP = new EdgePattern();
 			List<DFS> edgePattern = eP.edgePattern( partition.getGraph(), pivotPMatch,
-					edgePatternNodeMatch,patternNodeMatchesN,dom);
+					edgePatternNodeMatch,patternNodeMatchesN,literDom,varDom );
 			log.debug(edgePattern.size());
 			log.debug("dom size" +dom.size());
 		    SuppResult w = (SuppResult)this.generatedResult;
@@ -287,6 +289,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		pivotMatchGfd.clear();
 		satCId.clear();
 		pivotPMatch.clear();
+		literDom.clear();
+		varDom.clear();
 		boolean flag = processWorkUnitAndGfdMsg(partition);
 		if(flag){
 			prepareResult(true);
@@ -364,7 +368,7 @@ private void IncPattern(WorkUnit w, Partition partition, HashMap<String, List<Pa
 						if(match.containsKey(tId)){// add AB AB is in ppId
 							Pair<Integer,Integer> p = new Pair<Integer,Integer>(match.get(fId),match.get(tId));
 							if(pairL.contains(p)){
-								if(matchKB(p.x,p.y,eLabel,partition)){
+								if(matchKB(match,pId,p.x,p.y,eLabel,partition)){
 									addMatch(match, pId, fId, tId, 0,0 );
 								}
 							}
@@ -372,7 +376,7 @@ private void IncPattern(WorkUnit w, Partition partition, HashMap<String, List<Pa
 						else{
 							for(Pair<Integer,Integer> p: pairL){
 								if(p.x == match.get(fId)){
-									if(matchKB(p.x,p.y,eLabel,partition)){
+									if(matchKB(match,pId,p.x,p.y,eLabel,partition)){
 										addMatch(match, pId, fId, tId, 1,(int)p.y);
 									}
 									
@@ -384,7 +388,7 @@ private void IncPattern(WorkUnit w, Partition partition, HashMap<String, List<Pa
 					if(match.containsKey(tId)){
 						for(Pair<Integer,Integer> p: pairL){
 							if(p.y == match.get(fId)){
-								if(matchKB(p.x,p.y,eLabel,partition)){
+								if(matchKB(match,pId, p.x,p.y,eLabel,partition)){
 									addMatch(match, pId, fId, tId, 2,(int)p.x);
 								}
 							}
@@ -415,16 +419,96 @@ private void addMatch(Int2IntMap match, String pId, int fId, int tId, int flag, 
 			pivotPMatch.put(pId, new IntOpenHashSet());
 		}
 		pivotPMatch.get(pId).add(tmpt.get(1));
+		
 	}
 	
-	private boolean matchKB(int fId, int tId, int elabel, Partition partition){
+	private boolean matchKB(Int2IntMap match,String pId, int fId, int tId, int elabel, Partition partition){
 		OrthogonalEdge e = partition.getGraph().getEdge(fId, tId);
+		
+		 String val1 =partition.getGraph().allVertices().get(fId).getValue();
+		 String val2 =partition.getGraph().allVertices().get(tId).getValue();
 		int[] attrs= e.getAttr();
+		String[] val = new String[match.size()];
 		for(int m: attrs){
 			if(m == elabel) {
+				int ksize = match.size();
+				for(int i: match.keySet()){
+					 if(!literDom.containsKey(pId)){
+			        	  literDom.put(pId, new HashMap<Integer, Set<String>>());
+			           }
+			           if(!literDom.get(pId).containsKey(i)){
+			        	   literDom.get(pId).put(i, new HashSet<String>());
+			           }
+			           String val3 =partition.getGraph().allVertices().get(i).getValue();
+			           literDom.get(pId).get(i).add(val3);  
+			           val[i] = val3;
+				}
+				 if(!literDom.get(pId).containsKey(fId)){
+		        	   literDom.get(pId).put(fId, new HashSet<String>());
+		           }
+		          // String val1 =partition.getGraph().allVertices().get(fId).getValue();
+		           literDom.get(pId).get(fId).add(val1); 
+		           if(!literDom.get(pId).containsKey(tId)){
+		        	   literDom.get(pId).put(tId, new HashSet<String>());
+		           }
+		           //String val2 =partition.getGraph().allVertices().get(tId).getValue();
+		           literDom.get(pId).get(tId).add(val2);
+			}
+			for(int i=0;i<val.length;i++){
+				for(int j = i+1;j<val.length;j++){
+					if(val[i].equals(val[j])){
+						 if(!varDom.containsKey(pId)){
+			 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+			 	           }
+			 	           if(!varDom.get(pId).containsKey(i)){
+			 	        	   varDom.get(pId).put(i, new IntOpenHashSet());
+			 	           }
+			 	           varDom.get(pId).get(i).add(j);
+					}
+				}
+				if(val[i].equals(val1)){
+					if(i < fId){
+						if(!varDom.containsKey(pId)){
+			 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+			 	           }
+			 	           if(!varDom.get(pId).containsKey(i)){
+			 	        	   varDom.get(pId).put(i, new IntOpenHashSet());
+			 	           }
+			 	           varDom.get(pId).get(i).add(fId);
+					}
+					if(i > fId){
+						if(!varDom.containsKey(pId)){
+			 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+			 	           }
+			 	           if(!varDom.get(pId).containsKey(fId)){
+			 	        	   varDom.get(pId).put(i, new IntOpenHashSet());
+			 	           }
+			 	           varDom.get(pId).get(fId).add(i);
+					}
+				}
+				if(val[i].equals(val2)){
+					if(i < tId){
+						if(!varDom.containsKey(pId)){
+			 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+			 	           }
+			 	           if(!varDom.get(pId).containsKey(i)){
+			 	        	   varDom.get(pId).put(i, new IntOpenHashSet());
+			 	           }
+			 	           varDom.get(pId).get(i).add(tId);
+					}
+					if(i > tId){
+						if(!varDom.containsKey(pId)){
+			 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+			 	           }
+			 	           if(!varDom.get(pId).containsKey(tId)){
+			 	        	   varDom.get(pId).put(i, new IntOpenHashSet());
+			 	           }
+			 	           varDom.get(pId).get(tId).add(i);
+					}
+				}
+			}
 			 return true;
 			}			
-		}
 		return false;		
 	
 	}

@@ -14,7 +14,8 @@ import java.io.Serializable;
 public class VertexOString extends OrthogonalVertex implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	String attr;
+	int attr;
+	String value;
 
 	public VertexOString(int id) {
 		this.id = id;
@@ -30,35 +31,48 @@ public class VertexOString extends OrthogonalVertex implements Serializable {
 	}
 
 	public VertexOString(String line) {
-		int p = line.indexOf("\t");
-		this.id = Integer.parseInt(line.substring(0, p).trim());
-		this.attr = line.substring(p).trim();
+		String tmpt[] = line.split("\t");
+		this.id = Integer.parseInt(tmpt[0].trim());
+		this.attr =  Integer.parseInt(tmpt[1].trim());
+		this.value = tmpt[2].trim();
 	}
 
-	public VertexOString(int id, String attr) {
+	public VertexOString(int id, int attr, String value ) {
 		this.id = id;
 		this.attr = attr;
+		this.value = value;;
 	}
 
-	public VertexOString(int id, String attr, OrthogonalEdge firstin, OrthogonalEdge firstout) {
+	public VertexOString(int id, int attr, String value, OrthogonalEdge firstin, OrthogonalEdge firstout) {
 		this.id = id;
 		this.attr = attr;
+		this.value = value;
 		this.firstin = firstin;
 		this.firstout = firstout;
 	}
 
-	public String getAttr() {
+	public VertexOString(int vertexID, int i) {
+		// TODO Auto-generated constructor stub
+	}
+
+	public int getAttr() {
 		return this.attr;
 	}
 
-	public void setAttr(String attr) {
+	public void setAttr(int attr) {
 		this.attr = attr;
+	}
+	public String getValue(){
+		return this.value;
+	}
+	public void setValue(String val) {
+		this.value = val;;
 	}
 
 	@Override
 	public int hashCode() {
 		int result = String.valueOf(this.getID()).hashCode();
-		result = 29 * result + attr.hashCode();
+		result = 29 * result + attr + value.hashCode();
 		return result;
 	}
 
@@ -70,7 +84,7 @@ public class VertexOString extends OrthogonalVertex implements Serializable {
 
 	public boolean match(Object other) {
 		final VertexOString o = (VertexOString) other;
-		return o.attr.equals(this.attr);
+		return o.attr == this.attr;
 	}
 
 	@Override

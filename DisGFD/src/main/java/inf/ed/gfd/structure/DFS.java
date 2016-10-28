@@ -17,11 +17,11 @@ private static final long serialVersionUID = 1L;
    * we use Triple to denote one node in the pattern, why a Triple is 
    * for the node whose label has already in the pattern
    */
-  public Pair<String,Integer> fLabel;
-  public Pair<String,Integer> tLabel;
+  public Pair<Integer,Integer> fLabel;
+  public Pair<Integer,Integer> tLabel;
   public int eLabel;
 
-  public DFS(Pair<String,Integer> A, Pair<String,Integer> B, int e){
+  public DFS(Pair<Integer, Integer> A, Pair<Integer, Integer> B, int e){
     this.fLabel = A;
     this.tLabel = B;
     this.eLabel = e;
@@ -65,15 +65,7 @@ public DFS(DFS dfs) {
     return 0;
   }
   
-  public static void main(String args[]) throws CloneNotSupportedException {  
-    
-	Pair<String,Integer> a = new Pair<String,Integer> ("a",5);
-	Pair<String,Integer> b = new Pair<String,Integer> ("b",1);
-	 int c = 2;
-	DFS dfs = new DFS(a,b,c);
-	// DFS dfsn = (DFS) dfs.clone();
-	log.debug(dfs.toString());
-  }
+ 
   @Override
   public boolean equals(Object o) {
 	    if (!(o instanceof DFS)) return false;
@@ -89,8 +81,8 @@ public DFS(DFS dfs) {
   }
 	
   public DFS findDFS(){
-	   Pair<String,Integer> t1 = new Pair<String,Integer> ("",0);
-	   Pair<String,Integer> t2 = new Pair<String,Integer> ("",0);
+	   Pair<Integer,Integer> t1 = new Pair<Integer,Integer> (0,0);
+	   Pair<Integer,Integer> t2 = new Pair<Integer,Integer> (0,0);
 	   t1.x = this.fLabel.x;
 	   t2.x = this.tLabel.x;
 	   if(this.isEqualL()){

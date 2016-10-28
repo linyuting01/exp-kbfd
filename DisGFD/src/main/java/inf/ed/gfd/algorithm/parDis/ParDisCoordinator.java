@@ -132,6 +132,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
 	
 	DisconnectedTree distree = new DisconnectedTree();
+	public Set<GfdNode> layerGfds = new HashSet<GfdNode>();
 	
 	
 	
@@ -698,11 +699,24 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				log.debug("no condition more, begin to extend pattern");
 				boolean flagExtendP = false;
 				//no more extend of literNode
+				layerGfds.clear();
 				for(String pId:finalResult.pivotMatchGfd.keySet()){
 					GfdNode g = gfdTree.pattern_Map.get(pId);
-					gfdTree.extendNodeGeneral(g);
+					gfdTree.extendGeneral(edgePattern, g);
 					if(g.children != null){
 						if(!g.children.isEmpty()){
+							layerGfds.addAll(g.children);
+						}
+					}
+				}
+				classifyLayerGfds();
+							
+							
+							
+							
+				{	
+							
+							//add isomorphic checking
 							flagExtendP = true;
 							for(GfdNode t: g.children ){
 								// pattern workunit
@@ -722,9 +736,51 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					log.debug("all process done!");
 					this.shutdown();
 				}
-				
 	}
+
+	
 	}
+	
+	
+	//partition to check isomorphism;
+	HashMap<String, Set<GfdNode>> cluster = new HashMap<String, Set<GfdNode>>();
+	public void classifyLayerGfds(){
+		cluster.clear();
+		for(GfdNode g: layerGfds){
+			String s = g.orderId;
+			if(!cluster.containsKey(s)){
+				cluster.put(s, new HashSet<GfdNode>());
+			}
+			cluster.get(s).add(g);
+		}
+			//suppose edgepattern has number, 
+	}
+	
+	public void isomorphismWorkUnits(){
+		int size = cluster.size();
+		String[] psId = new String[size];
+		int[] ac = new int[size];
+		int amount = 0;
+		HashMap<String, Integer> workamount  = new HashMap<String, Integer>();
+		for(String s :cluster.keySet()){
+			int m = cluster.get(s).size();
+		    workamount.put(s, m*m);	
+		    amount = amount+ m*m;
+		    
+		}
+		int avg = amount/Params.N_PROCESSORS;
+		int i =0;
+		for(Entry<String,Integer> entry : workamount.entrySet()){
+			psId[i]= entry.getKey();
+			ac[i] = entry.getValue();
+		}
+		
+		
+	}
+			
+
+	
+	
 		
 	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
 		           // extendPatterns.clear();

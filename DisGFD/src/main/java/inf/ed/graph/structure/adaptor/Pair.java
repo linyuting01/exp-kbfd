@@ -13,7 +13,7 @@ import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.GfdTree;
 
 
-public class Pair<T,T1> implements Comparable<Pair<String,Integer>>, Serializable {
+public class Pair<T,T1> implements Comparable<Pair<Integer,Integer>>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -65,14 +65,14 @@ public class Pair<T,T1> implements Comparable<Pair<String,Integer>>, Serializabl
 	}
 
 	public String toString() {
-		return x + "," + y ;
+		return ""+x + "," + y ;
 	}
 
 
 	@Override
-	public int compareTo(Pair<String,Integer> o) {
+	public int compareTo(Pair<Integer,Integer> o) {
 		// TODO Auto-generated method stub
-		String x1 = (String) this.x;
+		Integer x1 = (Integer) this.x;
 		Integer y1 = (Integer) this.y;
 		if(!x1.equals(o.x)){
 			return x1.compareTo(o.x);
@@ -90,6 +90,7 @@ public class Pair<T,T1> implements Comparable<Pair<String,Integer>>, Serializabl
 		
 	    
 	}
+
 
 
 }

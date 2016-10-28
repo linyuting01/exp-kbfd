@@ -75,8 +75,8 @@ public class GfdTree {
 	 }
 	public void extendGeneral(List<DFS> edgePattern, GfdNode t){
 		GfdNode parent = t.parent;
-		DFS dfso = t.edgePattern;
-		DFS dfs = dfso.findDFS();
+		DFS dfs = t.edgePattern;
+		//DFS dfs = dfso.findDFS();
 		String fx = dfs.fLabel.x;
 		String tx = dfs.tLabel.x;
 		int fy = dfs.fLabel.y;
@@ -84,23 +84,118 @@ public class GfdTree {
 		for(DFS dfs1 : edgePattern){
 			String fx1 = dfs1.fLabel.x;
 			String tx1 = dfs1.tLabel.x;
-			if(fx1.equals(fx) || tx1.equals(tx) || fx1.equals(tx1)||tx1.equals(fx1)){
-				int i = dfs1.compareTo(dfs);
-				if(i>0){
-					 newNode(t,dfs1);
+			if(fx1.equals(fx)){
+				if(tx1.equals(tx)){
+					int m = t.attrs.get(fx);
+					Pair<String,Integer> p1 = new Pair<String,Integer>(fx,m);
+					int n = t.attrs.get(tx);
+					for(int k = 0;k<n;k++){
+						Pair<String,Integer> p2 = new Pair<String,Integer>(tx,k);
+						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
+						 newNode(t,dfs11);		
+					}
+					if(dfs.isEqualL()){
+						if(fy <ty){
+							DFS dfs12 = new DFS(dfs.tLabel,dfs.fLabel,dfs1.eLabel);	
+						}
+					}
+				}else{
+					if(tx1.compareTo(tx)>0){
+						DFS dfs12 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
+						 newNode(t,dfs12);	
+					}else{
+						int n = t.attrs.get(tx);
+						Pair<String,Integer> p3 = new Pair<String,Integer>(tx,n);
+						DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
+						 newNode(t,dfs13);	
+					}
 				}
-				if(i == 0)
-				{
+			}
+			
+			if(tx1.equals(tx)){
+				if(fx1.equals(fx)){
+					int n = t.attrs.get(tx);
+					Pair<String,Integer> p3 = new Pair<String,Integer>(tx,n);
+					DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
+					newNode(t,dfs13);	
+				}else{
+					if(fx1.compareTo(fx) >0){
+						int n = t.attrs.get(tx);
+						for(int k=0;k<n;k++){
+							Pair<String,Integer> p3 = new Pair<String,Integer>(tx,n);
+							DFS dfs13 = new DFS(dfs1.fLabel,p3,dfs1.eLabel);
+							newNode(t,dfs13);
+						}
+						
+					}else{
+						if(t.attrs.containsKey(fx)){
+							int m = t.attrs.get(fx);
+							int  n = t.attrs.get(tx1);
+							Pair<String,Integer> p2 = new Pair<String,Integer>(fx,m);
+							for(int k = 0; k<n;k++){
+								
+								Pair<String,Integer> p3 = new Pair<String,Integer>(tx,n);
+								DFS dfs13 = new DFS(p2,p3,dfs1.eLabel);
+								newNode(t,dfs13);
+							}
+							
+						}
+					}
+				}
+			}
+			
+			if(fx1.equals(tx)){ // AB - xA
+				if(fx1.compareTo(fx)>0){
+					if(t.attrs.containsKey(tx1)){
+						int n = t.attrs.get(tx1);
+						for(int k =0;k<=n;k++){
+						Pair<String,Integer> p2 = new Pair<String,Integer>(tx1,k);
+						DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
+						newNode(t,dfs3);
+						
+					}
 					
-				}
-				if(i<0){
 					
 				}
 			}
+		  if(tx1.equals(fx)){
+			  if(fx1.compareTo(fx) >0){
+				  if(t.attrs.containsKey(fx1)){
+					  int m = t.attrs.get(fx1);
+					  for(int k=0;k<=m;k++){
+						  Pair<String,Integer> p2 = new Pair<String,Integer>(fx1,k);
+							DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
+							newNode(t,dfs3);
+					  }
+						  
+					  }
+				  }
+			  if(fx1.compareTo(fx) <0){
+				  if(t.attrs.containsKey(fx1)){
+					   int m = t.attrs.get(fx1);
+					   Pair<String,Integer> p2 = new Pair<String,Integer>(fx1,m);
+						DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
+				  }
+			  }
+			  }
+		  }
+			if(t.attrs.containsKey(fx1) || t.attrs.containsKey(tx1)){
+				if(fx1.compareTo(fx)>0){
+					 if(t.attrs.containsKey(fx1)){
+						   int m = t.attrs.get(fx1);
+						   for(int k=0;k<=m;k++){
+								  Pair<String,Integer> p2 = new Pair<String,Integer>(fx1,k);
+									DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
+									newNode(t,dfs3);
+							  }
+						   
+					  }
+				}
+			}
 		}
-		if(parent.attrs.containsKey(fx)){//not new node
-			
-		}
+		
+		
+		
 		
 	}
 	//private void extendRootChildren(List<DFS> edgePattern){

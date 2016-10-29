@@ -18,6 +18,8 @@ import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
@@ -32,6 +34,11 @@ public class GfdNode implements Comparable<GfdNode> {
 	
 	static Logger log = LogManager.getLogger(GfdNode.class);
 	
+	public int pId;
+	
+	
+	
+	public Graph<VertexString, TypedEdge> pattern;
 	public String key;
 	public DFS edgePattern;
 	public LiterTree ltree; 
@@ -59,8 +66,8 @@ public class GfdNode implements Comparable<GfdNode> {
 	public int nodeNum = 0;
 	
 	
-	public HashMap<Integer, Set<String>> literDom; 
-	public HashMap<Integer,IntSet> varDom;
+	public Int2ObjectMap<Set<String>> literDom; 
+	public Int2ObjectMap<IntSet> varDom;
 
  /**
   * for disconnected pattern 
@@ -80,14 +87,14 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.wC2Wp = new WorkUnit();
 		this.edgePattern = new DFS();
 //<<<<<<< HEAD
-		this.literDom = new HashMap<Integer, Set<String>>();
-		this.varDom = new HashMap<Integer,IntSet>();
+		//this.literDom = new HashMap<Integer, Set<String>>();
+		//this.varDom = new HashMap<Integer,IntSet>();
 
 		//this.patternDom = new HashMap<Integer, Set<String>>();
 		this.attrs = new HashMap<Integer,Integer>();
 		this.extendDfss = new HashSet<DFS>();
-		this.literDom = new HashMap<Integer, Set<String>>();
-		this.varDom = new HashMap<Integer,IntSet>();
+		this.literDom = new Int2ObjectOpenHashMap<Set<String>>();
+		this.varDom = new Int2ObjectOpenHashMap<IntSet>();
 //>>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
 		
 		//this.rNeighbor = null;

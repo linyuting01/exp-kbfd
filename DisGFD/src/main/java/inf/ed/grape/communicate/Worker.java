@@ -1,5 +1,6 @@
 package inf.ed.grape.communicate;
 
+
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.grape.interfaces.Message;
@@ -10,6 +11,7 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface Worker extends Remote {
 
@@ -52,6 +54,8 @@ public interface Worker extends Remote {
 
 	public boolean loadWholeGraph(int partitionID) throws RemoteException;
 
-	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) throws RemoteException ;
+	public void setWorkUnits(Set<WorkUnit> workload) throws RemoteException ;
+
+	//void setWorkUnits(Set<workload> workload) throws RemoteException;
 
 }

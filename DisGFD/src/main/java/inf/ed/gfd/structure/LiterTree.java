@@ -42,7 +42,7 @@ public class LiterTree {
 	
 	private LiterNode root;
 	public  GfdNode gNode;
-	public HashMap<String, LiterNode> condition_Map;
+	public HashMap<Integer, LiterNode> condition_Map;
 	public int layer = 0;
 	
 
@@ -54,14 +54,14 @@ public class LiterTree {
 		// TODO Auto-generated constructor stub
 		this.root = new LiterNode();
 		//this.gNode = new GfdNode();
-		this.condition_Map = new HashMap<String, LiterNode>();
+		this.condition_Map = new HashMap<Integer, LiterNode>();
 		
 	}
 	public LiterTree(GfdNode gNode) {
 		// TODO Auto-generated constructor stub
 		this.root = new LiterNode();
 	    this.gNode = gNode;
-		this.condition_Map = new HashMap<String, LiterNode>();
+		this.condition_Map = new HashMap<Integer, LiterNode>();
 	}
 	
 
@@ -228,8 +228,9 @@ public class LiterTree {
 		}
 		t.pos = g.childPos;//
 		g.childPos++;
-		t.key = t.getDependency().toString();
-		condition_Map.put(t.key, t);
+	//	t.key = t.getDependency().toString();
+		t.cId = condition_Map.size()+1;
+		condition_Map.put(t.cId, t);
 		return t;
 	 }
 		
@@ -259,12 +260,13 @@ public class LiterTree {
 			t.getDependency().isLiteral = false;
 		}
 		
-		t.key = t.getDependency().toString();
+		//t.key = t.getDependency().toString();
 		t.pos = g.childPos;//
 		g.childPos++;
 		log.debug(nodeId+ "+"+ nodeId2);
-		log.debug(t.key);
-		condition_Map.put(t.key, t);
+		//log.debug(t.key);
+		t.cId = condition_Map.size()+1;
+		condition_Map.put(t.cId, t);
 		return t;
 	 }
 	 
@@ -871,8 +873,9 @@ public void extendNode(LiterNode t){
 				}
 				t.getDependency().setYEqualsVariable(vy.x, vy.y);
 			
-			t.key = t.getDependency().toString();
-			condition_Map.put(t.key, t);
+			//t.key = t.getDependency().toString();
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
 			return t;
 		 }
 	 private LiterNode extendRootNodeXv(Pair<Integer,Integer> xv, Pair<Integer, Integer> vy){
@@ -887,8 +890,9 @@ public void extendNode(LiterNode t){
 				
 				t.getDependency().setYEqualsVariable(vy.x, vy.y);
 			
-			t.key = t.getDependency().toString();
-			condition_Map.put(t.key, t);
+		//	t.key = t.getDependency().toString();
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
 			return t;
 		 }
 	 

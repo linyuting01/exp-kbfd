@@ -253,10 +253,11 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 		
 	}
 
-	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload) throws RemoteException {
+	public void setWorkUnits(Set<WorkUnit> workload) throws RemoteException {
 		this.worker.setWorkUnits(workload);
 		
 	}
+	
 
 	
 }

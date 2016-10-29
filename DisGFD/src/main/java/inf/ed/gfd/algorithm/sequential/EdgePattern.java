@@ -73,14 +73,13 @@ public class EdgePattern {
 	   */
 	// public HashMap<String, Integer> labelId = new HashMap<String, Integer>();//
 	  
-	 public List<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
-			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,  
-			 HashMap<String, List<Int2IntMap> > patternNodeMatchesN, 
+	 public Set<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
+			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,   
 		    HashMap<String,HashMap<Integer,Set<String>>> literDom,
 			 HashMap<String,HashMap<Integer, IntSet>> varDom){
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
-	   List<DFS> DFS = new ArrayList<DFS>(); 
+	   Set<DFS> DFS = new HashSet<DFS>(); 
       // get all edge patterns and literals for nodes ;
 	   for(OrthogonalEdge edge: KB.getAllEdges()){ 
 	     //System.out.print("success");
@@ -116,7 +115,7 @@ public class EdgePattern {
 	        	 pivotPMatch.put(pId, new IntOpenHashSet());  
 	         }
 	         pivotPMatch.get(pId).add(fID);
-	         
+	         /*
 	         if(!edgePatternNodeMatch.containsKey(pId)){
 	        	 edgePatternNodeMatch.put(pId, new ArrayList<Pair<Integer,Integer>>()); 
 	        	 edgePatternNodeMatch.get(pId).add(new Pair<Integer,Integer>(fID,tID)); 
@@ -131,6 +130,7 @@ public class EdgePattern {
 	           
 	           
 	           patternNodeMatchesN.get(pId).add(e);
+	           */
 	           if(!literDom.containsKey(pId)){
 	        	  literDom.put(pId, new HashMap<Integer, Set<String>>());
 	           }
@@ -172,6 +172,7 @@ public class EdgePattern {
       
 	return DFS;
  }
+}
 	         //Initialize matchesP;
 	         /*
 	         if(! patternNodeMatchesN.containsKey(pId)){
@@ -214,7 +215,7 @@ public class EdgePattern {
 	// int partitionId;
 	 
    
-	 
+	/* 
 	 //receive workunit wsc and create message w2c
 	public static void IncrePattern(HashMap<String,List<WorkUnit>> wsc, 
 			HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch, 
@@ -456,7 +457,7 @@ public static void IncPattern(WorkUnit w,
 		}
 	}
 	*/
-}
+
 	/*for(Entry<DFS, Pair<Integer,Integer>> entry : edgeIds.entrySet()){
 			IntSet pivotMatch = new IntOpenHashSet();
 			String edgeId1 = entry.getKey().toString();

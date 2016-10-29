@@ -23,12 +23,13 @@ public class GfdTree {
 	
     private GfdNode root;
     
-    public HashMap<String, GfdNode> pattern_Map;
+    //public HashMap<String, GfdNode> pattern_Map;
+    public HashMap<Integer, GfdNode> patterns_Map;
     
     public GfdTree(){
         this.root = new GfdNode();
         this.root.key="";
-        this.pattern_Map = new HashMap<String, GfdNode>();
+        this.patterns_Map = new HashMap<Integer, GfdNode>();
     }
 
     
@@ -62,12 +63,13 @@ public class GfdTree {
 	}*/
 	
 	
-	public void extendRoot(List<DFS> edgePattern, SuppResult r){
+	public void extendRoot(List<DFS> edgePattern, HashMap<DFS,Integer> dfs2Id, SuppResult r){
 		 for(DFS dfs: edgePattern){
-			 String key = dfs.toString();
 			 GfdNode g = newNode(root,dfs);
-			 g.literDom = r.literDom.get(key);
-			 g.varDom = r.varDom.get(key);
+			 g.pId = dfs2Id.get(dfs);
+				patterns_Map.put(g.pId, g);
+			 g.literDom = r.literDom.get(g.pId);
+			 g.varDom = r.varDom.get(g.pId);
 		 }
 			 for(GfdNode t : this.root.children){
 				// log.debug("extenf general t" + t.edgePattern.toString());
@@ -79,6 +81,59 @@ public class GfdTree {
 		  }
 		 
 	 }
+	
+	
+	public void extendGeneralNode(List<DFS> edgePattern, GfdNode t){
+		DFS dfs = t.edgePattern;
+		int fx = dfs.fLabel.x;
+		int tx = dfs.tLabel.x;
+		int fy = dfs.fLabel.y;
+		int ty = dfs.tLabel.y;
+		int m =0 ;
+		int n =0;
+		for(DFS dfs1 : edgePattern){
+			int fx1 = dfs1.fLabel.x;
+			int tx1 = dfs1.tLabel.x;
+			int e = dfs1.eLabel;
+			if(t.attrs.containsKey(fx1)){
+				m = t.attrs.get(fx1);
+			}
+			if(t.attrs.containsKey(tx1)){
+				n = t.attrs.get(tx1);
+			}
+			if(t.attrs.containsKey(fx1) ||t.attrs.containsKey(tx1)){
+				if(fx1 > fx){
+					for(int i=0;i<=m;i++){
+						Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(fx1,m);
+						for(int k =0;k<n;k++){
+							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
+							DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
+						}
+					}
+				}
+				if(fx1< fx){
+					Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(fx1,m);
+					for(int k =0;k<n;k++){
+						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
+						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
+					}
+				}
+				if(fx1 == fx){
+					if(tx1 >tx){
+						for(int k =0;k<=n;k++){
+							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
+							DFS dfs11 = new DFS(dfs.fLabel,p2,dfs1.eLabel);
+						}
+					}
+					if(tx1 <tx){
+						
+					}
+				}
+						
+			}
+		}
+	}
+
 	public void extendGeneral(List<DFS> edgePattern, GfdNode t){
 		DFS dfs = t.edgePattern;
 		Integer fx = dfs.fLabel.x;
@@ -267,9 +322,9 @@ public class GfdTree {
 			}
 		}
 	}
-	
 
-	/*
+
+	
 	 private void extendRootChild(GfdNode t, List<DFS> edgePattern){
 		  // extend root's children
 		      //t.wC2Wp.oriPatternId = t.key;
@@ -318,18 +373,12 @@ public class GfdTree {
 				  
 			  }
 			  
-			  Collections.sort(t.children);
-			  int i = 0 ;
+			
 			 
-			  for(GfdNode gx : t.children){
-				  log.debug("root children " + tdfs.toString() + "children "+ gx.edgePattern.toString());
-				  gx.pos = i;
-				  i++;
-			  }
-			  
+		
 		 }
 	 
-	 
+	/* 
 	 public void extendNodeGeneral(GfdNode g){
 		 
 		  DFS dfs = g.edgePattern;
@@ -357,7 +406,7 @@ public class GfdTree {
 	    * extend AA_1 by AA_2, A_1A and AB by A_1B and AB_1
 	    */
 		
-	/*
+	
 	   private void extendSpecial( boolean flag, DFS dfs, GfdNode g){
 	        
 	 	   Pair<Integer,Integer> b1 = addPair(dfs.tLabel);
@@ -406,6 +455,7 @@ public class GfdTree {
 	 	    
 	    }
 	   
+	   /*
 	   private void extendGeneral(GfdNode t){
 		   //first add right neighbor;
 		   DFS dfs1 = t.edgePattern;
@@ -776,11 +826,14 @@ public class GfdTree {
 				e.setAttr(dfs.eLabel);
 			}*/
 			g.key = t.key+dfs.toString();
-			pattern_Map.put(g.key, g);
+			if(t!=root){
+				g.pId = patterns_Map.size()+1;
+				patterns_Map.put(g.pId, g);
+			}
 			//create work unit
 			int fId = g.nodeSet.get(e1);
 			int tId = g.nodeSet.get(e2);
-			t.wC2Wp.edgeIds.put(dfs, new Pair<Integer,Integer>(fId, tId));	
+			//t.wC2Wp.edgeIds.put(dfs, new Pair<Integer,Integer>(fId, tId));	
 			g.ltree.gNode = g;
 			g.attrs = new HashMap<Integer,Integer>(t.attrs);
 			if(!g.attrs.containsKey(dfs.fLabel.x)){
@@ -959,7 +1012,7 @@ public class GfdTree {
 		dom.add("b");
 		SuppResult r =new SuppResult();
 		GfdTree gtree = new GfdTree();
-    	gtree.extendRoot(edgePattern,r);
+    	//gtree.extendRoot(edgePattern,r);
 		
 		//gtree.extendNode(gtree.getRoot(),edgePattern, dom );
 		//log.debug( gtree.root.getChildren().size());

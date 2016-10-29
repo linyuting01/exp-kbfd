@@ -3,67 +3,80 @@ package inf.ed.gfd.structure;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-public class WorkUnit implements Serializable {
+public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	
 	private static final long serialVersionUID = 10L;
 	
-	public String patternId;
-	public String conditionId;
+	public int patternId;
 	//public int partitionId;
-	public boolean isConnected;
+	//public boolean isConnected;
 	public boolean isGfdCheck;
-	public Condition condition;
+	public Int2ObjectMap<Condition> conditions;
+	public boolean isIsoCheck;
+	
 	public List<String> patterns;
 	
 	//for isomorphism checking
 	public HashMap<Integer,Graph<VertexString, TypedEdge>> isoPatterns;
 	//for pattern;
-	public String oriPatternId;
+	public int oriPatternId;
 	// String and the pattrn node in the new pattern;
-	public HashMap<DFS, Pair<Integer,Integer>> edgeIds;
+	//add pId
+	
+	public Int2ObjectMap<Int2ObjectMap<Pair<Integer,Integer>>> edgeIds;
+	//public HashMap<DFS, Pair<Integer,Integer>> edgeIds;
 	
 	public WorkUnit(){
-		this.edgeIds = new HashMap<DFS, Pair<Integer,Integer>>();
+		this.edgeIds = new Int2ObjectOpenHashMap<Int2ObjectMap<Pair<Integer,Integer>>>();
 	}
 	
-	
-	public WorkUnit(String pId, String cId, boolean isConnected,boolean gfdCheck){
-		this.patternId = pId;
-		this.conditionId = cId;;
-		//this.partitionId = parId;
-		this.isConnected = isConnected;
-		this.isGfdCheck = gfdCheck;
-	}
+
 	//for worker to SC;
 	//verify pattern's local support
-	public WorkUnit(String opId, HashMap<DFS,Pair<Integer,Integer>> edgeIds){
+	public WorkUnit(int opId, Int2ObjectMap<Int2ObjectMap<Pair<Integer,Integer>>>  edgeIds){
 		this.oriPatternId = opId;
 		this.edgeIds = edgeIds;
+		this.isGfdCheck = false;
+		this.isIsoCheck = false;
 	}
 
 
-	public WorkUnit(String pId, Condition dependency, boolean isConnected,boolean gfdCheck) {
+	public WorkUnit(int pId, Int2ObjectMap<Condition> dependency, boolean isGfdCheck) {
 		// TODO Auto-generated constructor stub
 		this.patternId = pId;
-		this.condition = dependency;
+		this.conditions = dependency;
 		//this.partitionId = parId;
-		this.isConnected = isConnected;
-		this.isGfdCheck = gfdCheck;
+		//this.isConnected = isConnected;
+		this.isGfdCheck = true;
+		this.isIsoCheck = false;
 	}
 	
-	//for disconnected gfd check;
-	public WorkUnit(List<String> ps, Condition dependency, boolean isConnected, boolean gfdCheck){
-		this.patterns = ps;
-		this.condition = dependency;
-		//this.partitionId = parId;
-		this.isConnected = isConnected;
-		this.isGfdCheck = gfdCheck;
+	
+	public WorkUnit(HashMap<Integer, Graph<VertexString, TypedEdge>> works) {
+		// TODO Auto-generated constructor stub
+		this.isoPatterns = works;
+		this.isGfdCheck = false;
+		this.isIsoCheck = true;
+	}
+
+
+	public int EtIsoWork(){
+		return isoPatterns.size();
+	}
+
+	@Override
+	public int compareTo(WorkUnit o) {
+		// TODO Auto-generated method stub
+		return this.EtIsoWork() - o.EtIsoWork();
 	}
 }

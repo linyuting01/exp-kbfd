@@ -8,20 +8,22 @@ import java.util.Map.Entry;
 
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class GfdMsg implements Serializable {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public  HashMap<String, List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch= new  HashMap<String, 
-			List<Pair<VertexOString,VertexOString>>>();
+	public  Int2ObjectMap<List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch= new  
+			Int2ObjectOpenHashMap<List<Pair<VertexOString,VertexOString>>>();
 	public int partitionId;
 	
 	public GfdMsg(){
 		
 	}
-	public GfdMsg( HashMap<String, List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch, int pId){
+	public GfdMsg( Int2ObjectMap<List<Pair<VertexOString,VertexOString>>>  transferingEdgeMatch, int pId){
 		this.transferingEdgeMatch = transferingEdgeMatch;
 		this.partitionId = pId;
 	}
@@ -29,7 +31,7 @@ public class GfdMsg implements Serializable {
 
 	public String toString() {
 		int size = 0;
-		for(Entry<String, List<Pair<VertexOString,VertexOString>>> entry : transferingEdgeMatch.entrySet()){
+		for(Entry<Integer, List<Pair<VertexOString,VertexOString>>> entry : transferingEdgeMatch.entrySet()){
 			size =size + entry.getValue().size();
 		}
 		String ret = "";

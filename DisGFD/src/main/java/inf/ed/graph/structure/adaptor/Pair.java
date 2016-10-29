@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import inf.ed.gfd.structure.DFS;
 import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.GfdTree;
+import inf.ed.gfd.structure.WorkUnit;
 
 
 public class Pair<T,T1> implements Comparable<Pair<Integer,Integer>>, Serializable {

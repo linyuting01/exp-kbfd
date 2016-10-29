@@ -19,7 +19,11 @@ import java.util.Set;
 import inf.ed.gfd.algorithm.parDis.ParDisWorker;
 import inf.ed.gfd.util.Params;
 import inf.ed.grape.interfaces.Result;
+import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -32,44 +36,38 @@ public class SuppResult extends Result implements Serializable {
 		 * 
 		 */
 	static Logger log = LogManager.getLogger(SuppResult.class);
-	//private static final long serialVersionUID = 1L;
-
 	
-	//public String patternId; 
-	//public String conditionId;
-	//public int support;
-	//public boolean sat;
-	//public int partitionId;
-    //	public boolean isConnected;
-	//public IntSet patterIds; 
-	//public IntSet pivotMatch;
+	public Int2ObjectMap<IntSet> pivotMatchP;
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> pivotMatchGfd;
+	public Int2ObjectMap<Int2BooleanMap> satCId;
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
+	public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
 	
-	//public HashMap<String,Set<String>> cIds;
-	//public List<Int2IntMap> boderMatch;
-	public HashMap<String,IntSet> pivotMatchP;
-	public HashMap<String, HashMap<String,IntSet>> pivotMatchGfd;
+	
+	public Set<DFS> edgeCands;
+	
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
-	public HashMap<String, HashMap<String,Boolean>> satCId;
+
 	public int nodeNum;
-	public Set<String> dom;
 	
-	public HashMap<String,HashMap<Integer,Set<String>>> literDom;
-	public HashMap<String,HashMap<Integer,IntSet>> varDom;
-	
-	public boolean extendPattern;
-	
-	
+	public boolean extendPattern; 
+	boolean isFirst;
 	
 	public SuppResult(){
-		this.pivotMatchP = new HashMap<String,IntSet>();
-		this. pivotMatchGfd = new HashMap<String, HashMap<String,IntSet>>();
-		//public HashMap<String, Set<String>> satCIds; // satisfied 
-		this.satCId = new HashMap<String, HashMap<String,Boolean>>() ;
-		this.extendPattern = false;
-		this.dom = new HashSet<String>();
-		this.literDom = new HashMap<String,HashMap<Integer,Set<String>>>();
-		this.varDom = new HashMap<String,HashMap<Integer,IntSet>>();
 		
+	}
+	
+	public SuppResult(boolean pattern){
+		this.extendPattern = pattern;
+		if(this.extendPattern){
+			this.pivotMatchP = new Int2ObjectOpenHashMap<IntSet>();
+			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
+		}
+		else{
+			this.pivotMatchGfd = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
+			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
+		}
 	}
 	/*
 	//for worker to SC;
@@ -96,24 +94,25 @@ public class SuppResult extends Result implements Serializable {
 	}*/
 
 
-	public SuppResult(HashMap<String, IntSet> pivotPMatch) {
+	public SuppResult(Int2ObjectMap<IntSet> pivotPMatch) {
 		// TODO Auto-generated constructor stub
 		this.pivotMatchP = pivotPMatch;
 	}
 	
-	public SuppResult(HashMap<String, IntSet> pivotPMatch, HashSet<String> domx) {
-		// TODO Auto-generated constructor stub
-		this.pivotMatchP = pivotPMatch;
-		this.dom = domx;
-	}
 
 
-	public SuppResult(HashMap<String, HashMap<String, IntSet>> pivotMatchGfd2,
-			HashMap<String, HashMap<String, Boolean>> satCId2) {
+
+	public SuppResult(Int2ObjectMap<Int2ObjectMap<IntSet>>pivotMatchGfd2,
+			Int2ObjectMap<Int2BooleanMap>  satCId2) {
 		this.pivotMatchGfd = pivotMatchGfd2;
 		this.satCId = satCId2;
 		
 		// TODO Auto-generated constructor stub
+	}
+	
+	public SuppResult(Set<DFS> edgeCands)
+	{
+		this.edgeCands = edgeCands;
 	}
 
 
@@ -129,7 +128,7 @@ public class SuppResult extends Result implements Serializable {
 			this.nodeNum = this.nodeNum + pr.nodeNum;
 			//log.debug(this.extendPattern);
 			if(this.extendPattern == true){
-				for(Entry<String, IntSet> entry: pr.pivotMatchP.entrySet()){
+				for(Entry<Integer, IntSet> entry: pr.pivotMatchP.entrySet()){
 					if(!this.pivotMatchP.containsKey(entry.getKey())){
 						this.pivotMatchP.put(entry.getKey(), entry.getValue());
 					}
@@ -139,7 +138,7 @@ public class SuppResult extends Result implements Serializable {
 					
 					//if(this.dom.addAll(pr.dom));
 					if(!this.literDom.containsKey(entry.getKey())){
-						HashMap<Integer,Set<String>> domLiteral = new HashMap<Integer,Set<String>>();
+						Int2ObjectMap<Set<String>> domLiteral = new Int2ObjectOpenHashMap<Set<String>>();
 						combineLiterDom(domLiteral,pr.literDom.get(entry.getKey()));
 						this.literDom.put(entry.getKey(), domLiteral);
 					}
@@ -148,7 +147,7 @@ public class SuppResult extends Result implements Serializable {
 					}
 					
 					if(!this.varDom.containsKey(entry.getKey())){
-						HashMap<Integer,IntSet> domVar = new HashMap<Integer,IntSet>();
+						Int2ObjectMap<IntSet> domVar = new Int2ObjectOpenHashMap<IntSet>();
 						combineVarDom(domVar,pr.varDom.get(entry.getKey()));
 						this.varDom.put(entry.getKey(), domVar);
 					}
@@ -161,16 +160,16 @@ public class SuppResult extends Result implements Serializable {
 				}
 			}
 			else{
-				for(Entry<String, HashMap<String,IntSet>> entry: pr.pivotMatchGfd.entrySet()){
-					String pId = entry.getKey();
+				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.pivotMatchGfd.entrySet()){
+					int pId = entry.getKey();
 					if(!this.pivotMatchGfd.containsKey(entry.getKey())){
-						this.pivotMatchGfd.put(pId, new HashMap<String,IntSet>());
+						this.pivotMatchGfd.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 					}
 					if(!this.satCId.containsKey(pId)){
-						this.satCId.put(pId, new HashMap<String,Boolean>());	
+						this.satCId.put(pId, new Int2BooleanOpenHashMap());	
 					}
-					for(Entry<String,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
-						String cId = entry2.getKey();
+					for(Entry<Integer,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
+						int cId = entry2.getKey();
 					    if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
 					    	this.pivotMatchGfd.get(entry.getKey()).put(entry2.getKey(), entry2.getValue());
 					    }
@@ -193,8 +192,8 @@ public class SuppResult extends Result implements Serializable {
 			
 	}
 	
-	public void combineLiterDom(HashMap<Integer,Set<String>> dom1, 
-			HashMap<Integer,Set<String>> dom2){
+	public void combineLiterDom(Int2ObjectMap<Set<String>> dom1, 
+			Int2ObjectMap<Set<String>> dom2){
 		for(Entry<Integer,Set<String>> entry : dom2.entrySet()){
 			if(!dom1.containsKey(entry.getKey())){
 				dom1.put(entry.getKey(), entry.getValue());
@@ -206,7 +205,7 @@ public class SuppResult extends Result implements Serializable {
 	}
 	
 	
-	public void combineVarDom(HashMap<Integer,IntSet> dom1, HashMap<Integer,IntSet> dom2){
+	public void combineVarDom(Int2ObjectMap<IntSet> dom1, Int2ObjectMap<IntSet> dom2){
 		for(Entry<Integer,IntSet> entry : dom2.entrySet()){
 			if(!dom1.containsKey(entry.getKey())){
 				dom1.put(entry.getKey(), entry.getValue());
@@ -217,6 +216,7 @@ public class SuppResult extends Result implements Serializable {
 		}
 	}
 	
+	/*
 	public static void main(String[] args){
 		HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
 		HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
@@ -274,6 +274,7 @@ public class SuppResult extends Result implements Serializable {
 		
 		
 	}
+	*/
 		
 	@Override
 	public void writeToFile(String filename) {

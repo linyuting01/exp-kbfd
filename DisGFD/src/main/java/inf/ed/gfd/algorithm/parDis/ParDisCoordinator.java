@@ -19,7 +19,10 @@ import inf.ed.grape.communicate.Client2Coordinator;
 import inf.ed.grape.communicate.Worker;
 import inf.ed.grape.communicate.Worker2Coordinator;
 import inf.ed.grape.interfaces.Result;
+import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
+import inf.ed.graph.structure.adaptor.TypedEdge;
+import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -45,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,13 +130,13 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	//boolean flagP;
 	
 	List<DFS> edgePattern = new ArrayList<DFS>();
-	HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
+	private Set<WorkUnit> ws = new HashSet<WorkUnit>();
 	
 	
 	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
 	
 	DisconnectedTree distree = new DisconnectedTree();
-	public Set<GfdNode> layerGfds = new HashSet<GfdNode>();
+	public Set<Integer> layerGfds = new HashSet<Integer>();
 	
 	
 	
@@ -705,7 +709,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					gfdTree.extendGeneral(edgePattern, g);
 					if(g.children != null){
 						if(!g.children.isEmpty()){
-							layerGfds.addAll(g.children);
+							for(GfdNode g1: g.children){
+								layerGfds.add(g1.pId);
+							}
 						}
 					}
 				}
@@ -743,41 +749,55 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	
 	//partition to check isomorphism;
-	HashMap<String, Set<GfdNode>> cluster = new HashMap<String, Set<GfdNode>>();
+	HashMap<String, IntSet> cluster = new HashMap<String, IntSet>();
 	public void classifyLayerGfds(){
 		cluster.clear();
-		for(GfdNode g: layerGfds){
-			String s = g.orderId;
+		for(int i: layerGfds){
+			String s = gfdTree.patterns_Map.get(i).orderId;
 			if(!cluster.containsKey(s)){
-				cluster.put(s, new HashSet<GfdNode>());
+				cluster.put(s, new IntOpenHashSet());
 			}
-			cluster.get(s).add(g);
+			cluster.get(s).add(i);
 		}
 			//suppose edgepattern has number, 
 	}
 	
-	public void isomorphismWorkUnits(){
-		int size = cluster.size();
-		String[] psId = new String[size];
-		int[] ac = new int[size];
-		int amount = 0;
-		HashMap<String, Integer> workamount  = new HashMap<String, Integer>();
+	public void assignIsoWOrkUnits(){
+		PriorityQueue<WorkUnit> workloads = new PriorityQueue<WorkUnit>();
+		
+		HashMap<Integer,Graph<VertexString, TypedEdge>> works = new HashMap<Integer,Graph<VertexString, TypedEdge>>();
+		
+		
+		Set<WorkUnit> workloadIso = new HashSet<WorkUnit>();
 		for(String s :cluster.keySet()){
-			int m = cluster.get(s).size();
-		    workamount.put(s, m*m);	
-		    amount = amount+ m*m;
-		    
-		}
-		int avg = amount/Params.N_PROCESSORS;
-		int i =0;
-		for(Entry<String,Integer> entry : workamount.entrySet()){
-			psId[i]= entry.getKey();
-			ac[i] = entry.getValue();
+			works.clear();
+			for(int i: cluster.get(s)){
+				works.put(i, gfdTree.patterns_Map.get(i).pattern);
+			}
+			WorkUnit w = new WorkUnit(works);
+			workloads.add(w);
 		}
 		
-		
+		Bpar bParInstance = new Bpar();
+		int machineNum = workerProxyMap.size();
+
+		Stat.getInstance().totalWorkUnit = workloads.size();
+
+		Int2ObjectMap<Set<WorkUnit>> assignment = bParInstance.makespan(machineNum,
+				workloads);
+		log.debug("finished assigment.");
+
+		for (int machineID : assignment.keySet()) {
+			// here machineID = partitionID
+			String workerID = partitionWorkerMap.get(machineID);
+			ParDisWorkerProxy workerProxy = workerProxyMap.get(workerID);
+			workerProxy.setWorkUnits(assignment.get(machineID));
+			log.info("now sent BPAR assigment for machine " + machineID + " on " + workerID);
+
+		}
 	}
-			
+
+		    
 
 	
 	
@@ -996,14 +1016,14 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		int machineNum = workerProxyMap.size();
 		//Stat.getInstance().totalWorkUnit = workunits.size();
 
-		Int2ObjectMap<HashMap<String,List<WorkUnit>>> assignment = new 
-				Int2ObjectOpenHashMap<HashMap<String,List<WorkUnit>>>();
+		Int2ObjectMap<Set<WorkUnit>> assignment = new 
+				Int2ObjectOpenHashMap<Set<WorkUnit>>();
 		//Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 		//Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
 		Random r = new Random();
 
 		//log.debug("should be very quick");
-		for (Entry<String,List<WorkUnit>> wu : ws.entrySet()) {
+		for (WorkUnit wu : ws) {
 			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++)
 				assignment.put(assignedMachine, ws);
 			}

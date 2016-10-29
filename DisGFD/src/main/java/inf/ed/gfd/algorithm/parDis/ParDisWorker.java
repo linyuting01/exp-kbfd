@@ -655,7 +655,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	}
 
 	@Override
-	public void setWorkUnits(HashMap<String, List<WorkUnit>> workload)throws RemoteException {
+	public void setWorkUnits(Set<WorkUnit> workload)throws RemoteException {
 		log.info("Get " + workload.size() + " work units from coordinator ");
         log.debug("this.partitions's size" + this.partitions.size());
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
@@ -667,7 +667,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				localComputeTask.setWorkUnits(workload);
 				if(!localComputeTask.patternNodeMatchesN.isEmpty()){
 					localComputeTask.patternNodeMatchesP.clear();
-					localComputeTask.patternNodeMatchesP = new HashMap<String,List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
+					localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
 					// add fetch
 					//localComputeTask.setPrefetchQuest(prefetchRequests);
 					//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);

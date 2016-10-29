@@ -26,8 +26,9 @@ public class LiterNode implements Serializable {
 
 	static Logger log = LogManager.getLogger(LiterNode.class);
 	
-	public String key = "";
+	//public String key = "";
 	public Condition dependency;
+	public int cId;// from 1
 
 	public LiterNode parent; 
 	public List<LiterNode>  children;

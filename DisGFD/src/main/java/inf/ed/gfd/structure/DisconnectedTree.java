@@ -22,7 +22,7 @@ public class DisconnectedTree {
 	static Logger log = LogManager.getLogger(DisconnectedTree.class);
 	
 	public DisConnectedNode root;
-	public HashMap<Integer, String> connectdPatternIndex;
+	public HashMap<Integer, Integer> connectdPatternIndex;
 	public HashMap<String, DisConnectedNode> disConnectedPatternIndex;
 	public int preConnectedPNum = 0;
 	public int flag = Integer.MAX_VALUE;
@@ -42,7 +42,7 @@ public class DisconnectedTree {
 		// TODO Auto-generated constructor stub
 		this.root = new DisConnectedNode();
 		this.disConnectedPatternIndex = new HashMap<String, DisConnectedNode>();
-		this.connectdPatternIndex = new HashMap<Integer, String>();
+		this.connectdPatternIndex = new HashMap<Integer, Integer>();
 		this.dom = new HashSet<String>();
 		//this.disws = new WorkUnit();
 		
@@ -224,8 +224,8 @@ public class DisconnectedTree {
 	
 	private void updateTreeRootChild(DisConnectedNode dn ,GfdTree gfdtree){
 			int patternId = dn.patterns.get(0);
-			String pId = this.connectdPatternIndex.get(patternId);
-			GfdNode g = gfdtree.pattern_Map.get(pId);
+			int pId = this.connectdPatternIndex.get(patternId);
+			GfdNode g = gfdtree.patterns_Map.get(pId);
 			for(LiterNode ln : g.ltree.getRoot().children){
 				if(ln.dependency.isLiteral){
 					Pair<Integer,String> yl = ln.dependency.YEqualsLiteral;

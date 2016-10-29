@@ -55,6 +55,12 @@ public class VertexOString extends OrthogonalVertex implements Serializable {
 		// TODO Auto-generated constructor stub
 	}
 
+	public VertexOString(int x, String val1) {
+		// TODO Auto-generated constructor stub
+		this.id = x;
+		this.value = val1;
+	}
+
 	public int getAttr() {
 		return this.attr;
 	}

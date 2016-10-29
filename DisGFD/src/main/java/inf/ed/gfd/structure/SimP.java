@@ -12,7 +12,7 @@ public class SimP implements Comparable<SimP>, Serializable {
 	  
 	private static final long serialVersionUID = 1L;
 	 
-	String patternId;
+	int patternId;
 	double supp;
 	int nodeNum;
 
@@ -20,7 +20,7 @@ public class SimP implements Comparable<SimP>, Serializable {
 		// TODO Auto-generated constructor stub
 	}
 
-	public SimP(String pId, double supp2, int nodeNum2) {
+	public SimP(int pId, double supp2, int nodeNum2) {
 		// TODO Auto-generated constructor stub
 		this.patternId = pId;
 		this.supp = supp2;
@@ -58,7 +58,7 @@ public class SimP implements Comparable<SimP>, Serializable {
 	  
 	  @Override
 	  public int hashCode() { 
-		  return  this.patternId.hashCode(); 
+		  return  this.patternId; 
 	  }
 
 }

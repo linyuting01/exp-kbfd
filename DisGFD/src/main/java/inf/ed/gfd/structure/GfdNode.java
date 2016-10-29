@@ -20,6 +20,7 @@ import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
@@ -60,14 +61,21 @@ public class GfdNode implements Comparable<GfdNode> {
 	
 	public boolean isConnected;
 	//public boolean isNegative;
-	public WorkUnit wC2Wp;
+	public WorkUnit w = new WorkUnit();
 	public double supp;
 
 	public int nodeNum = 0;
+	public boolean extend = true;
+	
+	public Pair<Integer,Integer> addNode;
+	
+	public IntSet parents ;
 	
 	
 	public Int2ObjectMap<Set<String>> literDom; 
 	public Int2ObjectMap<IntSet> varDom;
+	
+	public List<Integer> edgeIds = new ArrayList<Integer>();
 
  /**
   * for disconnected pattern 
@@ -84,7 +92,7 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.children = new ArrayList<GfdNode>();
 		this.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>();
 		//this.patternCode = new Vector<DFS>();
-		this.wC2Wp = new WorkUnit();
+		this.w = new WorkUnit();
 		this.edgePattern = new DFS();
 //<<<<<<< HEAD
 		//this.literDom = new HashMap<Integer, Set<String>>();
@@ -95,6 +103,8 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.extendDfss = new HashSet<DFS>();
 		this.literDom = new Int2ObjectOpenHashMap<Set<String>>();
 		this.varDom = new Int2ObjectOpenHashMap<IntSet>();
+		
+		this.parents = new IntOpenHashSet();
 //>>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
 		
 		//this.rNeighbor = null;
@@ -166,6 +176,17 @@ public class GfdNode implements Comparable<GfdNode> {
 		// TODO Auto-generated method stub
 		
 		return this.edgePattern.compareTo(arg0.edgePattern);
+	}
+
+	public void setPattern(SimpleGraph<VertexString, TypedEdge> clone) {
+		// TODO Auto-generated method stub
+		this.pattern = clone;
+	}
+
+	public Graph<VertexString, TypedEdge> getPattern() {
+		// TODO Auto-generated method stub
+		
+		return this.pattern;
 	}
 
 }

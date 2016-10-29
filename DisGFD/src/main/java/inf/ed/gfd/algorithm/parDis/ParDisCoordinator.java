@@ -109,25 +109,14 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	private boolean beginNextCompute = false;
 
 	/** for project Disgfd **/
-	//private Int2ObjectMap<IntSet> allBorderVertices = new Int2ObjectOpenHashMap<IntSet>();
-	//private Int2IntMap borderBallSize = new Int2IntOpenHashMap();
-	private Set<WorkUnit> workunits = new HashSet<WorkUnit>();
-	//private Int2ObjectMap<String> allVertices = new Int2ObjectOpenHashMap<String>();
-	//private Int2ObjectMap<Set<CrossingEdge>> mapBorderNodesAsSource = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
-	//private Int2ObjectMap<Set<CrossingEdge>> mapBorderNodesAsTarget = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
-	//private Int2IntMap allborderBallSize = new Int2IntOpenHashMap();
 
-	// private Graph<VertexOString, OrthogonalEdge> KB;
+	private Set<WorkUnit> workunits = new HashSet<WorkUnit>();
+
 	
 	public Set<Pair<String,String>> negGfdXCands = new HashSet<Pair<String,String>>();
 	GfdTree gfdTree = new GfdTree();
 	
-	
-	//HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
-	//HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
-	//HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
-	//HashMap<String, Set<String>> cIds  = new HashMap<String, Set<String>>();
-	//boolean flagP;
+
 	
 	List<DFS> edgePattern = new ArrayList<DFS>();
 	private Set<WorkUnit> ws = new HashSet<WorkUnit>();
@@ -140,12 +129,13 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	
 	
-	Set<Pair<String,String>> gfdResults = new HashSet<Pair<String,String>>();
+	Set<Pair<Integer,Integer>> gfdResults = new HashSet<Pair<Integer,Integer>>();
 	//for negative gfds;
-	public Set<String> negCands = new HashSet<String>();
-	public Set<String> negGfdP = new HashSet<String>();
-	public Set<Pair<String,Condition>> negGfdXF = new HashSet<Pair<String,Condition>>();
-	
+	public IntSet negCands = new IntOpenHashSet();
+	public IntSet negGfdP = new IntOpenHashSet();
+	public Set<Pair<Integer,Condition>> negGfdXF = new HashSet<Pair<Integer,Condition>>();
+	public Map<DFS,Integer> dfs2Id = new HashMap<DFS,Integer>();
+	public Int2ObjectMap<DFS> id2Dfs = new Int2ObjectOpenHashMap<DFS>();
 	
 	
 	
@@ -491,7 +481,6 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	@Override
 	public void process() throws RemoteException {
-		assignWorkunitsToWorkers();
 		nextLocalCompute();
 	}
 
@@ -548,11 +537,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
 				ws.clear();
-				if(superstep ==1){
-					intialExtendAndGenerateWorkUnits(finalResult);
-				}else{
-					extendAndGenerateWorkUnits(finalResult);
-				}
+				extendAndDistributeWorkUnits(finalResult);
 				log.debug("has created the new workunit");
 				
 				
@@ -572,54 +557,87 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	//List<DFS> edgePattern = new ArrayList<DFS>();
 	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	//superstep 1;
+	public void createIdforDfs(SuppResult finalResult){
+		int i = 1;
+		log.debug("begin to create id for edgePatterns");
+		for(DFS dfs :finalResult.edgeCands){
+			dfs2Id.put(dfs, i);
+			id2Dfs.put(i, dfs);
+		}
+		gfdTree.dfs2Ids = dfs2Id;
+		WorkUnit w = new WorkUnit(id2Dfs);
+		workunits.add(w);	
+	}
+	
+	
 	public void intialExtendAndGenerateWorkUnits(SuppResult finalResult){
 		log.debug("begin compute support of edge pattern and extend condition y");
-		for(String s :finalResult.pivotMatchP.keySet()){	
+		for(int s :finalResult.pivotMatchP.keySet()){	
 			double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
 			if(supp >= Params.VAR_SUPP){
 				log.debug("supp value " + supp);
-				DFS dfs = Fuc.getDfsFromString(s);
+				/////////////////////////////////
+				//revise;
+				DFS dfs = id2Dfs.get(s);
 				edgePattern.add(dfs);
 				log.debug("edgePattern size" +edgePattern.size());
 			}		
 		}
 		
-		gfdTree.extendRoot(edgePattern, finalResult);
+		gfdTree.extendRoot(edgePattern, dfs2Id,finalResult);
 		
 		log.debug("begin to extend dependencied empty->y and create "
 				+ "workunit for edge pattern with empty -> y ");
 		
 		for(GfdNode g:gfdTree.getRoot().children){
 			g.ltree.extendNode(g.ltree.getRoot());
+			Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 			for(LiterNode t:g.ltree.getRoot().children){
-				WorkUnit w = new WorkUnit(g.key,t.dependency,true,true);
-				if(!ws.containsKey(g.key)){
-					ws.put(g.key, new ArrayList<WorkUnit>());
-				}
-				ws.get(g.key).add(w);
+				conditions.put(t.cId, t.dependency);
 			}
+			WorkUnit w = new WorkUnit(g.pId,conditions,true);
+			workunits.add(w);
 				
 		}
 	}
 	
 	
-	public void extendAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
-		if(finalResult.extendPattern == false){
-			verifyGfdAndGenerateWorkUnits(finalResult);
-		}else{
-			verifyPatternAndGenerateWorkUnits(finalResult);
+	public void extendAndDistributeWorkUnits(SuppResult finalResult) throws RemoteException{
+		if(this.superstep == 1){
+			createIdforDfs(finalResult);
+			assignWorkunitsToWorkers();
 		}
+		if(this.superstep == 2){
+			intialExtendAndGenerateWorkUnits(finalResult);
+			assignWorkunitsToWorkers();
+		}
+		else{
+			if(finalResult.checkGfd){
+				verifyGfdAndGenerateWorkUnits(finalResult);
+				assignWorkunitsToWorkers();
+			}
+			if(finalResult.extendPattern){
+				verifyPatternAndGenerateWorkUnits(finalResult);
+				assignWorkunitsToWorkers();
+			}
+			if(finalResult.isIsoCheck){
+				checkPatternsAndGenerateWorkUnits();
+				assignIsoWOrkUnits();
+				
+			}
+		}
+		
 	}
-	
+	IntSet tmpPatternCheck = new IntOpenHashSet();
 	List<SimP> extendPatterns = new ArrayList<SimP>();
 	public void verifyGfdAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
             boolean  disConnectedRevoke = false;
 			log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
-			for(Entry<String, HashMap<String,IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
-				String pId = entry.getKey();
-				for(Entry<String,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
-					String cId = entry2.getKey();
-					GfdNode g = gfdTree.pattern_Map.get(pId);
+			for(Entry<Integer, Int2ObjectMap<IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
+				int pId = entry.getKey();
+				for(Entry<Integer,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
+					int cId = entry2.getKey();
+					GfdNode g = gfdTree.patterns_Map.get(pId);
 					LiterNode t = g.ltree.condition_Map.get(cId);
 					
 					double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
@@ -629,7 +647,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					
 					log.debug("check negative gfd ");
 					if(supp == 0 && t.negCheck){
-						negGfdXF.add(new Pair<String,Condition>(pId,t.dependency));
+						negGfdXF.add(new Pair<Integer,Condition>(pId,t.dependency));
 						t.extend = false;
 					}
 					
@@ -637,7 +655,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						//is a minimum gfd; check negative, update liter and var dom;
 						if(supp >= Params.VAR_SUPP){
 							if(finalResult.satCId.get(pId).get(cId)){
-								Pair<String,String> gfd = new Pair<String,String>(pId,cId);
+								Pair<Integer,Integer> gfd = new Pair<Integer,Integer>(pId,cId);
 								gfdResults.add(gfd);
 								//for negative gfd checking 
 								t.isSat = true;	
@@ -680,59 +698,40 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			//begin to create workunit
 			
 			boolean flagExtend = false;
-			for(String pId: finalResult.pivotMatchGfd.keySet()){
-				for(String cId: finalResult.pivotMatchGfd.get(pId).keySet()){
-					GfdNode g = gfdTree.pattern_Map.get(pId);
+			for(int pId: finalResult.pivotMatchGfd.keySet()){
+				for(int cId: finalResult.pivotMatchGfd.get(pId).keySet()){
+					GfdNode g = gfdTree.patterns_Map.get(pId);
 					LiterNode t = g.ltree.condition_Map.get(cId);
 					if(t.children!=null ){
 						if(!t.children.isEmpty()){
 							flagExtend = true;
+							Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 							for(LiterNode tc : t.children){
-								WorkUnit w = new WorkUnit(pId,tc.key,true,true);
-								if(!ws.containsKey(pId)){
-									ws.put(pId, new ArrayList<WorkUnit>());
-								}
-								ws.get(pId).add(w);
+								conditions.put(t.cId, t.dependency);
 							}
-					}
+							WorkUnit w = new WorkUnit(g.pId,conditions,true);
+							workunits.add(w);
+						}
+							
 				}
 			}
 	    	}
-			
+			tmpPatternCheck.clear();
 			if(flagExtend == false){
 				log.debug("no condition more, begin to extend pattern");
 				boolean flagExtendP = false;
 				//no more extend of literNode
 				layerGfds.clear();
-				for(String pId:finalResult.pivotMatchGfd.keySet()){
-					GfdNode g = gfdTree.pattern_Map.get(pId);
+				for(int pId:finalResult.pivotMatchGfd.keySet()){
+					GfdNode g = gfdTree.patterns_Map.get(pId);
 					gfdTree.extendGeneral(edgePattern, g);
 					if(g.children != null){
 						if(!g.children.isEmpty()){
+							flagExtendP = true;
+							tmpPatternCheck.add(g.pId);
 							for(GfdNode g1: g.children){
 								layerGfds.add(g1.pId);
 							}
-						}
-					}
-				}
-				classifyLayerGfds();
-							
-							
-							
-							
-				{	
-							
-							//add isomorphic checking
-							flagExtendP = true;
-							for(GfdNode t: g.children ){
-								// pattern workunit
-								if(!ws.containsKey(pId)){
-									ws.put(pId, new ArrayList<WorkUnit>());
-								}
-								t.wC2Wp.oriPatternId = g.parent.key;
-								t.wC2Wp.isGfdCheck = false;
-								ws.get(pId).add(t.wC2Wp);//revise
-						}
 						}
 					}
 				}
@@ -742,11 +741,62 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					log.debug("all process done!");
 					this.shutdown();
 				}
+				classifyLayerGfds();
+			}
 	}
 
-	
+    public void isoCheckProcess(SuppResult r){
+    	int j = 0;
+    	for(IntSet a :r.isoResult){
+    		for(int i :a){
+    			j=i;
+    			GfdNode g = gfdTree.patterns_Map.get(i);
+    			g.extend = true;
+    			g.parents = new IntOpenHashSet(a);
+    			break;
+    		}
+    		for(int i :a ){
+    			if(i!=j){
+	    			GfdNode g = gfdTree.patterns_Map.get(i);
+	    			g.extend = false;
+    			}
+    		}
+    	}
+    }
+				
+	public void checkPatternsAndGenerateWorkUnits()	{
+		WorkUnit w = new WorkUnit();
+		for(int pId :tmpPatternCheck){
+			GfdNode g = gfdTree.patterns_Map.get(pId);
+			for(GfdNode t:g.children){
+				if(t.extend){
+			
+					int id = dfs2Id.get(t.edgePattern);
+					Pair<Integer,Pair<Integer,Integer>> pair = new 
+							Pair<Integer,Pair<Integer,Integer>>(id,t.addNode);
+				    w.edgeIds.put(t.pId, pair);
+				    w.oriPatternId = t.pId;
+				
+				}
+				
+			}
+			workunits.add(w);
+			
+		}
 	}
-	
+							
+							
+				
+							/*
+							//add isomorphic checking
+							flagExtendP = true;
+							for(GfdNode t: g.children && t.extend){
+							
+								t.w.oriPatternId = g.parent.key;
+								t.w.isPatternCheck = true;;
+								workunits.add(t.w);
+								*/
+		
 	
 	//partition to check isomorphism;
 	HashMap<String, IntSet> cluster = new HashMap<String, IntSet>();
@@ -762,7 +812,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			//suppose edgepattern has number, 
 	}
 	
-	public void assignIsoWOrkUnits(){
+	public void assignIsoWOrkUnits() throws RemoteException{
 		PriorityQueue<WorkUnit> workloads = new PriorityQueue<WorkUnit>();
 		
 		HashMap<Integer,Graph<VertexString, TypedEdge>> works = new HashMap<Integer,Graph<VertexString, TypedEdge>>();
@@ -807,8 +857,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					boolean flagExtend = false;
 					
 					log.debug("begin to verify pattern support");
-					for(String pId :finalResult.pivotMatchP.keySet()){
-						GfdNode g = gfdTree.pattern_Map.get(pId);
+					for(int pId :finalResult.pivotMatchP.keySet()){
+						GfdNode g = gfdTree.patterns_Map.get(pId);
 					    double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
 					    g.supp = supp;
 					    if(supp == 0){
@@ -828,15 +878,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							extendPatterns.add(simp);
 							/////////////////
 							
-							for(LiterNode t :g.ltree.getRoot().children){
-								//create WorkUnit
-								WorkUnit w = new WorkUnit(pId,t.key,true,false);
-								if(!ws.containsKey(pId)){
-									ws.put(pId, new ArrayList<WorkUnit>());
-								}
-								ws.get(pId).add(w);
+							Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
+							for(LiterNode tc : g.ltree.getRoot().children){
+								conditions.put(tc.cId, tc.dependency);
 							}
-							
+							WorkUnit w = new WorkUnit(g.pId,conditions,true);
+							workunits.add(w);
 							
 						}
 					}
@@ -857,154 +904,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					}
 				}
 	
-	/*
-	 public void processNegativePCands(){
-		  
-		   List<DFS> pattern = new ArrayList<DFS>();
-		   List<String> pCands = new ArrayList<String>(); 
-		   if(!negCands.isEmpty()){
-			   for(String pId: negCands){
-				   GfdNode g = gfdTree.pattern_Map.get(pId);
-				   pCands.clear();
-				   pattern.clear();
-				   //find all possible parent
-				   while(g!= gfdTree.getRoot()){
-					   pattern.add(g.edgePattern);
-					   g = g.parent;
-				   }
-				   for(int i=0;i< pattern.size();i++){
-					   List<DFS> newPattern = new ArrayList<DFS>();
-					   for(int j = pattern.size()-1;j!= i && j>=0;j--){
-						  newPattern.add(pattern.get(j));
-					   }
-					   StringBuffer sb = new StringBuffer();
-					   for(DFS dfs : newPattern){
-						   sb.append(dfs.toString());
-					   }
-					   String ppId = sb.toString();
-					   if(gfdTree.pattern_Map.containsKey(ppId)){
-						   GfdNode nt = gfdTree.pattern_Map.get(ppId);
-						   if(nt.supp>=Params.var_K){
-							   negGfdP.add(ppId);
-							   break;
-						   }
-					   }
-				   }
-			   }
-		   }
-		   
-		   
-	   }	*/		
-
-//public Set<String> negGfdP = new HashSet<String>();
-	/*
-   public void processNegativePCands(){
-	  
-	   List<DFS> pattern = new ArrayList<DFS>();
-	   List<String> pCands = new ArrayList<String>(); 
-	   if(!negCands.isEmpty()){
-		   for(String pId: negCands){
-			   GfdNode g = gfdTree.pattern_Map.get(pId);
-			   pCands.clear();
-			   pattern.clear();
-			   //find all possible parent
-			   while(g!= gfdTree.getRoot()){
-				   pattern.add(g.edgePattern);
-				   g = g.parent;
-			   }
-			   for(int i=0;i< pattern.size();i++){
-				   List<DFS> newPattern = new ArrayList<DFS>();
-				   for(int j = pattern.size()-1;j!= i && j>=0;j--){
-					  newPattern.add(pattern.get(j));
-				   }
-				   StringBuffer sb = new StringBuffer();
-				   for(DFS dfs : newPattern){
-					   sb.append(dfs.toString());
-				   }
-				   String ppId = sb.toString();
-				   if(gfdTree.pattern_Map.containsKey(ppId)){
-					   GfdNode nt = gfdTree.pattern_Map.get(ppId);
-					   if(nt.supp>=Params.var_K){
-						   negGfdP.add(ppId);
-						   break;
-					   }
-				   }
-			   }
-		   }
-	   }
-	   
-	   
-   }
-   //suppose no order;
-   //HashMap<Integer,String> simDependency();
-   
-   public void processNegGfdXFCands(){
-	   if(!negGfdXCands.isEmpty()){
-		   for(Pair<String,String> p : negGfdXCands){
-			   GfdNode g = gfdTree.pattern_Map.get(p.x);
-			   LiterNode t = g.ltree.condition_Map.get(p.y);
-			   if(t.dependency.isLiteral){
-				   Pair<Integer,String> yl = t.dependency.YEqualsLiteral;
-				   if(t.dependency.XEqualsLiteral.containsKey(yl.x)){
-					   if(t.dependency.XEqualsLiteral.get(yl.x) == yl.y){
-						   getNegCond(g, t);
-					    }
-			       }
-		       }
-			   else{
-				   Pair<Integer,Integer> yv = t.dependency.YEqualsVariable;
-				   if(t.dependency.XEqualsVariable.containsKey(yv.x)){
-					   if(t.dependency.XEqualsVariable.get(yv.x).contains(yv.y)){ 
-						   getNegCond(g, t);
-					    }
-				   }
-			   }
-		   }
-	   }
-   }
-	 
-			   
-    public void getNegCond(GfdNode g, LiterNode t){
-    	boolean flag = false;
-		  for(Entry<Integer,String> entry1 :t.dependency.XEqualsLiteral.entrySet()){
-			  Condition c = (Condition) t.dependency.clone();
-			  c.XEqualsLiteral.remove(entry1.getKey());
-			  flag = verifyNeg(g,c);
-			  if(flag){
-				  break;
-			  }
-		  }
-		  if(flag == false){
-			  boolean loop = true;
-				  for(Entry<Integer,IntSet> entry2 :t.dependency.XEqualsVariable.entrySet()){
-					if(loop){
-					  for(int a : entry2.getValue()){
-						  Condition c = (Condition) t.dependency.clone();
-						  c.XEqualsVariable.get(entry2.getKey()).remove(c);
-						  
-						  flag = verifyNeg(g,c); 
-						  if(flag){
-							  loop = false;
-							  break;
-						  }
-					  }
-				  }
-		     }
-	     }
-    }
-	public boolean  verifyNeg(GfdNode g,Condition c){
-		 String newcId = c.toString();
-		  if(g.ltree.condition_Map.containsKey(newcId)){
-			  if(g.ltree.condition_Map.get(newcId).supp >= Params.var_K  &&
-					  g.ltree.condition_Map.get(newcId).isSat){
-				  negGfdXF.add(new Pair<String,Condition>(g.key,c));
-				  return true;
-			  }
-		  }
-		  return false;
-	}*/
 	
-	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
 	
 	private void assignWorkunitsToWorkers() throws RemoteException {
 
@@ -1023,9 +923,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		Random r = new Random();
 
 		//log.debug("should be very quick");
-		for (WorkUnit wu : ws) {
-			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++)
-				assignment.put(assignedMachine, ws);
+		//for (WorkUnit wu : workunits) {
+			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
+				assignment.put(assignedMachine, workunits);
 			}
 		log.debug("job assignment finished. begin to dispatch.");
 

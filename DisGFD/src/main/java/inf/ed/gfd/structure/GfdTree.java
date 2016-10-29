@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +17,7 @@ import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class GfdTree {
 	
@@ -23,8 +25,12 @@ public class GfdTree {
 	
     private GfdNode root;
     
+   
+    
     //public HashMap<String, GfdNode> pattern_Map;
     public HashMap<Integer, GfdNode> patterns_Map;
+    
+    public Map<DFS,Integer> dfs2Ids;
     
     public GfdTree(){
         this.root = new GfdNode();
@@ -63,7 +69,7 @@ public class GfdTree {
 	}*/
 	
 	
-	public void extendRoot(List<DFS> edgePattern, HashMap<DFS,Integer> dfs2Id, SuppResult r){
+	public void extendRoot(List<DFS> edgePattern,   Map<DFS,Integer> dfs2Id,SuppResult r){
 		 for(DFS dfs: edgePattern){
 			 GfdNode g = newNode(root,dfs);
 			 g.pId = dfs2Id.get(dfs);
@@ -787,11 +793,12 @@ public class GfdTree {
    private GfdNode newNode(GfdNode t, DFS dfs){
 	 // if(!t.extendDfss.contains(dfs)){
 		  
+		    
 	        t.extendDfss.add(dfs);
 		    //log.debug(dfs.toString());
 			GfdNode g = new GfdNode();
 			g.setParent(t);
-			//g.setPattern(ColoneUtils.clone((SimpleGraph<VertexString, TypedEdge>)t.pattern));
+			g.setPattern(ColoneUtils.clone((SimpleGraph<VertexString, TypedEdge>)t.pattern));
 			//g.setPatternCode(ColoneUtils.clone(t.patternCode));
 			g.edgePattern = dfs;
 			t.children.add(g);
@@ -800,20 +807,20 @@ public class GfdTree {
 			Pair<Integer,Integer> e2 = dfs.tLabel;
 			//g.getPatternCode().add(dfs);
 			if(!g.nodeSet.containsKey(e1)){
-				//String attr1 = getAttr( e1);
-				//VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
-				//g.getPattern().addVertex(vertex1);
+				int attr1 = e1.x;
+				VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
+				g.getPattern().addVertex(vertex1);
 				g.nodeSet.put(e1,g.nodeNum+1);
 				g.nodeNum++;
 			}
 			if(!g.nodeSet.containsKey(e2)){
-				//String attr2 = getAttr( e2);
-				//VertexString vertex2 = new VertexString(g.pattern.vertexSize()+1, attr2);
-				//g.getPattern().addVertex(vertex2);
+				int attr2 = e2.x;
+				VertexString vertex2 = new VertexString(g.pattern.vertexSize()+1, attr2);
+				g.getPattern().addVertex(vertex2);
 				g.nodeSet.put(e2,g.nodeNum+1);
 				g.nodeNum++;
 			}
-			/*
+			
 			int fId = g.nodeSet.get(e1);
 			int tId = g.nodeSet.get(e2);
 			if(g.getPattern().contains(fId, tId)){
@@ -824,16 +831,16 @@ public class GfdTree {
 				TypedEdge e = new TypedEdge(g.getPattern().allVertices().get(fId),
 					g.getPattern().allVertices().get(tId));
 				e.setAttr(dfs.eLabel);
-			}*/
-			g.key = t.key+dfs.toString();
+			}
+			//g.key = t.key+dfs.toString();
 			if(t!=root){
 				g.pId = patterns_Map.size()+1;
 				patterns_Map.put(g.pId, g);
 			}
 			//create work unit
-			int fId = g.nodeSet.get(e1);
-			int tId = g.nodeSet.get(e2);
-			//t.wC2Wp.edgeIds.put(dfs, new Pair<Integer,Integer>(fId, tId));	
+			
+			//int id = this.dfs2Id.get(dfs);
+			g.addNode =  new Pair<Integer,Integer>(fId, tId);
 			g.ltree.gNode = g;
 			g.attrs = new HashMap<Integer,Integer>(t.attrs);
 			if(!g.attrs.containsKey(dfs.fLabel.x)){
@@ -853,6 +860,17 @@ public class GfdTree {
 					g.attrs.put(dfs.tLabel.x, num+1);
 				}
 			}
+			
+			  DFS dn = dfs.findDFS();
+			    int dnId = this.dfs2Ids.get(dn);
+			    g.edgeIds = new ArrayList<Integer>(t.edgeIds);
+			    g.edgeIds.add(dnId);
+			    Collections.sort(g.edgeIds);
+			    String s="";
+			    for(int i:g.edgeIds){
+			    	s = s+i+",";
+			    }
+			    g.orderId = s;
 			return g;
 			
 		

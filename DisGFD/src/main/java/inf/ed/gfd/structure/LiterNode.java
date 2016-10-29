@@ -62,7 +62,7 @@ public class LiterNode implements Serializable {
 	
 	
 	//for disconnected
-	public List<DCPartialCond> cands;
+	
 	
 	
 	

@@ -70,6 +70,7 @@ public abstract class LocalComputeTask {
 	}
 
 	public abstract void compute(Partition partition);
+	public abstract void compute2(Partition partition);
 
 	public abstract void incrementalCompute(Partition partition, List<Message<?>> incomingMessages);
 
@@ -79,9 +80,17 @@ public abstract class LocalComputeTask {
 
 	public abstract void prepareResult();
 
-	public abstract void prepareResult(boolean flag);
+	public abstract void prepareResult(int flag);
 
-	public abstract boolean incrementalCompute(Partition partition);
+	public abstract int incrementalCompute(Partition partition);
+
+	
+
+
+
+	
+
+	
 
 	//public boolean processWorkUnitAndGfdMsg(Partition partition, List<Message<?>> incomingMessages) {
 	//	// TODO Auto-generated method stub

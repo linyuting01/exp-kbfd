@@ -269,29 +269,36 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					//log.debug(this + "superstep loop start for superstep " + superstep);
 					try {
 						if(superstep == 0){
-							flagLocalCompute = false;
+							//flagLocalCompute = false;
 							//log.debug(holdingPartitionID);
 							localComputeTask.init(holdingPartitionID);
 							Partition workingPartition = partitions.get(holdingPartitionID);
 							localComputeTask.compute(workingPartition);
 						}
+						
 						else {
+							  
 							    partialResults.clear();
 								LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
 	
 								Partition workingPartition = partitions.get(localComputeTask
 										.getPartitionID());
+								if(superstep == 1){
+									localComputeTask.compute2(workingPartition);
+								}
+								else{
 
 								/** not begin step. incremental compute */
-								boolean isGfdCheck = localComputeTask.incrementalCompute(workingPartition);
-								log.debug("isGFDCheck" + isGfdCheck);
-								if(!isGfdCheck){
-									updateOutgoingMessages(localComputeTask.getMessages());
-									checkAndSendMessage();	
-									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
-											.get(localComputeTask.getPartitionID());
-									localComputeTask.incrementalCompute(workingPartition,
-											messageForWorkingPartition);
+									int flag = localComputeTask.incrementalCompute(workingPartition);
+									//log.debug("isGFDCheck" + flag);
+									if(flag == 2){
+										updateOutgoingMessages(localComputeTask.getMessages());
+										checkAndSendMessage();	
+										List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+												.get(localComputeTask.getPartitionID());
+										localComputeTask.incrementalCompute(workingPartition,
+												messageForWorkingPartition);
+									}
 								}
 							}
 						
@@ -673,7 +680,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
 					localComputeTask.patternNodeMatchesN.clear();
 				}
-				localComputeTask.pivotPMatch.clear();
+				localComputeTask.pivotPMatch1.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
 				this.flagSetWorkUnit = true;
 

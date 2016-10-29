@@ -34,7 +34,6 @@ public class DisConnectedNode {
 
 	public DisConnectedNode() {
 		// TODO Auto-generated constructor stub
-		this.parent = new DisConnectedNode();
 		this.children = new ArrayList<DisConnectedNode>();
 		this.patterns = new ArrayList<Integer>();	
 		this.flag = Integer.MAX_VALUE;

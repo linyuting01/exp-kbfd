@@ -72,11 +72,48 @@ public class EdgePattern {
 	   * @return
 	   */
 	// public HashMap<String, Integer> labelId = new HashMap<String, Integer>();//
-	  
-	 public Set<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, HashMap<String,IntSet> pivotPMatch, 
-			 HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch,   
-		    HashMap<String,HashMap<Integer,Set<String>>> literDom,
-			 HashMap<String,HashMap<Integer, IntSet>> varDom){
+	 
+	 public Set<DFS> edges(Graph<VertexOString, OrthogonalEdge> KB){
+		
+			 OrthogonalVertex fNode, tNode;
+			   VertexOString fVertex , tVertex;
+			   Set<DFS> DFS = new HashSet<DFS>(); 
+		      // get all edge patterns and literals for nodes ;
+			   for(OrthogonalEdge edge: KB.getAllEdges()){ 
+			     //System.out.print("success");
+			     
+			     fNode = edge.from();
+			     tNode = edge.to();
+			     int fID = fNode.getID();
+			     int tID = tNode.getID();
+			     fVertex = KB.getVertex(fID);
+			     tVertex = KB.getVertex(tID);
+			     int fLabel = fVertex.getAttr();
+			     int tLabel = tVertex.getAttr();
+			     
+			     int[] eLabel = edge.getAttr();
+			     int elNum = edge.attrCount;
+			     
+			     Pair<Integer,Integer> f = new Pair<Integer,Integer>(fLabel,0);
+		    	 Pair<Integer,Integer> t = new Pair<Integer,Integer>(tLabel,0);
+		    	 if(fVertex.match(tVertex)){
+		    		 t.y = 1;
+		    	 }
+			   
+			     for(int i = 0; i< elNum; i++){
+			    	 
+			        DFS code = new DFS( f, t, eLabel[i]);
+			        DFS.add(code);
+			     }
+		     
+		 }
+			return DFS;
+	 }
+	 public void edgePattern( Graph<VertexOString, OrthogonalEdge> KB, Int2ObjectMap<IntSet> pivotPMatch, 
+			 Int2ObjectMap<List<Pair<Integer,Integer>>> edgePatternNodeMatch,  Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesN 
+		   ,Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom,
+		   Int2ObjectMap<Int2ObjectMap<IntSet>> varDom, Map<DFS, Integer> dfs2Id){
+		 
 	   OrthogonalVertex fNode, tNode;
 	   VertexOString fVertex , tVertex;
 	   Set<DFS> DFS = new HashSet<DFS>(); 
@@ -105,17 +142,13 @@ public class EdgePattern {
 	     for(int i = 0; i< elNum; i++){
 	    	 
 	        DFS code = new DFS( f, t, eLabel[i]);
-
-	      
-	         String pId = code.toString();
-	         //log.debug(pId);
-	         DFS.add(code);
+	        int pId = dfs2Id.get(code);
 	         
 	         if(!pivotPMatch.containsKey(pId)){
 	        	 pivotPMatch.put(pId, new IntOpenHashSet());  
 	         }
 	         pivotPMatch.get(pId).add(fID);
-	         /*
+	         
 	         if(!edgePatternNodeMatch.containsKey(pId)){
 	        	 edgePatternNodeMatch.put(pId, new ArrayList<Pair<Integer,Integer>>()); 
 	        	 edgePatternNodeMatch.get(pId).add(new Pair<Integer,Integer>(fID,tID)); 
@@ -130,9 +163,9 @@ public class EdgePattern {
 	           
 	           
 	           patternNodeMatchesN.get(pId).add(e);
-	           */
+	           
 	           if(!literDom.containsKey(pId)){
-	        	  literDom.put(pId, new HashMap<Integer, Set<String>>());
+	        	  literDom.put(pId, new Int2ObjectOpenHashMap< Set<String>>());
 	           }
 	           if(!literDom.get(pId).containsKey(0)){
 	        	   literDom.get(pId).put(0, new HashSet<String>());
@@ -145,34 +178,27 @@ public class EdgePattern {
 	           
 	           if(fVertex.getValue().equals(tVertex.getValue())){
 	        	   if(!varDom.containsKey(pId)){
-	 	        	  varDom.put(pId, new HashMap<Integer, IntSet>());
+	 	        	  varDom.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 	 	           }
 	 	           if(!varDom.get(pId).containsKey(0)){
 	 	        	   varDom.get(pId).put(0, new IntOpenHashSet());
 	 	           }
 	 	           varDom.get(pId).get(0).add(1);
 	           }
+	     }
+	   }
+	 }
+}
 	           
 	           
 	           
 	        		   
-	           /*
-	           VertexOString f1 = new VertexOString(fID,fLabel);
-		         VertexOString t1 = new VertexOString(tID,tLabel);
-		         
-		         if(!gfdMsg.transferingEdgeMatch.containsKey(pId)){
-		        	 gfdMsg.transferingEdgeMatch.put(pId, new ArrayList<Pair<VertexOString,VertexOString>>());
-		         }
-		         gfdMsg.transferingEdgeMatch.get(pId).add(new Pair<VertexOString,VertexOString>(f1,t1));
-		         */
-	     }
-	   }
+	        
+	     
+	   
 	  
-	  
-      
-	return DFS;
- }
-}
+ 
+
 	         //Initialize matchesP;
 	         /*
 	         if(! patternNodeMatchesN.containsKey(pId)){

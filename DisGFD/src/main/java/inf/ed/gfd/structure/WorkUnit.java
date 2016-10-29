@@ -23,6 +23,7 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	public boolean isGfdCheck;
 	public Int2ObjectMap<Condition> conditions;
 	public boolean isIsoCheck;
+	public boolean isPatternCheck;
 	
 	public List<String> patterns;
 	
@@ -33,21 +34,23 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	// String and the pattrn node in the new pattern;
 	//add pId
 	
-	public Int2ObjectMap<Int2ObjectMap<Pair<Integer,Integer>>> edgeIds;
+	public Int2ObjectMap<Pair<Integer,Pair<Integer,Integer>>> edgeIds;
 	//public HashMap<DFS, Pair<Integer,Integer>> edgeIds;
 	
+	public Int2ObjectMap<DFS> id2Dfs;
+	
 	public WorkUnit(){
-		this.edgeIds = new Int2ObjectOpenHashMap<Int2ObjectMap<Pair<Integer,Integer>>>();
+		this.edgeIds = new Int2ObjectOpenHashMap<Pair<Integer,Pair<Integer,Integer>>>();
 	}
 	
 
 	//for worker to SC;
 	//verify pattern's local support
-	public WorkUnit(int opId, Int2ObjectMap<Int2ObjectMap<Pair<Integer,Integer>>>  edgeIds){
+	public WorkUnit(int opId, Int2ObjectMap<Pair<Integer,Pair<Integer,Integer>>>  edgeIds){
 		this.oriPatternId = opId;
 		this.edgeIds = edgeIds;
-		this.isGfdCheck = false;
-		this.isIsoCheck = false;
+		this.isPatternCheck = true;
+
 	}
 
 
@@ -58,15 +61,19 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 		//this.partitionId = parId;
 		//this.isConnected = isConnected;
 		this.isGfdCheck = true;
-		this.isIsoCheck = false;
 	}
 	
 	
 	public WorkUnit(HashMap<Integer, Graph<VertexString, TypedEdge>> works) {
 		// TODO Auto-generated constructor stub
 		this.isoPatterns = works;
-		this.isGfdCheck = false;
 		this.isIsoCheck = true;
+	}
+
+
+	public WorkUnit(Int2ObjectMap<DFS> id2Dfs2) {
+		// TODO Auto-generated constructor stub
+		this.id2Dfs = id2Dfs2;
 	}
 
 

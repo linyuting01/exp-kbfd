@@ -43,32 +43,29 @@ public class SuppResult extends Result implements Serializable {
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
 	public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
 	
-	
+	public Set<IntSet> isoResult;
 	public Set<DFS> edgeCands;
 	
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
 
 	public int nodeNum;
 	
-	public boolean extendPattern; 
-	boolean isFirst;
+	public boolean extendPattern = false ; 
+	public boolean isFirst = false;
+	public boolean isIsoCheck = false;;
+	public boolean checkGfd = false; 
 	
+
 	public SuppResult(){
-		
-	}
-	
-	public SuppResult(boolean pattern){
-		this.extendPattern = pattern;
-		if(this.extendPattern){
+		    this.edgeCands = new HashSet<DFS>();
 			this.pivotMatchP = new Int2ObjectOpenHashMap<IntSet>();
 			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
-		}
-		else{
+		
 			this.pivotMatchGfd = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
 			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
 		}
-	}
+	
 	/*
 	//for worker to SC;
 	public SuppResult(String pId, String cId, boolean satisfy, int parId, boolean isConnected, IntSet pivotMatch){
@@ -93,7 +90,10 @@ public class SuppResult extends Result implements Serializable {
 		// TODO Auto-generated constructor stub
 	}*/
 
-
+    public SuppResult(Set<IntSet> isoResult, boolean isIsoCheck){
+    	this.isoResult = isoResult;
+    	this.isIsoCheck = true;
+    }
 	public SuppResult(Int2ObjectMap<IntSet> pivotPMatch) {
 		// TODO Auto-generated constructor stub
 		this.pivotMatchP = pivotPMatch;
@@ -127,6 +127,13 @@ public class SuppResult extends Result implements Serializable {
 			this.extendPattern = pr.extendPattern;
 			this.nodeNum = this.nodeNum + pr.nodeNum;
 			//log.debug(this.extendPattern);
+			if(isFirst){
+				this.edgeCands.addAll(pr.edgeCands);
+			}
+			if(isIsoCheck){
+				this.isoResult.addAll(pr.isoResult);
+			}
+			
 			if(this.extendPattern == true){
 				for(Entry<Integer, IntSet> entry: pr.pivotMatchP.entrySet()){
 					if(!this.pivotMatchP.containsKey(entry.getKey())){
@@ -159,7 +166,8 @@ public class SuppResult extends Result implements Serializable {
 					
 				}
 			}
-			else{
+				
+			if(this.checkGfd == true){
 				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.pivotMatchGfd.entrySet()){
 					int pId = entry.getKey();
 					if(!this.pivotMatchGfd.containsKey(entry.getKey())){
@@ -188,7 +196,8 @@ public class SuppResult extends Result implements Serializable {
 			
 			}
 				
-		}		
+		}	
+	
 			
 	}
 	

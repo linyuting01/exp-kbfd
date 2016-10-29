@@ -26,7 +26,7 @@ public class DisconnectedTree {
 	public HashMap<String, DisConnectedNode> disConnectedPatternIndex;
 	public int preConnectedPNum = 0;
 	public int flag = Integer.MAX_VALUE;
-	public Set<String> dom; //zhuyifuzhi
+	//public Set<String> dom; //zhuyifuzhi
 	public int nodeNum;
 	
 	public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
@@ -43,7 +43,7 @@ public class DisconnectedTree {
 		this.root = new DisConnectedNode();
 		this.disConnectedPatternIndex = new HashMap<String, DisConnectedNode>();
 		this.connectdPatternIndex = new HashMap<Integer, Integer>();
-		this.dom = new HashSet<String>();
+		//this.dom = new HashSet<String>();
 		//this.disws = new WorkUnit();
 		
 	}

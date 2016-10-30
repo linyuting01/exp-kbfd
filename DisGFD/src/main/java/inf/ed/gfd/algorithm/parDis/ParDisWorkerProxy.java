@@ -217,11 +217,7 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 		}
 	}
 
-	@Override
-	public void localComputeCompleted(String workerID, Set<String> activeWorkerIDs)
-			throws RemoteException {
-		this.coordinator.localComputeCompleted(workerID, activeWorkerIDs);
-	}
+
 
 	public void nextLocalCompute(long superstep) throws RemoteException {
 		this.worker.nextLocalCompute(superstep);
@@ -256,6 +252,11 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 	public void setWorkUnits(Set<WorkUnit> workload) throws RemoteException {
 		this.worker.setWorkUnits(workload);
 		
+	}
+	@Override
+	public void localComputeCompleted(String workerID, boolean activeWorkerSet) throws RemoteException {
+		// TODO Auto-generated method stub
+		this.coordinator.localComputeCompleted(workerID, activeWorkerSet);
 	}
 	
 

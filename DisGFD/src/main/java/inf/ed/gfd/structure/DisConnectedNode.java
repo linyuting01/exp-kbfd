@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +33,10 @@ public class DisConnectedNode {
 	public HashMap<String, HashMap<Integer,IntSet>> stringCands; //just for root children
 	public HashMap<Integer,HashMap<Integer,List<IntSet>>> allVarCands;
 	public HashMap<Integer,HashMap<String,IntSet>> allLiterCands;
-
+	
+	//public Set<GFD2> disResults = new HashSet<GFD2>();
+	public Set<Condition> conditions = new HashSet<Condition>();
+	
 	public DisConnectedNode() {
 		// TODO Auto-generated constructor stub
 		this.children = new ArrayList<DisConnectedNode>();

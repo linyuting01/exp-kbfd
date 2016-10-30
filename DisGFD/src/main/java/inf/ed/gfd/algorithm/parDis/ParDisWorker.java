@@ -264,55 +264,45 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				}
 				
 				
-				
 				while (flagLocalCompute) {
+					
 					flagLocalCompute = false; 
-					//log.debug(this + "superstep loop start for superstep " + superstep);
+					partialResults.clear();
+					
 					try {
+						
+
 						log.debug(this + "superstep loop start for superstep " + superstep);
+						Partition workingPartition = partitions.get(holdingPartitionID);
+						
 						if(superstep == 0){
-							
-							//log.debug(holdingPartitionID);
 							localComputeTask.init(holdingPartitionID);
-							Partition workingPartition = partitions.get(holdingPartitionID);
 							localComputeTask.compute(workingPartition);
 						}
-						
-						else {
 							
-							    partialResults.clear();
-								//LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
-	
-								Partition workingPartition = partitions.get(localComputeTask
-										.getPartitionID());
-								if(superstep == 1){
-									log.debug("Id2Dfs size" +localComputeTask.id2Dfs.size());
-									localComputeTask.compute2(workingPartition);
-								}
-								else{
+						if(superstep == 1){
+							localComputeTask.compute2(workingPartition);
+						}
+						else{
 
-								/** not begin step. incremental compute */
-									int flag = localComputeTask.incrementalCompute(workingPartition);
-									//log.debug("isGFDCheck" + flag);
-									if(flag == 2){
-										updateOutgoingMessages(localComputeTask.getMessages());
-										checkAndSendMessage();	
-										List<Message<?>> messageForWorkingPartition = previousIncomingMessages
-												.get(localComputeTask.getPartitionID());
-										localComputeTask.incrementalCompute(workingPartition,
-												messageForWorkingPartition);
-										flagLocalCompute = false;
-									}
-								}
+						    /** not begin step. incremental compute */
+							int flag = localComputeTask.incrementalCompute(workingPartition);
+							if(flag == 2){
+								updateOutgoingMessages(localComputeTask.getMessages());
+								checkAndSendMessage();	
+								List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+										.get(localComputeTask.getPartitionID());
+								localComputeTask.incrementalCompute(workingPartition,
+										messageForWorkingPartition);
 							}
+						}
+							
 						
 						partialResults.put(localComputeTask.getPartitionID(),
 									localComputeTask.getPartialResult());
 						//nextLocalComputeTasksQueue.add(localComputeTask);
-						log.debug("send suppreslut in superStrp"  + superstep);
+						log.debug("send suppreslut in superStep"  + superstep);
 						checkAndSendPartialResult();
-						
-						flagSetWorkUnit = false;
 					
 				}catch (Exception e) {
 					e.printStackTrace();
@@ -325,24 +315,20 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 	
 	private synchronized void checkAndSendPartialResult() {
-		//log.debug("synchronized checkAndSendPartialResult!");
-		//log.debug("send partital result to coordinator for assemble");
-		flagLocalCompute = false;
 		
+		log.debug("send partital result to coordinator for assemble");
 		try {
 			log.debug("patilResult size"+ partialResults.size());
 			coordinatorProxy.sendPartialResult(workerID, partialResults);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-
-		//log.info("round"+ this.superstep+ "Done!");
-		Set<String> activeWorkerSet = new HashSet<String>();
-		activeWorkerSet.add(workerID);
 		
-		// Send a message to the Master saying that this superstep
-		// has
-		// been completed.
+		boolean activeWorkerSet  = true;
+		if(partialResults.isEmpty()){
+			activeWorkerSet = false;
+		}
+		
 		try {
 			coordinatorProxy.localComputeCompleted(workerID, activeWorkerSet);
 		} catch (RemoteException e) {

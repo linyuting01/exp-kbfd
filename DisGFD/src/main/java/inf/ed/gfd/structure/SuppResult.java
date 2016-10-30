@@ -64,6 +64,8 @@ public class SuppResult extends Result implements Serializable {
 		
 			this.pivotMatchGfd = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
 			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
+			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
 		}
 	
 	/*

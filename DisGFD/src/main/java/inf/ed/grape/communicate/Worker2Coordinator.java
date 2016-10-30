@@ -19,7 +19,7 @@ public interface Worker2Coordinator extends java.rmi.Remote, Serializable {
 			throws RemoteException;
 
 	/* for synchronised model only */
-	public void localComputeCompleted(String workerID, Set<String> activeWorkerIDs)
+	public void localComputeCompleted(String workerID, boolean activeWorkerSet)
 			throws RemoteException;
 
 	/* for asynchronised model only */

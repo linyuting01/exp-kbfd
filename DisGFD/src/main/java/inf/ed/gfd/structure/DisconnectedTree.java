@@ -291,6 +291,7 @@ public class DisconnectedTree {
 				}
 				double supp = (double)(a.size()*b.size())/(nodeNum*nodeNum);
 				if(supp >= Params.VAR_SUPP){
+					
 					if(t.allVarCands == null){
 						t.allVarCands = new HashMap<Integer,HashMap<Integer,List<IntSet>>>();
 					}
@@ -307,12 +308,24 @@ public class DisconnectedTree {
 		}
 	}
 		
-		public void disConnectedGFD(List<SimP> extendPatterns){
+		public void disConnectedGFD(List<SimP> extendPatterns, GfdTree gtree){
 			
 			Queue<DisConnectedNode> disQue = extendTree(extendPatterns);
 			while(!disQue.isEmpty()){
 				DisConnectedNode t = disQue.poll();
 				t.ltree.extendDisConnected(this);
+				if(t.conditions !=null){
+					for(Condition c:t.conditions){
+						GFD2  gfd1 = new GFD2();
+						for(int p : t.patterns){
+							int gp = this.connectdPatternIndex.get(p);
+							GfdNode g = gtree.patterns_Map.get(gp);	
+							gfd1.patterns.add(gfd1.getPattern());
+						}
+						gfd1.condition = c;
+						this.disConnectedGfds.add(gfd1);
+					}
+				}
 			}
 				
 			

@@ -384,10 +384,12 @@ public void extendNode(LiterNode t){
 			}
 			for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
 		        	//add variable
+				if(this.gNode.varDom != null){
 				if(this.gNode.varDom.containsKey(nodeId)){
 		           for(int nodeId2 : this.gNode.varDom.get(nodeId)){
 		            		addNode(this.root,1,nodeId,nodeId2);
 		           }
+				}
 				}
 			}
 		}
@@ -623,6 +625,7 @@ public void extendNode(LiterNode t){
 						 //satisfy
 						 t.isSat = true;
 						 t.extend = false;
+						 this.dNode.conditions.add(t.dependency);
 					 }
 					 if(t.extend){
 						 t.pivot1 = p1join;
@@ -648,6 +651,11 @@ public void extendNode(LiterNode t){
 						 //satisfy
 						 t.isSat = true;
 						 t.extend = false;
+						 this.dNode.conditions.add(t.dependency);
+					 }
+					 if(t.extend){
+						 t.pivot1 = p1join;
+						 t.pivot1 = p2join;
 					 }
 				 }
 			 }
@@ -668,6 +676,7 @@ public void extendNode(LiterNode t){
 						 //satisfy
 						 t.isSat = true;
 						 t.extend = false;
+						 this.dNode.conditions.add(t.dependency);
 					 }
 					 if(t.extend){
 						 t.pivot1 = p1join;
@@ -691,6 +700,7 @@ public void extendNode(LiterNode t){
 						 //satisfy
 						 t.isSat = true;
 						 t.extend = false;
+						 this.dNode.conditions.add(t.dependency);
 					 }
 					 if(t.extend){
 						 t.pivot2 = p1join;
@@ -716,6 +726,7 @@ public void extendNode(LiterNode t){
 						 //satisfy
 						 t.isSat = true;
 						 t.extend = false;
+						 this.dNode.conditions.add(t.dependency);
 					 }
 					 if(t.extend){
 						 t.pivot2 = p1join;

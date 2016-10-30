@@ -45,6 +45,7 @@ public class KV {
 	public static String GRAPH_FILE_PATH = null;
 	public static String QUERY_DIR_PATH = null;
 	public static String OUTPUT_DIR = "";
+	public static String RESULT_FILE_PATH = null;
 
 	public static String DATASET = "";
 
@@ -58,6 +59,8 @@ public class KV {
 			RMI_PORT = Config.getInstance().getIntProperty("RMI_PORT");
 
 			GRAPH_FILE_PATH = Config.getInstance().getStringProperty("GRAPH_FILE_PATH");
+			
+			RESULT_FILE_PATH = Config.getInstance().getStringProperty("RESULT_FILE_PATH");
 
 			QUERY_DIR_PATH = Config.getInstance().getStringProperty("QUERY_DIR_PATH");
 

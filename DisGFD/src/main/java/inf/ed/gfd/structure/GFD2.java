@@ -33,7 +33,8 @@ public class GFD2 implements Serializable {
 
 	private String ID;
 	private int SCCNumber = 1;
-	private ArrayList<Graph<VertexString, TypedEdge>> patterns;
+	public ArrayList<Graph<VertexString, TypedEdge>> patterns;
+	public Graph<VertexString, TypedEdge> pattern;
 	private Int2ObjectMap<IntSet> candidates;
 	public Condition condition;
 	private int radius = 0;
@@ -59,6 +60,8 @@ public class GFD2 implements Serializable {
 	public GFD2() {
 
 		this.patterns = new ArrayList<Graph<VertexString, TypedEdge>>();
+		this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
+				TypedEdge.class);
 		this.candidates = new Int2ObjectOpenHashMap<IntSet>();
 		this.candidate2et = new Int2IntOpenHashMap();
 
@@ -70,6 +73,11 @@ public class GFD2 implements Serializable {
 		labelSet = new IntOpenHashSet();
 
 		this.condition = new Condition();
+	}
+	
+	public GFD2(Graph<VertexString, TypedEdge> g, Condition c){
+		this.pattern = g;
+		this.condition = c;
 	}
 
 	public boolean isConnected() {
@@ -193,4 +201,6 @@ public class GFD2 implements Serializable {
 			labelSet.add(label);
 		}
 	}
+	
+	
 }

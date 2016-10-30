@@ -808,15 +808,20 @@ public class GfdTree {
 			//g.getPatternCode().add(dfs);
 			if(!g.nodeSet.containsKey(e1)){
 				int attr1 = e1.x;
-				VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
-				g.getPattern().addVertex(vertex1);
+			
+					VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
+					g.getPattern().addVertex(vertex1);
+			
 				g.nodeSet.put(e1,g.nodeNum+1);
 				g.nodeNum++;
 			}
 			if(!g.nodeSet.containsKey(e2)){
 				int attr2 = e2.x;
-				VertexString vertex2 = new VertexString(g.pattern.vertexSize()+1, attr2);
-				g.getPattern().addVertex(vertex2);
+				
+					VertexString vertex2 = new VertexString(g.pattern.vertexSize()+1, attr2);
+					g.getPattern().addVertex(vertex2);
+				
+				
 				g.nodeSet.put(e2,g.nodeNum+1);
 				g.nodeNum++;
 			}

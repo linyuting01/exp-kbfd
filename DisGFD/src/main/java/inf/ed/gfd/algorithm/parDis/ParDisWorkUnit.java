@@ -393,6 +393,13 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	@Override
 	public void compute2(Partition partition){
 		EdgePattern eP = new EdgePattern();
+		for(WorkUnit w: workload){
+			log.debug(w.id2Dfs.size());
+			id2Dfs = w.id2Dfs;
+			for(Entry<Integer,DFS> entry : id2Dfs.entrySet()){
+				dfs2Id.put(entry.getValue(), entry.getKey());
+			}
+		}
 		eP.edgePattern(partition.getGraph(), pivotPMatch1,edgePatternNodeMatch1,patternNodeMatchesN,literDom1,varDom1,dfs2Id);
 		 SuppResult w = (SuppResult)this.generatedResult;
 		 w.extendPattern = true;
@@ -648,6 +655,7 @@ private void addMatch(Int2IntMap match, int pId, int fId, int tId, int flag, int
 
 	public void setWorkUnits(Set<WorkUnit> workload2) {
 		// TODO Auto-generated method stub
+		log.debug("begin set workunit in superstep" + this.getSuperstep());
 		this.workload.clear();
 		// TODO Auto-generated method stub
 		this.workload = workload2;

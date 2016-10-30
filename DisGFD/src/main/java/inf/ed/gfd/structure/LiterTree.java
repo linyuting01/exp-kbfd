@@ -374,16 +374,21 @@ public class LiterTree {
 	
 public void extendNode(LiterNode t){
 		if(t == this.root){
+			log.debug( this.gNode.literDom.size());
 			for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
+				if(this.gNode.literDom.containsKey(nodeId)){
 				for(String s : this.gNode.literDom.get(nodeId)){
 	        	    	addNode(this.root,1,nodeId,s);
 	        	    }
+				}
 			}
 			for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
 		        	//add variable
+				if(this.gNode.varDom.containsKey(nodeId)){
 		           for(int nodeId2 : this.gNode.varDom.get(nodeId)){
 		            		addNode(this.root,1,nodeId,nodeId2);
 		           }
+				}
 			}
 		}
 		else{
@@ -392,21 +397,25 @@ public void extendNode(LiterNode t){
 				  for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
 			        	
 			        	// add Literal: for all possible equal constant
+					  if(this.gNode.literDom.containsKey(nodeId)){
 			        	for(String s : this.gNode.literDom.get(nodeId)){
 			        		boolean flag = addLiteral(t, s, nodeId);
 			        		if(flag == true){
 			        			addNode(t,0,nodeId,s);	
 			        		}
 			        	}
+					  }
 				  }
 				  for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
 			        	//add variable
+					  if(this.gNode.varDom.containsKey(nodeId)){
 					  for(int nodeId2 : this.gNode.varDom.get(nodeId)){
 			        	   boolean flag = addVar(t, nodeId, nodeId2);
 			            	if(flag == true){
 			            		addNode(t,0,nodeId,nodeId2);
 			            	} 
 			           }
+					  }
 				 }
 				
 			}

@@ -85,8 +85,8 @@ public class GfdNode implements Comparable<GfdNode> {
 	
 	
 	public GfdNode(){
-		//this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
-			//	TypedEdge.class);
+		this.pattern = new SimpleGraph<VertexString, TypedEdge>(VertexString.class,
+				TypedEdge.class);
 		this.ltree = new LiterTree();
 		//this.parent =;
 		this.children = new ArrayList<GfdNode>();

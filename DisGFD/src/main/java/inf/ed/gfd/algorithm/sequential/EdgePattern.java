@@ -167,10 +167,10 @@ public class EdgePattern {
 	           if(!literDom.containsKey(pId)){
 	        	  literDom.put(pId, new Int2ObjectOpenHashMap< Set<String>>());
 	           }
-	           if(!literDom.get(pId).containsKey(0)){
-	        	   literDom.get(pId).put(0, new HashSet<String>());
+	           if(!literDom.get(pId).containsKey(1)){
+	        	   literDom.get(pId).put(1, new HashSet<String>());
 	           }
-	           literDom.get(pId).get(0).add(fVertex.getValue());
+	           literDom.get(pId).get(1).add(fVertex.getValue());
 	           if(!literDom.get(pId).containsKey(1)){
 	        	   literDom.get(pId).put(1, new HashSet<String>());
 	           }
@@ -180,10 +180,10 @@ public class EdgePattern {
 	        	   if(!varDom.containsKey(pId)){
 	 	        	  varDom.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 	 	           }
-	 	           if(!varDom.get(pId).containsKey(0)){
-	 	        	   varDom.get(pId).put(0, new IntOpenHashSet());
+	 	           if(!varDom.get(pId).containsKey(1)){
+	 	        	   varDom.get(pId).put(1, new IntOpenHashSet());
 	 	           }
-	 	           varDom.get(pId).get(0).add(1);
+	 	           varDom.get(pId).get(1).add(2);
 	           }
 	     }
 	   }

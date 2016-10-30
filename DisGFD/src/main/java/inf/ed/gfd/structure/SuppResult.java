@@ -127,10 +127,10 @@ public class SuppResult extends Result implements Serializable {
 			this.extendPattern = pr.extendPattern;
 			this.nodeNum = this.nodeNum + pr.nodeNum;
 			//log.debug(this.extendPattern);
-			if(isFirst){
+			if(pr.isFirst){
 				this.edgeCands.addAll(pr.edgeCands);
 			}
-			if(isIsoCheck){
+			if(pr.isIsoCheck){
 				this.isoResult.addAll(pr.isoResult);
 			}
 			
@@ -152,14 +152,15 @@ public class SuppResult extends Result implements Serializable {
 					else{
 						combineLiterDom(this.literDom.get(entry.getKey()),pr.literDom.get(entry.getKey()));
 					}
-					
-					if(!this.varDom.containsKey(entry.getKey())){
-						Int2ObjectMap<IntSet> domVar = new Int2ObjectOpenHashMap<IntSet>();
-						combineVarDom(domVar,pr.varDom.get(entry.getKey()));
-						this.varDom.put(entry.getKey(), domVar);
-					}
-					else{
-						combineVarDom(this.varDom.get(entry.getKey()),pr.varDom.get(entry.getKey()));
+					if(pr.varDom.containsKey(entry.getKey())){
+						if(!this.varDom.containsKey(entry.getKey())){
+							Int2ObjectMap<IntSet> domVar = new Int2ObjectOpenHashMap<IntSet>();
+							combineVarDom(domVar,pr.varDom.get(entry.getKey()));
+							this.varDom.put(entry.getKey(), domVar);
+						}
+						else{
+							combineVarDom(this.varDom.get(entry.getKey()),pr.varDom.get(entry.getKey()));
+						}
 					}
 					
 					
@@ -167,7 +168,7 @@ public class SuppResult extends Result implements Serializable {
 				}
 			}
 				
-			if(this.checkGfd == true){
+			if(pr.checkGfd == true){
 				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.pivotMatchGfd.entrySet()){
 					int pId = entry.getKey();
 					if(!this.pivotMatchGfd.containsKey(entry.getKey())){

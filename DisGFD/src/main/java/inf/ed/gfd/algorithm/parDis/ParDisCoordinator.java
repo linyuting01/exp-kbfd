@@ -119,7 +119,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	
 	List<DFS> edgePattern = new ArrayList<DFS>();
-	private Set<WorkUnit> ws = new HashSet<WorkUnit>();
+
 	
 	
 	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
@@ -394,6 +394,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 		superstep++;
 		resultMap.clear();
+		
 		//this.activeWorkerSet.clear();
 	}
 
@@ -536,9 +537,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				log.debug(finalResult.pivotMatchP.size());
 				log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
-				ws.clear();
+				//ws.clear();
 				extendAndDistributeWorkUnits(finalResult);
-				log.debug("has created the new workunit");
+				//log.debug("has created the new workunit");
 				
 				
 				try {
@@ -563,8 +564,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		for(DFS dfs :finalResult.edgeCands){
 			dfs2Id.put(dfs, i);
 			id2Dfs.put(i, dfs);
+			i++;
+			
 		}
 		gfdTree.dfs2Ids = dfs2Id;
+		log.debug("id2Dfs size" +id2Dfs.size());
 		WorkUnit w = new WorkUnit(id2Dfs);
 		workunits.add(w);	
 	}
@@ -603,6 +607,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	
 	public void extendAndDistributeWorkUnits(SuppResult finalResult) throws RemoteException{
+		workunits.clear();
 		if(this.superstep == 1){
 			createIdforDfs(finalResult);
 			assignWorkunitsToWorkers();
@@ -673,18 +678,22 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 								disConnectedRevoke = true;
 								if(t.dependency.isLiteral){
 									Pair<Integer,String> p = t.dependency.YEqualsLiteral;
+									if(g.literDom.containsKey(p.x)){
 									for(String s: g.literDom.get(p.x)){
 									  if(s.equals(p.y)){
 										  g.literDom.get(p.x).remove(s);
 									  }
 									}
+									}
 								}
 								else{
 									Pair<Integer,Integer> p = t.dependency.YEqualsVariable;
+									if(g.varDom.containsKey(p.x)){
 									for(int s: g.varDom.get(p.x)){
 									  if(s == p.y){
 										  g.varDom.get(p.x).remove(s);
 									  }
+									}
 									}
 								}
 							}
@@ -909,7 +918,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	private void assignWorkunitsToWorkers() throws RemoteException {
 
 		log.debug("begin assign work units to workers.");
-		log.debug("workload size" + ws.size());
+		log.debug("workload size" + workunits.size());
 
 		long assignStartTime = System.currentTimeMillis();
 

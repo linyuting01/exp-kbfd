@@ -266,10 +266,12 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				
 				
 				while (flagLocalCompute) {
+					flagLocalCompute = false; 
 					//log.debug(this + "superstep loop start for superstep " + superstep);
 					try {
+						log.debug(this + "superstep loop start for superstep " + superstep);
 						if(superstep == 0){
-							//flagLocalCompute = false;
+							
 							//log.debug(holdingPartitionID);
 							localComputeTask.init(holdingPartitionID);
 							Partition workingPartition = partitions.get(holdingPartitionID);
@@ -277,13 +279,14 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 						}
 						
 						else {
-							  
+							
 							    partialResults.clear();
-								LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
+								//LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
 	
 								Partition workingPartition = partitions.get(localComputeTask
 										.getPartitionID());
 								if(superstep == 1){
+									log.debug("Id2Dfs size" +localComputeTask.id2Dfs.size());
 									localComputeTask.compute2(workingPartition);
 								}
 								else{
@@ -298,6 +301,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 												.get(localComputeTask.getPartitionID());
 										localComputeTask.incrementalCompute(workingPartition,
 												messageForWorkingPartition);
+										flagLocalCompute = false;
 									}
 								}
 							}
@@ -305,8 +309,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 						partialResults.put(localComputeTask.getPartitionID(),
 									localComputeTask.getPartialResult());
 						//nextLocalComputeTasksQueue.add(localComputeTask);
+						log.debug("send suppreslut in superStrp"  + superstep);
 						checkAndSendPartialResult();
-						log.debug("send suppreslut done" );
+						
 						flagSetWorkUnit = false;
 					
 				}catch (Exception e) {
@@ -596,9 +601,10 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.currentIncomingMessages.clear();
 
 		this.stopSendingMessage = false;
-		if(flagSetWorkUnit == true){
-			this.flagLocalCompute = true;
-		}
+		this.flagLocalCompute = true;
+		//if(flagSetWorkUnit == true){
+			//this.flagLocalCompute = true;
+		//}
 
 		this.outgoingMessages.clear();
 
@@ -664,7 +670,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void setWorkUnits(Set<WorkUnit> workload)throws RemoteException {
 		log.info("Get " + workload.size() + " work units from coordinator ");
-        log.debug("this.partitions's size" + this.partitions.size());
+       // log.debug("this.partitions's size" + this.partitions.size());
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
 
 			try {
@@ -688,7 +694,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				e.printStackTrace();
 			}
 		}
-		this.flagLocalCompute = true;
+		//this.flagLocalCompute = true;
 		
 		
 	}

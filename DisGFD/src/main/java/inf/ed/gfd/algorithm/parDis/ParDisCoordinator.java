@@ -414,6 +414,10 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				+ activeWorkerIDs);
 
 		this.activeWorkerSet.add(workerID);
+		
+		if(this.superstep >=10){
+			finishLocalCompute();
+		}
 
 	}
 
@@ -488,10 +492,10 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 				SuppResult finalResult = new SuppResult();
 				//log.debug(finalResult.pivotMatchP.size());
-				log.debug(resultMap.values().size());
+				//log.debug(resultMap.values().size());
 				finalResult.assemblePartialResults(resultMap.values());
-				log.debug(finalResult.pivotMatchP.size());
-				log.debug("graph node num : " +finalResult.nodeNum);
+				//log.debug(finalResult.pivotMatchP.size());
+				//log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
 				//ws.clear();
 				extendAndDistributeWorkUnits(finalResult);
@@ -536,24 +540,31 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		workunits.clear();
 		if(this.superstep == 1){
 			createIdforDfs(finalResult);
-		}
-		if(this.superstep == 2){
-			intialExtendAndGenerateWorkUnits(finalResult);
+			assignWorkunitsToWorkers();
 		}
 		else{
-			if(finalResult.checkGfd){
-				verifyGfdAndGenerateWorkUnits(finalResult);
+			if(this.superstep == 2){
+				intialExtendAndGenerateWorkUnits(finalResult);
+				assignWorkunitsToWorkers();
 			}
-			//patternCheck
-			if(finalResult.extendPattern){
-				verifyPatternAndGenerateWorkUnits(finalResult);
-			}
-			if(finalResult.isIsoCheck){
-				generateWorkUnitsForIsoPatternCheck(finalResult);
-					
+			else{
+				if(finalResult.checkGfd){
+					verifyGfdAndGenerateWorkUnits(finalResult);
+				}
+				//patternCheck
+				if(finalResult.extendPattern){
+					verifyPatternAndGenerateWorkUnits(finalResult);
+					assignWorkunitsToWorkers();
+				}
+				if(finalResult.isIsoCheck){
+					isoCheckProcess(finalResult);
+					generateWorkUnitsForPatternCheck(finalResult);
+					assignWorkunitsToWorkers();
+						
+				}
 			}
 		}
-		assignWorkunitsToWorkers();
+
 		
 	}
 	
@@ -561,14 +572,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	public void intialExtendAndGenerateWorkUnits(SuppResult finalResult){
 		log.debug("begin compute support of edge pattern and extend condition y");
 		for(int s :finalResult.pivotMatchP.keySet()){	
+			//log.debug("node num" +finalResult.nodeNum);
 			double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
 			if(supp >= Params.VAR_SUPP){
-				log.debug("supp value " + supp);
+				//log.debug("supp value " + supp);
 				/////////////////////////////////
 				//revise;
 				DFS dfs = id2Dfs.get(s);
 				edgePattern.add(dfs);
-				log.debug("edgePattern size" +edgePattern.size());
+			//	log.debug("edgePattern size" +edgePattern.size());
 			}		
 		}
 		
@@ -601,12 +613,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			verifyGfds(finalResult);
 			
 			boolean flagExtend = generateWorkUnitforGfdCheck(finalResult);
-			
-			if(flagExtend == false){
+			log.debug(flagExtend);
+			if(!flagExtend){
 				log.debug("no condition more, begin to extend pattern");
 				boolean flagExtendP = generateAndAssignWorkUnitforIsoCheck(finalResult);
 				
-				if(flagExtendP == false){
+				if(!flagExtendP){
 					log.debug("all process done!");
 					finishLocalCompute();
 				}	
@@ -630,9 +642,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
 				t.supp = supp;
 				t.pivotMatch = entry2.getValue();
-				log.debug("supp value " + supp);
+				//log.debug("supp value " + supp);//
 				
-				log.debug("check negative gfd ");
+				//log.debug("check negative gfd ");//
 				if(t.negCheck){
 					t.extend = false;
 					if(supp == 0){
@@ -644,16 +656,19 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				if(!t.negCheck){
 					//is a minimum gfd; check negative, update liter and var dom;
 					if(supp >= Params.VAR_SUPP){
+						//log.debug(supp);//
 						if(finalResult.satCId.get(pId).get(cId)){
 							addConenectedGfd(g,t);
 						}
 						else{
-							g.ltree.extendNode(t);
+							//log.debug(t.children.size());
+								//g.ltree.extendNode(t);
+							
 						}
 					}else{
 						t.extend = false;
 						//update literal dom and var dom
-						g.updategfdNodeDom(t);
+						//g.updategfdNodeDom(t);
 					}		
 				}
 			}
@@ -663,14 +678,17 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 		
 			
-	private boolean generateWorkUnitforGfdCheck(SuppResult finalResult){
+	private boolean generateWorkUnitforGfdCheck(SuppResult finalResult) throws RemoteException{
 		boolean flagExtend = false;
+		log.debug(flagExtend);
 		for(int pId: finalResult.pivotMatchGfd.keySet()){
 			for(int cId: finalResult.pivotMatchGfd.get(pId).keySet()){
 				GfdNode g = gfdTree.patterns_Map.get(pId);
 				LiterNode t = g.ltree.condition_Map.get(cId);
-				if(t.children!=null ){
-					if(!t.children.isEmpty()){
+				log.debug(t.children.size());
+				if(t.children!=null && t.extend ){
+					if(t.children.size()!= 0){
+						log.debug("t chidrensize" + t.children.size());
 						flagExtend = true;
 						Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 						for(LiterNode tc : t.children){
@@ -682,6 +700,10 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 			}
     	}
+		if(flagExtend){
+			assignWorkunitsToWorkers();
+		}
+		log.debug(flagExtend);
 		return flagExtend;
 	}
 	
@@ -697,7 +719,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		
 		for(int pId:finalResult.pivotMatchGfd.keySet()){
 			GfdNode g = gfdTree.patterns_Map.get(pId);
-			gfdTree.extendGeneral(edgePattern, g);
+			if(g.nodeNum < Params.var_K && g.extend){
+				gfdTree.extendGeneral(edgePattern, g);
+			}
 			if(g.children != null){
 				if(!g.children.isEmpty()){
 					flagExtendP = true;
@@ -712,44 +736,57 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			return flagExtendP;
 		}
 		
+		HashMap<String, IntSet> cluster1 = new HashMap<String, IntSet>();
 		HashMap<String, IntSet> cluster = new HashMap<String, IntSet>();
 		for(int i: layerGfds){
 			String s = gfdTree.patterns_Map.get(i).orderId;
-			if(!cluster.containsKey(s)){
-				cluster.put(s, new IntOpenHashSet());
+			if(!cluster1.containsKey(s)){
+				cluster1.put(s, new IntOpenHashSet());
 			}
-			cluster.get(s).add(i);
+			cluster1.get(s).add(i);
 		}
 		
-		
-		HashMap<Integer,Graph<VertexString, TypedEdge>> works = new 
-				HashMap<Integer,Graph<VertexString, TypedEdge>>();
-		
-		for(String s :cluster.keySet()){
-			works.clear();
-			for(int i: cluster.get(s)){
-				works.put(i, gfdTree.patterns_Map.get(i).pattern);
+		for(Entry<String,IntSet> entry : cluster1.entrySet()){
+			if(entry.getValue().size()>1){
+				cluster.put(entry.getKey(), entry.getValue());
 			}
-			WorkUnit w = new WorkUnit(works);
-			workunits.add(w);
 		}
-		assignIsoWOrkUnits();
 		
+		if(cluster.isEmpty()){
+			generateWorkUnitsForPatternCheck(finalResult);
+			assignWorkunitsToWorkers();
+		}
+		
+		else{
+			HashMap<Integer,Graph<VertexString, TypedEdge>> works = new 
+					HashMap<Integer,Graph<VertexString, TypedEdge>>();
+			
+			for(String s :cluster.keySet()){
+				works.clear();
+				for(int i: cluster.get(s)){
+					works.put(i, gfdTree.patterns_Map.get(i).pattern);
+				}
+				WorkUnit w = new WorkUnit(works);
+				workunits.add(w);
+			}
+			log.debug("isoWorkUnit" +workunits.size());
+			assignIsoWOrkUnits();
+		}
 		return flagExtendP;
 					
 	}
 	
 	
 				
-	public void generateWorkUnitsForIsoPatternCheck(SuppResult r)	{
+	public void generateWorkUnitsForPatternCheck(SuppResult r)	{
 		isoCheckProcess(r);
 		WorkUnit w = new WorkUnit();
 		for(int pId :tmpPatternCheck){
 			GfdNode g = gfdTree.patterns_Map.get(pId);
 			for(GfdNode t:g.children){
 				if(t.extend){
-			
-					int id = dfs2Id.get(t.edgePattern);
+			        DFS dfs = t.edgePattern.findDFS();
+					int id = dfs2Id.get(dfs);
 					Pair<Integer,Pair<Integer,Integer>> pair = new 
 							Pair<Integer,Pair<Integer,Integer>>(id,t.addNode);
 				    w.edgeIds.put(t.pId, pair);
@@ -817,7 +854,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						}
 					}
 				
-					if(flagExtend == false){
+					if(!flagExtend){
 						log.debug("all process done!");
 						finishLocalCompute();		
 					}

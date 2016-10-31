@@ -221,6 +221,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		Partition partition = new Partition(partitionID);
 		partition.loadPartitionDataFromEVFile(filename.trim());
 		Params.GRAPHNODENUM = partition.getGraph().vertexSize();
+		log.debug("nodeNUm"+Params.GRAPHNODENUM);
 		//partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
 		this.partitions.put(partitionID, partition);
 		totalPartitionsAssigned = 1;
@@ -279,21 +280,23 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 							localComputeTask.init(holdingPartitionID);
 							localComputeTask.compute(workingPartition);
 						}
-							
-						if(superstep == 1){
-							localComputeTask.compute2(workingPartition);
-						}
 						else{
-
-						    /** not begin step. incremental compute */
-							int flag = localComputeTask.incrementalCompute(workingPartition);
-							if(flag == 2){
-								updateOutgoingMessages(localComputeTask.getMessages());
-								checkAndSendMessage();	
-								List<Message<?>> messageForWorkingPartition = previousIncomingMessages
-										.get(localComputeTask.getPartitionID());
-								localComputeTask.incrementalCompute(workingPartition,
-										messageForWorkingPartition);
+							
+							if(superstep == 1){
+								localComputeTask.compute2(workingPartition);
+							}
+							else{
+	
+							    /** not begin step. incremental compute */
+								int flag = localComputeTask.incrementalCompute(workingPartition);
+								if(flag == 2){
+									updateOutgoingMessages(localComputeTask.getMessages());
+									checkAndSendMessage();	
+									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+											.get(localComputeTask.getPartitionID());
+									localComputeTask.incrementalCompute(workingPartition,
+											messageForWorkingPartition);
+								}
 							}
 						}
 							
@@ -662,7 +665,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 			try {
 				localComputeTask.workload.clear();
 				
-				localComputeTask.init(entry.getKey());
+				localComputeTask.init(entry.getKey());	
 				localComputeTask.setWorkUnits(workload);
 				if(!localComputeTask.patternNodeMatchesN.isEmpty()){
 					localComputeTask.patternNodeMatchesP.clear();

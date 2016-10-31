@@ -224,7 +224,7 @@ public class LiterTree {
 			t.dependency = new Condition();
 			t.getDependency().setYEqualsLiteral(nodeId, s);
 			t.getDependency().isLiteral = true;
-			log.debug(this.root.children.size());
+			//log.debug(this.root.children.size());
 		}
 		t.pos = g.childPos;//
 		g.childPos++;
@@ -263,7 +263,7 @@ public class LiterTree {
 		//t.key = t.getDependency().toString();
 		t.pos = g.childPos;//
 		g.childPos++;
-		log.debug(nodeId+ "+"+ nodeId2);
+		//log.debug(nodeId+ "+"+ nodeId2);
 		//log.debug(t.key);
 		t.cId = condition_Map.size()+1;
 		condition_Map.put(t.cId, t);
@@ -374,11 +374,12 @@ public class LiterTree {
 	
 public void extendNode(LiterNode t){
 		if(t == this.root){
-			log.debug( this.gNode.literDom.size());
+			//log.debug( this.gNode.literDom.size());
 			for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
 				if(this.gNode.literDom.containsKey(nodeId)){
 				for(String s : this.gNode.literDom.get(nodeId)){
 	        	    	addNode(this.root,1,nodeId,s);
+	        	    	//log.debug("nodeId"+nodeId +s);
 	        	    }
 				}
 			}
@@ -388,6 +389,7 @@ public void extendNode(LiterNode t){
 				if(this.gNode.varDom.containsKey(nodeId)){
 		           for(int nodeId2 : this.gNode.varDom.get(nodeId)){
 		            		addNode(this.root,1,nodeId,nodeId2);
+		            		//log.debug("nodeId"+nodeId + nodeId2);
 		           }
 				}
 				}
@@ -410,13 +412,15 @@ public void extendNode(LiterNode t){
 				  }
 				  for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
 			        	//add variable
-					  if(this.gNode.varDom.containsKey(nodeId)){
-					  for(int nodeId2 : this.gNode.varDom.get(nodeId)){
-			        	   boolean flag = addVar(t, nodeId, nodeId2);
-			            	if(flag == true){
-			            		addNode(t,0,nodeId,nodeId2);
-			            	} 
-			           }
+					  if(this.gNode.varDom!= null){
+						  if(this.gNode.varDom.containsKey(nodeId)){
+						  for(int nodeId2 : this.gNode.varDom.get(nodeId)){
+				        	   boolean flag = addVar(t, nodeId, nodeId2);
+				            	if(flag == true){
+				            		addNode(t,0,nodeId,nodeId2);
+				            	} 
+				           }
+						  }
 					  }
 				 }
 				

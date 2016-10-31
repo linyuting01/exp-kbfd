@@ -76,7 +76,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	Set<IntSet> isoCheckResult = new HashSet<IntSet>();
 	
 
-	public boolean isGfdCheck;
+	//public boolean isGfdCheck;
 	
 	Set<String> dom = new HashSet<String>();
 	
@@ -93,19 +93,19 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 	public int processWorkUnitAndGfdMsg(Partition partition){
 		pivotPMatch1.clear();
-		int i = 0;
+		int i = -1;
 		for( WorkUnit w: workload){
 				if(w.isGfdCheck){
 					
 					checkGfd(w,partition);
 					//prepareResult(true);
-					isoCheckResult = getIsoResult();
+					
 					i = 0;
 				}
 				
 					if(w.isIsoCheck){
 						checkIso(w);
-						
+						isoCheckResult = getIsoResult();
 						i =1;
 					}
 					if(w.isPatternCheck){
@@ -133,7 +133,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		
 		
 		for(Entry<Integer,Graph<VertexString, TypedEdge>> entry1 : w.isoPatterns.entrySet()){
-			int attr1 = entry1.getValue().allVertices().get(0).getAttr();
+			int attr1 = entry1.getValue().allVertices().get(1).getAttr();
 			for(Entry<Integer,Graph<VertexString, TypedEdge>> entry2 : w.isoPatterns.entrySet()){
 				
 				if(entry1.getKey()!= entry2.getKey() && entry1.getKey()<entry2.getKey()){
@@ -145,7 +145,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 							int attr2 = entryattr.getValue().getAttr();
 							if(attr1 == attr2){
 								VF2IsomorphismInspector isomorphismChecker = new VF2IsomorphismInspector();
-								boolean flag =isomorphismChecker.isSubgraphIsomorphic(entry1.getValue(), 0, 
+								boolean flag =isomorphismChecker.isSubgraphIsomorphic(entry1.getValue(), 1, 
 										entry2.getValue(), entry2.getKey());
 								if(flag){
 									isoResult.get(entry1.getKey()).add(entry2.getKey());
@@ -236,7 +236,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 		int pId = w.patternId;
 		Int2ObjectMap<Condition> conditions = w.conditions;
-		
+		//log.debug("pattern match size" + patternNodeMatchesP.size());
 		for(Entry<Integer, Condition> entry : conditions.entrySet()){
 			int cId = entry.getKey();
 			Condition c = entry.getValue();
@@ -333,18 +333,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	@Override
 	public void prepareResult(int flag) {
 		// TODO Auto-generated method stub
-		if(flag == 0){
-			 SuppResult w = (SuppResult)this.generatedResult;
-			    w.pivotMatchP =	pivotPMatch1;
-			    w.extendPattern = true;
-			    w.nodeNum = Params.GRAPHNODENUM;
-		}
-		if(flag == 1){
-			SuppResult w = (SuppResult)this.generatedResult;
-			w.isoResult = isoCheckResult;
-			w.isIsoCheck = true;
-		}
-		if(flag ==2){
+		if(flag ==0){
 			SuppResult w = (SuppResult)this.generatedResult;
 			w.checkGfd = true;
 			w.pivotMatchGfd = pivotMatchGfd1;
@@ -352,7 +341,21 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			 w.nodeNum = Params.GRAPHNODENUM;
 			
 		}
+		if(flag == 1){
+			SuppResult w = (SuppResult)this.generatedResult;
+			w.isoResult = isoCheckResult;
+			w.isIsoCheck = true;
+			w.nodeNum = Params.GRAPHNODENUM;
+		}
 		
+		
+		if(flag == 2){
+			 SuppResult w = (SuppResult)this.generatedResult;
+			    w.pivotMatchP =	pivotPMatch1;
+			    w.extendPattern = true;
+			    w.nodeNum = Params.GRAPHNODENUM;
+		}
+	
 		//send to SC
 		
 	
@@ -406,6 +409,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		 w.pivotMatchP = pivotPMatch1;
 		 w.literDom = literDom1;
 		 w.varDom = varDom1;
+		 w.nodeNum = Params.GRAPHNODENUM;
 	}
 
 
@@ -420,6 +424,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		literDom1.clear();
 		varDom1.clear();
 		int flag = processWorkUnitAndGfdMsg(partition);
+		log.debug("flag" + flag);
 		if(flag == 0){
 			prepareResult(0);
 		}
@@ -655,10 +660,11 @@ private void addMatch(Int2IntMap match, int pId, int fId, int tId, int flag, int
 
 	public void setWorkUnits(Set<WorkUnit> workload2) {
 		// TODO Auto-generated method stub
-		log.debug("begin set workunit in superstep" + this.getSuperstep());
+		log.debug("begin set workunit in superstep" + workload2.size());
 		this.workload.clear();
 		// TODO Auto-generated method stub
 		this.workload = workload2;
+		
 	}
 	
 	

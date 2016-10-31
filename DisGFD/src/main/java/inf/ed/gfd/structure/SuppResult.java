@@ -48,7 +48,7 @@ public class SuppResult extends Result implements Serializable {
 	
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
 
-	public int nodeNum;
+	public int nodeNum = 0;
 	
 	public boolean extendPattern = false ; 
 	public boolean isFirst = false;
@@ -66,6 +66,7 @@ public class SuppResult extends Result implements Serializable {
 			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
 			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
+			this.isoResult = new HashSet<IntSet>();
 		}
 	
 	/*
@@ -127,12 +128,16 @@ public class SuppResult extends Result implements Serializable {
 		for(Result r : partialResults){
 			SuppResult pr = (SuppResult) r;
 			this.extendPattern = pr.extendPattern;
+			this.checkGfd = pr.checkGfd;
+			this.isIsoCheck = pr.isIsoCheck;
 			this.nodeNum = this.nodeNum + pr.nodeNum;
+			this.isFirst = pr.isFirst;
+			log.debug("suppresult node num" + this.nodeNum);
 			//log.debug(this.extendPattern);
-			if(pr.isFirst){
+			if(this.isFirst){
 				this.edgeCands.addAll(pr.edgeCands);
 			}
-			if(pr.isIsoCheck){
+			if(this.isIsoCheck == true){
 				this.isoResult.addAll(pr.isoResult);
 			}
 			
@@ -170,7 +175,7 @@ public class SuppResult extends Result implements Serializable {
 				}
 			}
 				
-			if(pr.checkGfd == true){
+			if(this.checkGfd == true){
 				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.pivotMatchGfd.entrySet()){
 					int pId = entry.getKey();
 					if(!this.pivotMatchGfd.containsKey(entry.getKey())){

@@ -157,13 +157,13 @@ public class GfdTree {
 					for(int k = 0;k<n;k++){//A_m+1C_0,..., A_m+1C_n
 						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx,k);
 						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
-						log.debug(dfs11.toString());
+						//log.debug(dfs11.toString());
 						 newNode(t,dfs11);		
 					}
 					if(dfs.isEqualL()){// A_mA_n
 						if(fy <ty){ //m<n add A_nA_m
 							DFS dfs12 = new DFS(dfs.tLabel,dfs.fLabel,dfs1.eLabel);	
-							log.debug(dfs12.toString());
+							//log.debug(dfs12.toString());
 							newNode(t,dfs12);
 						}
 					}
@@ -172,7 +172,7 @@ public class GfdTree {
 					if(!t.attrs.containsKey(tx1)){ //AD
 						DFS dfs12 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
 						newNode(t,dfs12);
-						log.debug(dfs12.toString());
+						//log.debug(dfs12.toString());
 					}
 					else{//AD_1.AD_n
 						int n = t.attrs.get(tx1);
@@ -180,7 +180,7 @@ public class GfdTree {
 							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
 							DFS dfs12 = new DFS(dfs.fLabel,p2,dfs1.eLabel);
 							 newNode(t,dfs12);	
-							 log.debug(dfs12.toString());
+							// log.debug(dfs12.toString());
 						}
 						
 					}
@@ -209,7 +209,7 @@ public class GfdTree {
 					Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n);
 					DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
 					newNode(t,dfs13);	
-					log.debug(dfs13.toString());
+					//log.debug(dfs13.toString());
 				}
 				if(fx1.compareTo(fx) >0){ //BC
 					int n = t.attrs.get(tx);
@@ -217,7 +217,7 @@ public class GfdTree {
 						Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n);
 						DFS dfs13 = new DFS(dfs1.fLabel,p3,dfs1.eLabel);
 						newNode(t,dfs13);
-						log.debug(dfs13.toString());
+						//log.debug(dfs13.toString());
 					}
 				}
 				if(fx1<fx){
@@ -240,7 +240,7 @@ public class GfdTree {
 				if(fx1.compareTo(fx)>0){ //CB
 					if(!t.attrs.containsKey(tx1)){//CB_0,CB_1
 						 newNode(t,dfs1);
-						 log.debug(dfs1.toString());
+						 //log.debug(dfs1.toString());
 					}
 					else{
 						int n = t.attrs.get(tx1);
@@ -248,7 +248,7 @@ public class GfdTree {
 							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
 							DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
 							newNode(t,dfs3);
-							log.debug(dfs3.toString());
+							//log.debug(dfs3.toString());
 						}
 						
 					}	
@@ -275,7 +275,7 @@ public class GfdTree {
 				  if(!t.attrs.containsKey(fx1)){//D_A_m
 					 DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
 					  newNode(t,dfs3);
-					  log.debug(dfs3.toString());
+					 // log.debug(dfs3.toString());
 				  }
 				  else{////D_0A_m,D_n,A_m
 					  int m = t.attrs.get(tx1);
@@ -283,7 +283,7 @@ public class GfdTree {
 						  Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,k);
 							DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
 							newNode(t,dfs3);
-							log.debug(dfs3.toString());
+							//log.debug(dfs3.toString());
 					  }
 						  
 					  }
@@ -309,7 +309,7 @@ public class GfdTree {
 				  if(fx1.compareTo(fx)>0){
 					 if(!t.attrs.containsKey(fx1)){
 						 newNode(t,dfs1); 
-						 log.debug(dfs1.toString());
+						 //log.debug(dfs1.toString());
 					 }
 					 else{
 						   int m = t.attrs.get(fx1);
@@ -317,7 +317,7 @@ public class GfdTree {
 								  Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,k);
 									DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
 									newNode(t,dfs3);
-									log.debug(dfs3.toString());
+									//log.debug(dfs3.toString());
 							  }
 					 }
 						   

@@ -20,10 +20,10 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	public int patternId;
 	//public int partitionId;
 	//public boolean isConnected;
-	public boolean isGfdCheck;
+	public boolean isGfdCheck = false;
 	public Int2ObjectMap<Condition> conditions;
-	public boolean isIsoCheck;
-	public boolean isPatternCheck;
+	public boolean isIsoCheck = false;
+	public boolean isPatternCheck = false;
 	
 	public List<String> patterns;
 	
@@ -50,6 +50,8 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 		this.oriPatternId = opId;
 		this.edgeIds = edgeIds;
 		this.isPatternCheck = true;
+		this.isIsoCheck = false;
+		this.isGfdCheck = false;
 
 	}
 
@@ -61,6 +63,8 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 		//this.partitionId = parId;
 		//this.isConnected = isConnected;
 		this.isGfdCheck = true;
+		this.isPatternCheck = false;
+		this.isIsoCheck = false;
 	}
 	
 	
@@ -68,6 +72,8 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 		// TODO Auto-generated constructor stub
 		this.isoPatterns = works;
 		this.isIsoCheck = true;
+		this.isGfdCheck = false;
+		this.isPatternCheck = false;
 	}
 
 

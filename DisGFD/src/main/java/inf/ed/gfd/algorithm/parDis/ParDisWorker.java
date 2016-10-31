@@ -290,9 +290,12 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 							    /** not begin step. incremental compute */
 								int flag = localComputeTask.incrementalCompute(workingPartition);
 								if(flag == 2){
-									updateOutgoingMessages(localComputeTask.getMessages());
-									checkAndSendMessage();	
-									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+									
+									if(localComputeTask.getMessages() != null){
+										updateOutgoingMessages(localComputeTask.getMessages());
+									    checkAndSendMessage();
+									}
+									List<Message<?>> messageForWorkingPartition = currentIncomingMessages
 											.get(localComputeTask.getPartitionID());
 									localComputeTask.incrementalCompute(workingPartition,
 											messageForWorkingPartition);
@@ -319,9 +322,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	
 	private synchronized void checkAndSendPartialResult() {
 		
-		log.debug("send partital result to coordinator for assemble");
+		//log.debug("send partital result to coordinator for assemble");
 		try {
-			log.debug("patilResult size"+ partialResults.size());
+			//log.debug("patilResult size"+ partialResults.size());
 			coordinatorProxy.sendPartialResult(workerID, partialResults);
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -360,7 +363,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				log.debug(" Worker: Superstep " + superstep + " pattern checking :begin send infomation .");
 
 				flagLocalCompute = false;
-
+                 
 				for (Entry<String, List<Message<?>>> entry : outgoingMessages.entrySet()) {
 					try {
 						log.info("+++++try to send message to " + entry.getKey() + ", message = "
@@ -421,11 +424,6 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 			partitionID = message.getDestinationPartitionID();
 			workerID = mapPartitionIdToWorkerId.get(partitionID);
 
-			if (workerID.equals(this.workerID)) {
-
-				/** for gfd, discard these message */
-				 updateIncomingMessages(partitionID, message);
-			} else {
 				if (outgoingMessages.containsKey(workerID)) {
 					outgoingMessages.get(workerID).add(message);
 				} else {
@@ -434,7 +432,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					outgoingMessages.put(workerID, workerMessages);
 				}
 			}
-		}
+		
 	}
 
 	/**

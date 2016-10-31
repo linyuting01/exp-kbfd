@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,8 +59,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 	Set<WorkUnit> workload = new HashSet<WorkUnit>();
 	HashMap<String,Boolean> transFlag = new HashMap<String,Boolean>();
-	HashMap<Integer,HashMap<Integer,List<Pair<Integer,Integer>>>> transferMatch =
-			new HashMap<Integer,HashMap<Integer,List<Pair<Integer,Integer>>>>();
+	Int2ObjectMap<Int2ObjectMap<List<Pair<Integer,Integer>>>> transferMatch =
+			new Int2ObjectOpenHashMap<Int2ObjectMap<List<Pair<Integer,Integer>>>>();
 	
 	public Int2ObjectMap<List<Pair<Integer,Integer>>> edgePatternNodeMatch1 = new Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>();
 	//SuppResult suppResult = new SuppResult();
@@ -73,7 +74,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public Map<DFS,Integer> dfs2Id = new HashMap<DFS,Integer>();
 	public Int2ObjectMap<DFS> id2Dfs = new Int2ObjectOpenHashMap<DFS>();
 	
-	Set<IntSet> isoCheckResult = new HashSet<IntSet>();
+	//Set<IntSet> isoCheckResult = new HashSet<IntSet>();
 	
 
 	//public boolean isGfdCheck;
@@ -93,6 +94,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 	public int processWorkUnitAndGfdMsg(Partition partition){
 		pivotPMatch1.clear();
+		isoResult.clear();
 		int i = -1;
 		for( WorkUnit w: workload){
 				if(w.isGfdCheck){
@@ -105,7 +107,6 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				
 					if(w.isIsoCheck){
 						checkIso(w);
-						isoCheckResult = getIsoResult();
 						i =1;
 					}
 					if(w.isPatternCheck){
@@ -118,8 +119,13 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		
 		if(i==2){
 		//prepareResult(false);
-			sendTransferData(partition.getPartitionID());
+			if(!gfdMsg.transferingEdgeMatch.isEmpty()){
+				if(Params.N_PROCESSORS > 1){
+			
+					sendTransferData(partition.getPartitionID());
+				}
 			}
+		}
 		return i;
 	
 	}
@@ -127,45 +133,31 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	Int2ObjectMap<IntSet> isoResult = new Int2ObjectOpenHashMap<IntSet>();
 	private void checkIso(WorkUnit w) {
 		// TODO Auto-generated method stub
-		
-		int size  = w.isoPatterns.size();
-		isoResult.clear();
-		
-		
-		for(Entry<Integer,Graph<VertexString, TypedEdge>> entry1 : w.isoPatterns.entrySet()){
-			int attr1 = entry1.getValue().allVertices().get(1).getAttr();
-			for(Entry<Integer,Graph<VertexString, TypedEdge>> entry2 : w.isoPatterns.entrySet()){
-				
-				if(entry1.getKey()!= entry2.getKey() && entry1.getKey()<entry2.getKey()){
-					if(!isoResult.containsKey(entry1.getKey())){
-						isoResult.put(entry1.getKey(), new IntOpenHashSet());
-					}
-					if(!isoResult.get(entry1.getKey()).contains(entry2.getKey())){
-						for(Entry<Integer, VertexString> entryattr: entry2.getValue().allVertices().entrySet()){
-							int attr2 = entryattr.getValue().getAttr();
-							if(attr1 == attr2){
-								VF2IsomorphismInspector isomorphismChecker = new VF2IsomorphismInspector();
-								boolean flag =isomorphismChecker.isSubgraphIsomorphic(entry1.getValue(), 1, 
-										entry2.getValue(), entry2.getKey());
-								if(flag){
-									isoResult.get(entry1.getKey()).add(entry2.getKey());
-									//update isoResult
-									updateIsoResult(entry1.getKey(),entry2.getKey());
-									break;
-								}
-							}
+		if(w.isoPatterns != null){
+	       
+				int attr1 = w.isoPatterns.x.allVertices().get(1).getAttr();
+				for(Entry<Integer, VertexString> entryattr: w.isoPatterns.y.allVertices().entrySet()){
+					int attr2 = entryattr.getValue().getAttr();
+					if(attr1 == attr2){
+						VF2IsomorphismInspector isomorphismChecker = new VF2IsomorphismInspector();
+						boolean flag =isomorphismChecker.isSubgraphIsomorphic( w.isoPatterns.x, 1, 
+								w.isoPatterns.y, entryattr.getKey());
+						if(flag){
+							 if(!isoResult.containsKey(w.isoIds.x)){
+							    	isoResult.put(w.isoIds.x, new IntOpenHashSet());
+							    }
+							isoResult.get(w.isoIds.x).add(w.isoIds.y);
+							//update isoResult
+							//updateIsoResult(w.isoIds.x,w.isoIds.y);
+							break;
 						}
-						
-						
-						
-						
 					}
 				}
-			}
+		    }
 		}
-		
-		
-	}
+	
+			
+	
 	
 	private void updateIsoResult(int i,int j) {
 		// TODO Auto-generated method stub
@@ -187,18 +179,27 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		}
 	}
 	
-	private Set<IntSet>  getIsoResult(){
+	public  Int2ObjectMap<IntSet>  getIsoResult(Int2ObjectMap<IntSet> isoResult){
 		Int2ObjectMap<IntSet> resultx = new Int2ObjectOpenHashMap<IntSet>(isoResult);
+		Stack<Integer> stack = new Stack<Integer>();
 		Set<IntSet> result = new HashSet<IntSet>();
 		for(Entry<Integer,IntSet> entry: isoResult.entrySet()){
-			for(int a :entry.getValue()){
-				resultx.remove(a);
-			}
+			if(resultx.containsKey(entry.getKey())){
+				for(int a :entry.getValue()){
+					stack.add(a);
+				}	
+				while(!stack.isEmpty()){
+					int i = stack.pop();
+						resultx.get(entry.getKey()).addAll(isoResult.get(i));
+						stack.addAll(isoResult.get(i));
+						resultx.remove(i);
+					}
+				}
 		}
 		for(IntSet a :resultx.values()){
 			result.add(a);
 		}
-		return result;
+		return resultx;
 	}
 
 
@@ -222,7 +223,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				        	 gfdMsg.transferingEdgeMatch.put(id, new ArrayList<Pair<VertexOString,VertexOString>>());
 				         }
 				         gfdMsg.transferingEdgeMatch.get(id).add(new Pair<VertexOString,VertexOString>(f1,t1));
-					     gfdMsg.partitionId = partitionId; 
+					     gfdMsg.partitionId = partition.getPartitionID(); 
 					}
 				}
 			}
@@ -277,7 +278,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 	
 	private void sendTransferData(int partitionId) {
-			for (int targetPartitionID = 1; targetPartitionID <= Params.N_PROCESSORS &&  
+			for (int targetPartitionID = 0; targetPartitionID < Params.N_PROCESSORS &&  
 					targetPartitionID!= partitionId; targetPartitionID++) {
 		        
 				Message<GfdMsg> nMsg = new Message<GfdMsg>(partitionId,
@@ -316,7 +317,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				}
 				if(!transferMatch.containsKey(entry.getKey())){
 					transferMatch.put(recvContent.partitionId, 
-							new HashMap<Integer,List<Pair<Integer,Integer>>>());
+							new Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>());
 				}
 				if(!transferMatch.get(recvContent.partitionId).containsKey(entry.getKey())){
 					transferMatch.get(recvContent.partitionId).put(entry.getKey(), 
@@ -343,7 +344,9 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		}
 		if(flag == 1){
 			SuppResult w = (SuppResult)this.generatedResult;
-			w.isoResult = isoCheckResult;
+			if(!isoResult.isEmpty()){
+				w.isoResult = Fuc.getIsoResult(isoResult);
+			}
 			w.isIsoCheck = true;
 			w.nodeNum = Params.GRAPHNODENUM;
 		}
@@ -379,7 +382,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		
 		// TODO Auto-generated method stub
 		
-		log.debug("begin local compute current super step = " + this.getSuperstep());
+		//log.debug("begin local compute current super step = " + this.getSuperstep());
 		//log.debug(partition.getPartitionID());
 		
 			//generate edge patterns.
@@ -388,7 +391,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			Set<DFS> edgePattern = eP.edges(partition.getGraph());
 					//eP.edgePattern(partition.getGraph(), pivotPMatch,
 					//edgePatternNodeMatch,literDom,varDom );
-			log.debug(edgePattern.size());
+			//log.debug(edgePattern.size());
 		    SuppResult w = (SuppResult)this.generatedResult;
 		    w.edgeCands = edgePattern;
 		    w.isFirst = true;
@@ -397,7 +400,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public void compute2(Partition partition){
 		EdgePattern eP = new EdgePattern();
 		for(WorkUnit w: workload){
-			log.debug(w.id2Dfs.size());
+			//log.debug(w.id2Dfs.size());
 			id2Dfs = w.id2Dfs;
 			for(Entry<Integer,DFS> entry : id2Dfs.entrySet()){
 				dfs2Id.put(entry.getValue(), entry.getKey());
@@ -424,7 +427,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		literDom1.clear();
 		varDom1.clear();
 		int flag = processWorkUnitAndGfdMsg(partition);
-		log.debug("flag" + flag);
+		//log.debug("flag" + flag);
 		if(flag == 0){
 			prepareResult(0);
 		}
@@ -437,12 +440,14 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 
 	   // log.info("now incremental compute ");
-	   
-	     receiveTransferedData(partition,  incomingMessages);
 		 IncrePattern(partition,edgePatternNodeMatch1);
-		 for(HashMap<Integer,List<Pair<Integer,Integer>>> edgeMatch: transferMatch.values()){
-			IncrePattern(partition,edgePatternNodeMatch1);
-		 }
+		
+		if(Params.N_PROCESSORS > 1){
+			receiveTransferedData(partition,  incomingMessages);
+			for(Int2ObjectMap<List<Pair<Integer,Integer>>> edgeMatch: transferMatch.values()){
+				IncrePattern(partition,edgeMatch);
+			 }
+		} 
 		 prepareResult(2);
 	    }
 
@@ -660,7 +665,7 @@ private void addMatch(Int2IntMap match, int pId, int fId, int tId, int flag, int
 
 	public void setWorkUnits(Set<WorkUnit> workload2) {
 		// TODO Auto-generated method stub
-		log.debug("begin set workunit in superstep" + workload2.size());
+		//log.debug("begin set workunit in superstep" + workload2.size());
 		this.workload.clear();
 		// TODO Auto-generated method stub
 		this.workload = workload2;

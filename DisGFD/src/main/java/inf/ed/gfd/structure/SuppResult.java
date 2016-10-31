@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Set;
 
 import inf.ed.gfd.algorithm.parDis.ParDisWorker;
+import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.Params;
 import inf.ed.grape.interfaces.Result;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
@@ -43,7 +44,7 @@ public class SuppResult extends Result implements Serializable {
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
 	public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
 	
-	public Set<IntSet> isoResult;
+	public Int2ObjectMap<IntSet> isoResult;
 	public Set<DFS> edgeCands;
 	
 	//public HashMap<String, Set<String>> satCIds; // satisfied 
@@ -66,7 +67,7 @@ public class SuppResult extends Result implements Serializable {
 			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
 			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
-			this.isoResult = new HashSet<IntSet>();
+			this.isoResult = new Int2ObjectOpenHashMap<IntSet>();
 		}
 	
 	/*
@@ -93,7 +94,7 @@ public class SuppResult extends Result implements Serializable {
 		// TODO Auto-generated constructor stub
 	}*/
 
-    public SuppResult(Set<IntSet> isoResult, boolean isIsoCheck){
+    public SuppResult(Int2ObjectMap<IntSet> isoResult, boolean isIsoCheck){
     	this.isoResult = isoResult;
     	this.isIsoCheck = true;
     }
@@ -132,13 +133,15 @@ public class SuppResult extends Result implements Serializable {
 			this.isIsoCheck = pr.isIsoCheck;
 			this.nodeNum = this.nodeNum + pr.nodeNum;
 			this.isFirst = pr.isFirst;
-			log.debug("suppresult node num" + this.nodeNum);
+			//log.debug("suppresult node num" + this.nodeNum);
 			//log.debug(this.extendPattern);
 			if(this.isFirst){
 				this.edgeCands.addAll(pr.edgeCands);
 			}
 			if(this.isIsoCheck == true){
-				this.isoResult.addAll(pr.isoResult);
+				if(!pr.isoResult.isEmpty()){
+					this.isoResult.putAll(pr.isoResult);
+				}
 			}
 			
 			if(this.extendPattern == true){
@@ -205,6 +208,11 @@ public class SuppResult extends Result implements Serializable {
 			}
 				
 		}	
+		if(this.isIsoCheck){
+			Int2ObjectMap<IntSet> a = new Int2ObjectOpenHashMap<IntSet>(this.isoResult);
+			this.isoResult = Fuc.getIsoResult(a);
+			
+		}
 	
 			
 	}

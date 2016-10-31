@@ -13,7 +13,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-public class WorkUnit implements Comparable<WorkUnit>, Serializable {
+public class WorkUnit implements  Serializable {
 	
 	private static final long serialVersionUID = 10L;
 	
@@ -28,7 +28,8 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	public List<String> patterns;
 	
 	//for isomorphism checking
-	public HashMap<Integer,Graph<VertexString, TypedEdge>> isoPatterns;
+	public Pair<Graph<VertexString, TypedEdge>,Graph<VertexString, TypedEdge>> isoPatterns;
+	public Pair<Integer,Integer> isoIds;
 	//for pattern;
 	public int oriPatternId;
 	// String and the pattrn node in the new pattern;
@@ -68,7 +69,7 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	}
 	
 	
-	public WorkUnit(HashMap<Integer, Graph<VertexString, TypedEdge>> works) {
+	public WorkUnit(Pair<Graph<VertexString, TypedEdge>,Graph<VertexString, TypedEdge>> works) {
 		// TODO Auto-generated constructor stub
 		this.isoPatterns = works;
 		this.isIsoCheck = true;
@@ -83,13 +84,14 @@ public class WorkUnit implements Comparable<WorkUnit>, Serializable {
 	}
 
 
-	public int EtIsoWork(){
-		return isoPatterns.size();
+	public WorkUnit(Pair<Graph<VertexString, TypedEdge>, Graph<VertexString, TypedEdge>> pair,
+			Pair<Integer, Integer> pairId) {
+		// TODO Auto-generated constructor stub
+		this.isoPatterns = pair;
+		this.isoIds = pairId;
+		this.isIsoCheck = true;
+		this.isGfdCheck = false;
+		this.isPatternCheck = false;
 	}
 
-	@Override
-	public int compareTo(WorkUnit o) {
-		// TODO Auto-generated method stub
-		return this.EtIsoWork() - o.EtIsoWork();
-	}
 }

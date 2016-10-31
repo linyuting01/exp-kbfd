@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -415,9 +416,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		this.activeWorkerSet.add(workerID);
 		
-		if(this.superstep >=10){
-			finishLocalCompute();
-		}
+		
 
 	}
 
@@ -656,13 +655,13 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				if(!t.negCheck){
 					//is a minimum gfd; check negative, update liter and var dom;
 					if(supp >= Params.VAR_SUPP){
-						//log.debug(supp);//
+						log.debug("supp: " + supp);//
 						if(finalResult.satCId.get(pId).get(cId)){
 							addConenectedGfd(g,t);
 						}
 						else{
 							//log.debug(t.children.size());
-								//g.ltree.extendNode(t);
+								g.ltree.extendNode(t);
 							
 						}
 					}else{
@@ -680,15 +679,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			
 	private boolean generateWorkUnitforGfdCheck(SuppResult finalResult) throws RemoteException{
 		boolean flagExtend = false;
-		log.debug(flagExtend);
+		//log.debug(flagExtend);
 		for(int pId: finalResult.pivotMatchGfd.keySet()){
 			for(int cId: finalResult.pivotMatchGfd.get(pId).keySet()){
 				GfdNode g = gfdTree.patterns_Map.get(pId);
 				LiterNode t = g.ltree.condition_Map.get(cId);
-				log.debug(t.children.size());
+				//log.debug(t.children.size());
 				if(t.children!=null && t.extend ){
 					if(t.children.size()!= 0){
-						log.debug("t chidrensize" + t.children.size());
+						//log.debug("t chidrensize" + t.children.size());
 						flagExtend = true;
 						Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 						for(LiterNode tc : t.children){
@@ -758,16 +757,25 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 		
 		else{
-			HashMap<Integer,Graph<VertexString, TypedEdge>> works = new 
-					HashMap<Integer,Graph<VertexString, TypedEdge>>();
+			//HashMap<Integer,Graph<VertexString, TypedEdge>> works = new 
+					//HashMap<Integer,Graph<VertexString, TypedEdge>>();
 			
 			for(String s :cluster.keySet()){
-				works.clear();
 				for(int i: cluster.get(s)){
-					works.put(i, gfdTree.patterns_Map.get(i).pattern);
+					for(int j : cluster.get(s)){
+						if(i<j){
+							Pair<Graph<VertexString, TypedEdge>,Graph<VertexString, TypedEdge>> pair = 
+									new Pair<Graph<VertexString, TypedEdge>,
+									Graph<VertexString, TypedEdge>> (gfdTree.patterns_Map.get(i).pattern,
+											gfdTree.patterns_Map.get(j).pattern);
+							Pair<Integer,Integer> pairId = new Pair<Integer,Integer>(i,j);
+							WorkUnit w = new WorkUnit(pair,pairId);
+							workunits.add(w);
+							
+						}
+					}
+					
 				}
-				WorkUnit w = new WorkUnit(works);
-				workunits.add(w);
 			}
 			log.debug("isoWorkUnit" +workunits.size());
 			assignIsoWOrkUnits();
@@ -779,18 +787,21 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 				
 	public void generateWorkUnitsForPatternCheck(SuppResult r)	{
-		isoCheckProcess(r);
+		//isoCheckProcess(r);
+		log.debug("begin to generate work units for pattern check" );
 		WorkUnit w = new WorkUnit();
 		for(int pId :tmpPatternCheck){
 			GfdNode g = gfdTree.patterns_Map.get(pId);
 			for(GfdNode t:g.children){
 				if(t.extend){
+					gfdTree.extendGeneralNode(edgePattern, t);
 			        DFS dfs = t.edgePattern.findDFS();
 					int id = dfs2Id.get(dfs);
 					Pair<Integer,Pair<Integer,Integer>> pair = new 
 							Pair<Integer,Pair<Integer,Integer>>(id,t.addNode);
 				    w.edgeIds.put(t.pId, pair);
 				    w.oriPatternId = t.pId;
+				    w.isPatternCheck = true;
 				
 				}
 				
@@ -798,31 +809,27 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			workunits.add(w);
 			
 		}
+	
 	}
 	
 
     public void isoCheckProcess(SuppResult r){
     	int j = 0;
-    	for(IntSet a :r.isoResult){
-    		for(int i :a){
-    			j=i;
-    			GfdNode g = gfdTree.patterns_Map.get(i);
-    			g.extend = true;
-    			g.parents = new IntOpenHashSet(a);
-    			break;
-    		}
-    		for(int i :a ){
-    			if(i!=j){
-	    			GfdNode g = gfdTree.patterns_Map.get(i);
-	    			g.extend = false;
-    			}
+    	for(Entry<Integer,IntSet> entry: r.isoResult.entrySet()){
+    		GfdNode g = gfdTree.patterns_Map.get(entry.getKey());
+    		g.isopatterns = new IntOpenHashSet(entry.getValue());
+    		for(int i: entry.getValue()){
+    			GfdNode g1 = gfdTree.patterns_Map.get(i);
+    			g1.extend = false;
     		}
     	}
+    	
     }
 							
 		
 	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
 		           // extendPatterns.clear();
+		
 					boolean flagExtend = false;
 					
 					log.debug("begin to verify pattern support");
@@ -853,6 +860,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 						}
 					}
+					//log.debug("flagExtend" + flagExtend);
 				
 					if(!flagExtend){
 						log.debug("all process done!");
@@ -897,20 +905,37 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	private void assignIsoWOrkUnits() throws RemoteException{
 		
-		PriorityQueue<WorkUnit> workloads = new PriorityQueue<WorkUnit>();
 		
-		for(WorkUnit w : workunits){
-			workloads.add(w);
-		}
-		
-		Bpar bParInstance = new Bpar();
+		Queue<WorkUnit> workload = new LinkedList<WorkUnit>();
 		int machineNum = workerProxyMap.size();
+		for(WorkUnit w : workunits){
+			workload.add(w);
+		}
 
 		//Stat.getInstance().totalWorkUnit = workloads.size();
 
-		Int2ObjectMap<Set<WorkUnit>> assignment = bParInstance.makespan(machineNum,
-				workloads);
+		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
 		log.debug("finished assigment.");
+		
+			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
+				if(!workload.isEmpty()){
+					WorkUnit w = workload.poll();
+					if(!assignment.containsKey(assignedMachine)){
+						assignment.put(assignedMachine, new HashSet<WorkUnit>());
+					}
+					assignment.get(assignedMachine).add(w);		
+			}
+		}
+		  // for there is not enough work for all workers
+			WorkUnit w = new WorkUnit();
+			w.isIsoCheck = true;
+			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
+				if(!assignment.containsKey(assignedMachine)){
+					assignment.put(assignedMachine, new HashSet<WorkUnit>());
+				}
+				assignment.get(assignedMachine).add(w);
+			}
+			
 
 		for (int machineID : assignment.keySet()) {
 			// here machineID = partitionID

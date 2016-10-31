@@ -69,13 +69,15 @@ public class GfdNode implements Comparable<GfdNode> {
 	
 	public Pair<Integer,Integer> addNode;
 	
-	public IntSet parents ;
+	
 	
 	
 	public Int2ObjectMap<Set<String>> literDom; 
 	public Int2ObjectMap<IntSet> varDom;
 	
 	public List<Integer> edgeIds = new ArrayList<Integer>();
+
+	public IntSet isopatterns;
 
  /**
   * for disconnected pattern 
@@ -104,7 +106,7 @@ public class GfdNode implements Comparable<GfdNode> {
 		this.literDom = new Int2ObjectOpenHashMap<Set<String>>();
 		this.varDom = new Int2ObjectOpenHashMap<IntSet>();
 		
-		this.parents = new IntOpenHashSet();
+		this.isopatterns= new IntOpenHashSet();
 //>>>>>>> cef7a97bf65e6311110259cf3eb3293486606003
 		
 		//this.rNeighbor = null;

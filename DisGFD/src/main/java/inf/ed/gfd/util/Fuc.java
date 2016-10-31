@@ -1,6 +1,10 @@
 package inf.ed.gfd.util;
 
 import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,6 +13,8 @@ import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.DFS;
 import inf.ed.graph.structure.adaptor.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -46,7 +52,28 @@ public class Fuc {
 			return dfs;
 		}
 		
-		
+		public  static Int2ObjectMap<IntSet>  getIsoResult(Int2ObjectMap<IntSet> isoResult){
+			Int2ObjectMap<IntSet> resultx = new Int2ObjectOpenHashMap<IntSet>(isoResult);
+			Stack<Integer> stack = new Stack<Integer>();
+			Set<IntSet> result = new HashSet<IntSet>();
+			for(Entry<Integer,IntSet> entry: isoResult.entrySet()){
+				if(resultx.containsKey(entry.getKey())){
+					for(int a :entry.getValue()){
+						stack.add(a);
+					}	
+					while(!stack.isEmpty()){
+						int i = stack.pop();
+							resultx.get(entry.getKey()).addAll(isoResult.get(i));
+							stack.addAll(isoResult.get(i));
+							resultx.remove(i);
+						}
+					}
+			}
+			for(IntSet a :resultx.values()){
+				result.add(a);
+			}
+			return resultx;
+		}
 		public static void main(String args[]) {
 			////Pair<Integer,Integer> a = new Pair<String,Integer> ("a",5);
 		//	Pair<Integer,Integer> b = new Pair<String,Integer> ("b",1);

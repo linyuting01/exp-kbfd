@@ -1,5 +1,6 @@
 package inf.ed.graph.structure.adaptor;
 
+import inf.ed.gfd.util.KV;
 import inf.ed.graph.structure.OrthogonalEdge;
 import inf.ed.graph.structure.OrthogonalVertex;
 
@@ -32,9 +33,17 @@ public class VertexOString extends OrthogonalVertex implements Serializable {
 
 	public VertexOString(String line) {
 		String tmpt[] = line.split("\t");
+
 		this.id = Integer.parseInt(tmpt[0].trim());
-		this.attr =  Integer.parseInt(tmpt[1].trim());
-		this.value = tmpt[2].trim();
+		if (tmpt.length == 3) {
+			this.attr =  Integer.parseInt(tmpt[1].trim());
+			this.value = tmpt[2].trim();
+		}
+		else{
+			this.attr = KV.ANY;;
+		    this.value = KV.SANY;
+		}
+		
 	}
 
 	public VertexOString(int id, int attr, String value ) {

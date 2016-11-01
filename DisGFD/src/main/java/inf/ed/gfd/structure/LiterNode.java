@@ -36,11 +36,13 @@ public class LiterNode implements Serializable {
 	public double supp = 0.0;
 	public boolean isSat = false;
 	public IntSet pivotMatch;
-	public boolean extend = true;
+	public boolean extend = false;
 	
 	
 	public int pos = 0;//begine 0 1 2 3 4
 	public int childPos = 0;
+	
+	public int literNum = 0;
 
 	boolean addXLiteral = false;
 	public Pair<Integer,String> addxl;

@@ -15,6 +15,7 @@ public class CrossingEdge implements Serializable {
 	public int sourceAttr;
 	public int targetAttr;
 
+
 	public String sourceLabel;
 	public String targetLabel;
 

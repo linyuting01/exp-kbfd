@@ -220,6 +220,7 @@ public class LiterTree {
 			t.addXLiteral = true;
 			t.addxl = new Pair<Integer,String>(nodeId,s);
 			t.getDependency().XEqualsLiteral.put(nodeId, s);
+			t.literNum ++;
 		}else{
 			t.dependency = new Condition();
 			t.getDependency().setYEqualsLiteral(nodeId, s);
@@ -253,6 +254,7 @@ public class LiterTree {
 				v.put(nodeId2, new IntOpenHashSet());
 			}
 			v.get(nodeId2).add(nodeId);
+			t.literNum++;
 			
 		}else{
 			t.dependency = new Condition();

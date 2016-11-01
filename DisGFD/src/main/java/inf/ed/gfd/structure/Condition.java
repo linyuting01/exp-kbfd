@@ -125,7 +125,7 @@ public class Condition implements Serializable, Cloneable {
 			// log.debug(vertexID1 + ":" + KB.getVertex(vertexID1).getAttr() +
 			// "|" + +vertexID2 + ":"
 			// + KB.getVertex(vertexID2).getAttr());
-			    if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getAttr())) {
+			    if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getValue())) {
 				return false;
 			}
 		}
@@ -155,7 +155,7 @@ public class Condition implements Serializable, Cloneable {
 		else{
 			int vertexID1 = YEqualsVariable.x;
 			int vertexID2 = YEqualsVariable.y;
-			 if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getAttr())) {
+			 if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getValue())) {
 	              return false;
 			 }
 			
@@ -191,7 +191,7 @@ public class Condition implements Serializable, Cloneable {
           // log.debug(vertexID1 + ":" + KB.getVertex(vertexID1).getAttr() +
           // "|" + +vertexID2 + ":"
           // + KB.getVertex(vertexID2).getAttr());
-                if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getAttr())) {
+                if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getValue())) {
                          return true;
           }
           }
@@ -208,9 +208,9 @@ public class Condition implements Serializable, Cloneable {
 	        }
 	    }
 		else{
-			int vertexID1 = YEqualsVariable.x;
-			int vertexID2 = YEqualsVariable.y;
-			 if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getAttr())) {
+			int vertexID1 = match.get(YEqualsVariable.x);
+			int vertexID2 = match.get(YEqualsVariable.y);
+			 if (!KB.getVertex(vertexID1).getValue().equals(KB.getVertex(vertexID2).getValue())) {
 	              return false;
 			 }
 		}

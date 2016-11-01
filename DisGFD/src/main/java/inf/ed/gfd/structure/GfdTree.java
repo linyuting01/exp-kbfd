@@ -76,10 +76,11 @@ public class GfdTree {
 				patterns_Map.put(g.pId, g);
 			 g.literDom = r.literDom.get(g.pId);
 			 g.varDom = r.varDom.get(g.pId);
+			 g.extend = true;
 		 }
 			 for(GfdNode t : this.root.children){
 				// log.debug("extenf general t" + t.edgePattern.toString());
-				 extendGeneral(edgePattern,t);
+				 extendRootChild(t,edgePattern);
 				 /*
 				 for(GfdNode x :t.children){
 					 log.debug(x.edgePattern.toString());

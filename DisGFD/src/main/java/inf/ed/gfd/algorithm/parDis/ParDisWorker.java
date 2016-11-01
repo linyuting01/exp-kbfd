@@ -218,8 +218,10 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void addPartitionID(int partitionID) throws RemoteException {
 		String filename = KV.GRAPH_FILE_PATH + ".p" + partitionID;
+		String crossingEdges =  KV.GRAPH_FILE_PATH + ".cross";
 		Partition partition = new Partition(partitionID);
 		partition.loadPartitionDataFromEVFile(filename.trim());
+		//partition.addCrossingEdges(crossingEdges.trim());
 		Params.GRAPHNODENUM = partition.getGraph().vertexSize();
 		log.debug("nodeNUm"+Params.GRAPHNODENUM);
 		//partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
@@ -523,7 +525,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void receiveMessage(List<Message<?>> incomingMessages) throws RemoteException {
 
-		Stat.getInstance().communicationData += RamUsageEstimator.sizeOf(incomingMessages);
+		Stat.getInstance().w2wcommunicationData += RamUsageEstimator.sizeOf(incomingMessages);
 
 		/** partitionID to message list */
 		List<Message<?>> partitionMessages = null;
@@ -656,6 +658,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 	@Override
 	public void setWorkUnits(Set<WorkUnit> workload)throws RemoteException {
+		
+         
 		log.info("Get " + workload.size() + " work units from coordinator ");
        // log.debug("this.partitions's size" + this.partitions.size());
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
@@ -672,6 +676,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					//localComputeTask.setPrefetchQuest(prefetchRequests);
 					//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
 					localComputeTask.patternNodeMatchesN.clear();
+					log.debug(localComputeTask.patternNodeMatchesP.size());
 				}
 				localComputeTask.pivotPMatch1.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);

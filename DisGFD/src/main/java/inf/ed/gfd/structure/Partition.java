@@ -56,6 +56,44 @@ public class Partition implements Serializable {
 	public Graph<VertexOString, OrthogonalEdge> getGraph() {
 		return this.graph;
 	}
+	
+	public void addCrossingEdges(String crossingEdges) {
+		try{
+			File crossFile =new File(crossingEdges);
+			LineIterator it = FileUtils.lineIterator(crossFile, "UTF-8");
+			try {
+				while (it.hasNext()) {
+					String line = it.nextLine();
+					String[] tmpt = line.split("\t");
+					CrossingEdge e = new CrossingEdge(Integer.parseInt(tmpt[0]), 
+							Integer.parseInt(tmpt[1]), Integer.parseInt(tmpt[2]));
+					if (!this.graph.contains(e.source)) {
+						VertexOString vo = new VertexOString(e.source, e.sourceAttr, e.sourceLabel);
+						this.graph.addVertex(vo);
+					}
+					if (!this.graph.contains(e.target)) {
+						VertexOString vo = new VertexOString(e.target, e.sourceAttr,e.targetLabel);
+						this.graph.addVertex(vo);
+					}
+					if (!this.graph.contains(e.source, e.target)) {
+						this.graph.addEdge(this.graph.getVertex(e.source), this.graph.getVertex(e.target));
+					}
+					this.graph.getEdge(e.source, e.target).setAttr(e.edgetype);
+					
+				
+				}
+			} finally {
+				LineIterator.closeQuietly(it);
+		}
+		}catch (IOException e) {
+			log.error("load border file failed.");
+			e.printStackTrace();
+		}
+		return;
+	
+			
+		
+	}
 
 	public void addCrossingEdges(Set<CrossingEdge> crossingEdges) {
 		for (CrossingEdge e : crossingEdges) {

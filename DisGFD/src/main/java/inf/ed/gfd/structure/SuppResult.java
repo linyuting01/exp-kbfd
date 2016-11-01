@@ -190,9 +190,11 @@ public class SuppResult extends Result implements Serializable {
 					for(Entry<Integer,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
 						int cId = entry2.getKey();
 					    if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
-					    	this.pivotMatchGfd.get(entry.getKey()).put(entry2.getKey(), entry2.getValue());
+					    	this.pivotMatchGfd.get(pId).put(cId, entry2.getValue());
 					    }
-					    this.pivotMatchGfd.get(pId).get(cId).retainAll(entry2.getValue());
+					    else{
+					    	this.pivotMatchGfd.get(pId).get(cId).retainAll(entry2.getValue());
+					    }
 					    
 					    if(!this.satCId.get(pId).containsKey(cId)){
 							this.satCId.get(pId).put(cId, true);

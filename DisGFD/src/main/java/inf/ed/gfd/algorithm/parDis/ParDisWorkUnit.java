@@ -236,34 +236,36 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	private void checkGfd(WorkUnit w,Partition partition) {
 		// TODO Auto-generated method stub
 		int pId = w.patternId;
-		Int2ObjectMap<Condition> conditions = w.conditions;
-		//log.debug("pattern match size" + patternNodeMatchesP.size());
-		for(Entry<Integer, Condition> entry : conditions.entrySet()){
-			int cId = entry.getKey();
-			Condition c = entry.getValue();
-	
-			if(!satCId1.containsKey(pId)){
-				satCId1.put(pId, new Int2BooleanOpenHashMap());	
-			}
-			if(!satCId1.get(pId).containsKey(cId)){
-				satCId1.get(pId).put(cId, true);
-			}
-			for(Int2IntMap match : patternNodeMatchesP.get(pId)){
-				boolean flag = c.verify(match, partition.getGraph());
-				if(flag){
-					if(!pivotMatchGfd1.containsKey(pId)){
-						pivotMatchGfd1.put(pId, new Int2ObjectOpenHashMap());
-						
-					}
-					if(!pivotMatchGfd1.get(pId).containsKey(cId)){
-						pivotMatchGfd1.get(pId).put(cId, new IntOpenHashSet());
-					}
-					pivotMatchGfd1.get(pId).get(cId).add(match.get(1));
+		if(patternNodeMatchesP.containsKey(pId)){
+			Int2ObjectMap<Condition> conditions = w.conditions;
+			//log.debug("pattern match size" + patternNodeMatchesP.size());
+			for(Entry<Integer, Condition> entry : conditions.entrySet()){
+				int cId = entry.getKey();
+				Condition c = entry.getValue();
+		
+				if(!satCId1.containsKey(pId)){
+					satCId1.put(pId, new Int2BooleanOpenHashMap());	
 				}
-				else{
-					satCId1.get(pId).put(cId, false);
+				if(!satCId1.get(pId).containsKey(cId)){
+					satCId1.get(pId).put(cId, true);
 				}
-				
+				for(Int2IntMap match : patternNodeMatchesP.get(pId)){
+					boolean flag = c.verify(match, partition.getGraph());
+					if(flag){
+						if(!pivotMatchGfd1.containsKey(pId)){
+							pivotMatchGfd1.put(pId, new Int2ObjectOpenHashMap<IntSet>());
+							
+						}
+						if(!pivotMatchGfd1.get(pId).containsKey(cId)){
+							pivotMatchGfd1.get(pId).put(cId, new IntOpenHashSet());
+						}
+						pivotMatchGfd1.get(pId).get(cId).add(match.get(1));
+					}
+					else{
+						satCId1.get(pId).put(cId, false);
+					}
+					
+				}
 			}
 		}
 	}

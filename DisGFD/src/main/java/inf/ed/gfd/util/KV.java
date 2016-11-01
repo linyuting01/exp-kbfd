@@ -6,6 +6,7 @@ public class KV {
 	public static final String COORDINATOR_SERVICE_NAME = "grape-coordinator";
 
 	public static final int ANY = 0;
+	public static final String SANY = "";
 	public static final int ATTR_LIMIT = 3;
 	public static final int ALL_CANDIDATES_LIMIT = 1000;
 	public static final int FREQ_EDGE_LIMIT = 150;
@@ -28,9 +29,9 @@ public class KV {
 	public static final String DATASET_YAGO = "YAGO";
 	public static final String DATASET_DBPEDIA = "DBPEDIA";
 
-	public static final String SETTING_FRAGMENT = "fragmentedG";
-	public static final String SETTING_REPLICATE = "replicatedG";
-	public static final String SETTING_PARDISGFD = "replicatedG";
+	//public static final String SETTING_ = "fragmentedG";
+	//public static final String SETTING_REPLICATE = "replicatedG";
+	public static final String SETTING_PARDISGFD = "PatrDis";
 
 	public static final String CLASS_QUERY = null;
 
@@ -43,8 +44,7 @@ public class KV {
 	public static int RMI_PORT = 1099;
 
 	public static String GRAPH_FILE_PATH = null;
-	public static String QUERY_DIR_PATH = null;
-	public static String OUTPUT_DIR = "";
+
 	public static String RESULT_FILE_PATH = null;
 
 	public static String DATASET = "";
@@ -52,6 +52,9 @@ public class KV {
 	public static int ISOMORPHISM_THREAD_LIMIT = Integer.MAX_VALUE;
 	public static int CANDIDATES_LIMIT = Integer.MAX_VALUE;
 	public static int NODE_AS_TARGET_EDGE_LIMIT = Integer.MAX_VALUE;
+	
+	public static int PATTERN_NUM = 0;
+	public static double SUPP_THRESHOLD = 0.0;
 
 	/** load constant from properties file */
 	static {
@@ -62,22 +65,17 @@ public class KV {
 			
 			RESULT_FILE_PATH = Config.getInstance().getStringProperty("RESULT_FILE_PATH");
 
-			QUERY_DIR_PATH = Config.getInstance().getStringProperty("QUERY_DIR_PATH");
+            Params.var_K = Config.getInstance().getIntProperty("PATTERN_NUM");
+			
+			Params.VAR_SUPP = Config.getInstance().getDoubleProperty("SUPP_THRESHOLD");
 
-			OUTPUT_DIR = Config.getInstance().getStringProperty("OUTPUT_DIR");
+			
 
 			ISOMORPHISM_THREAD_LIMIT = Config.getInstance().getIntProperty(
 					"ISOMORPHISM_THREAD_LIMIT");
 			ISOMORPHISM_THREAD_LIMIT = (ISOMORPHISM_THREAD_LIMIT == 0 ? Integer.MAX_VALUE
 					: ISOMORPHISM_THREAD_LIMIT);
 
-			CANDIDATES_LIMIT = Config.getInstance().getIntProperty("CANDIDATES_LIMIT");
-			CANDIDATES_LIMIT = (CANDIDATES_LIMIT == 0 ? Integer.MAX_VALUE : CANDIDATES_LIMIT);
-
-			NODE_AS_TARGET_EDGE_LIMIT = Config.getInstance().getIntProperty(
-					"NODE_AS_TARGET_EDGE_LIMIT");
-			NODE_AS_TARGET_EDGE_LIMIT = (NODE_AS_TARGET_EDGE_LIMIT == 0 ? Integer.MAX_VALUE
-					: NODE_AS_TARGET_EDGE_LIMIT);
 
 			DATASET = Config.getInstance().determineDataset();
 

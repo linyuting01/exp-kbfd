@@ -129,6 +129,10 @@ public class EdgePattern {
 	     tVertex = KB.getVertex(tID);
 	     int fLabel = fVertex.getAttr();
 	     int tLabel = tVertex.getAttr();
+	     String fval = fVertex.getValue();
+	     //log.debug(fval);
+	     String tval = tVertex.getValue();
+	    // log.debug(tval);
 	     
 	     int[] eLabel = edge.getAttr();
 	     int elNum = edge.attrCount;
@@ -170,13 +174,13 @@ public class EdgePattern {
 	           if(!literDom.get(pId).containsKey(1)){
 	        	   literDom.get(pId).put(1, new HashSet<String>());
 	           }
-	           literDom.get(pId).get(1).add(fVertex.getValue());
+	           literDom.get(pId).get(1).add(fval);
 	           if(!literDom.get(pId).containsKey(1)){
 	        	   literDom.get(pId).put(1, new HashSet<String>());
 	           }
-	           literDom.get(pId).get(1).add(tVertex.getValue());
+	           literDom.get(pId).get(1).add(tval);
 	           
-	           if(fVertex.getValue().equals(tVertex.getValue())){
+	           if(fval.equals(tval)){
 	        	   if(!varDom.containsKey(pId)){
 	 	        	  varDom.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 	 	           }

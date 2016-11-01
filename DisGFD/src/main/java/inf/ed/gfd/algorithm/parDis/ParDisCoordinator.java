@@ -260,7 +260,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		log.debug("PARAM_CONFIG_FILE = " + Params.CONFIG_FILENAME);
 		log.debug("PARAM_N = " + Params.N_PROCESSORS);
 		log.debug("PARAM_RUN_MODE = " + Params.RUN_MODE);
-		log.debug("Processing FRAGMENTED graph = " + KV.DATASET);
+		log.debug("Processing graph = " + KV.DATASET);
+	
 		System.setSecurityManager(new SecurityManager());
 		ParDisCoordinator coordinator;
 		Stat.getInstance().setting = KV.SETTING_PARDISGFD;
@@ -422,10 +423,16 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	public void finishLocalCompute() throws RemoteException {
 		//process disConnected patterns
+		Stat.getInstance().findGfdsTime =  (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
+		long disStartTime = System.currentTimeMillis();
 		distree.disConnectedGFD(extendPatterns,gfdTree);
 		disConnectedGfds = distree.disConnectedGfds;
+		Stat.getInstance().findDisConnectedGfdsTime = (System.currentTimeMillis() - disStartTime) * 1.0 / 1000;
 		//output final results;
+		Stat.getInstance().totalTime = (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
 		getResult();
+		
+		
 		this.shutdown();
 	}
 
@@ -547,7 +554,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				assignWorkunitsToWorkers();
 			}
 			else{
-				if(finalResult.checkGfd){
+				if(finalResult.checkGfd ){
 					verifyGfdAndGenerateWorkUnits(finalResult);
 				}
 				//patternCheck
@@ -560,6 +567,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					generateWorkUnitsForPatternCheck(finalResult);
 					assignWorkunitsToWorkers();
 						
+				}
+				else{
+					finishLocalCompute();
 				}
 			}
 		}
@@ -582,6 +592,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			//	log.debug("edgePattern size" +edgePattern.size());
 			}		
 		}
+		
 		
 		gfdTree.extendRoot(edgePattern, dfs2Id,finalResult);
 		
@@ -655,20 +666,19 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				if(!t.negCheck){
 					//is a minimum gfd; check negative, update liter and var dom;
 					if(supp >= Params.VAR_SUPP){
+						t.extend = true;
 						log.debug("supp: " + supp);//
 						if(finalResult.satCId.get(pId).get(cId)){
 							addConenectedGfd(g,t);
 						}
 						else{
 							//log.debug(t.children.size());
+							if(t.literNum < Params.VAR_LITERNUM){
 								g.ltree.extendNode(t);
+						}
 							
 						}
-					}else{
-						t.extend = false;
-						//update literal dom and var dom
-						//g.updategfdNodeDom(t);
-					}		
+					}
 				}
 			}
 		}
@@ -691,7 +701,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						flagExtend = true;
 						Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 						for(LiterNode tc : t.children){
-							conditions.put(t.cId, t.dependency);
+							conditions.put(tc.cId, tc.dependency);
 						}
 						WorkUnit w = new WorkUnit(g.pId,conditions,true);
 						workunits.add(w);
@@ -772,7 +782,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							WorkUnit w = new WorkUnit(pair,pairId);
 							workunits.add(w);
 							
-						}
+						}                   
 					}
 					
 				}
@@ -831,6 +841,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		           // extendPatterns.clear();
 		
 					boolean flagExtend = false;
+
 					
 					log.debug("begin to verify pattern support");
 					for(int pId :finalResult.pivotMatchP.keySet()){
@@ -842,6 +853,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							negGfds.add(gfd);
 						}
 						if(supp >= Params.VAR_SUPP){
+							g.extend = true;
 							flagExtend = true;
 							g.literDom = finalResult.literDom.get(pId);
 							g.varDom = finalResult.varDom.get(pId);
@@ -850,16 +862,18 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							SimP simp = new SimP(pId,supp,g.nodeNum);
 							extendPatterns.add(simp);
 							/////////////////
+							g.ltree.extendNode(g.ltree.getRoot());
 							
-							Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
-							for(LiterNode tc : g.ltree.getRoot().children){
-								conditions.put(tc.cId, tc.dependency);
+								Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
+								for(LiterNode tc : g.ltree.getRoot().children){
+									conditions.put(tc.cId, tc.dependency);
+								}
+								WorkUnit w = new WorkUnit(g.pId,conditions,true);
+								workunits.add(w);
 							}
-							WorkUnit w = new WorkUnit(g.pId,conditions,true);
-							workunits.add(w);
 							
 						}
-					}
+					
 					//log.debug("flagExtend" + flagExtend);
 				
 					if(!flagExtend){
@@ -871,6 +885,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	
 	private void assignWorkunitsToWorkers() throws RemoteException {
 
+		Stat.getInstance().sc2wcommunicationData += RamUsageEstimator.sizeOf(workunits);
+        Stat.getInstance().totalWorkUnit += workunits.size();
 		log.debug("begin assign work units to workers.");
 		log.debug("workload size" + workunits.size());
 
@@ -951,7 +967,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	private void getResult(){
 		
-	    String filename = KV.OUTPUT_DIR ;
+	    String filename = KV.RESULT_FILE_PATH ;
 	
 		//public IntSet negGfdP = new IntOpenHashSet();
 		//public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
@@ -960,7 +976,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(filename+".neg");
+			File file1 = new File(filename+".neg");
+			writer = new PrintWriter(file1);
 			for(GFD2 gfd : negGfds){
 				log.debug(negGfds.size());
 				writer.println(gfd);
@@ -972,7 +989,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 			
 		try{
-			writer = new PrintWriter(filename+".gfds");
+			File file1 = new File(filename+".gfds");
+			writer = new PrintWriter(file1);
 			log.debug(connectedGfds.size());
 			for(GFD2 gfd : connectedGfds){
 				writer.println(gfd);
@@ -983,10 +1001,22 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			e.printStackTrace();
 		}
 		try{
-			writer = new PrintWriter(filename+".disConnected");
+			File file1 = new File(filename+".disconnected");
+			writer = new PrintWriter(file1);
 			for(GFD2 gfd : disConnectedGfds){
 				writer.println(gfd);
 			}
+			writer.flush();
+			writer.close();
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		try{
+			File file1 = new File(filename+".info");
+			writer = new PrintWriter(file1);
+			
+		    writer.println(Stat.getInstance().getInfo());
+			
 			writer.flush();
 			writer.close();
 		}catch (FileNotFoundException e) {

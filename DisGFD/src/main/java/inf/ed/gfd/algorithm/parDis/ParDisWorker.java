@@ -218,12 +218,13 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void addPartitionID(int partitionID) throws RemoteException {
 		String filename = KV.GRAPH_FILE_PATH + ".p" + partitionID;
-		String crossingEdges =  KV.GRAPH_FILE_PATH + ".cross.fulfill";
+		String crossingEdges =  KV.GRAPH_FILE_PATH + ".cross.fulfil";
 		Partition partition = new Partition(partitionID);
 		partition.loadPartitionDataFromEVFile(filename.trim());
 	
 		Params.GRAPHNODENUM = partition.getGraph().vertexSize();
 		partition.addCrossingEdges(crossingEdges.trim());
+		
 		log.debug("nodeNUm"+Params.GRAPHNODENUM);
 		//partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
 		this.partitions.put(partitionID, partition);

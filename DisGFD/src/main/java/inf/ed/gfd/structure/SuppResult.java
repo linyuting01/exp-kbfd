@@ -135,7 +135,7 @@ public class SuppResult extends Result implements Serializable {
 			this.isFirst = pr.isFirst;
 			//log.debug("suppresult node num" + this.nodeNum);
 			//log.debug(this.extendPattern);
-			if(this.isFirst){
+			if(this.isFirst == true){
 				this.edgeCands.addAll(pr.edgeCands);
 			}
 			if(this.isIsoCheck == true){

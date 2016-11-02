@@ -534,7 +534,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			
 		}
 		gfdTree.dfs2Ids = dfs2Id;
-		log.debug("id2Dfs size" +id2Dfs.size());
+		log.debug("id2Dfs size" +id2Dfs.size() + " " + i);
 		WorkUnit w = new WorkUnit(id2Dfs);
 		workunits.add(w);	
 	}

@@ -75,7 +75,7 @@ public class Partition implements Serializable {
 							this.graph.addVertex(vo);
 						}
 						if (!this.graph.contains(e.source, e.target)) {
-							log.debug("add crossing edges");
+							//log.debug("add crossing edges");
 							this.graph.addEdge(this.graph.getVertex(e.source), this.graph.getVertex(e.target));
 						}
 						this.graph.getEdge(e.source, e.target).setAttr(e.edgetype);

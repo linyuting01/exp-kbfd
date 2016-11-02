@@ -147,9 +147,9 @@ public class SuppResult extends Result implements Serializable {
 			if(this.extendPattern == true){
 				for(Entry<Integer, IntSet> entry: pr.pivotMatchP.entrySet()){
 					if(!this.pivotMatchP.containsKey(entry.getKey())){
-						this.pivotMatchP.put(entry.getKey(), entry.getValue());
+						this.pivotMatchP.put(entry.getKey(), new IntOpenHashSet());
 					}
-					this.pivotMatchP.get(entry.getKey()).retainAll(entry.getValue());
+					this.pivotMatchP.get(entry.getKey()).addAll(entry.getValue());
 					
 					
 					
@@ -190,10 +190,10 @@ public class SuppResult extends Result implements Serializable {
 					for(Entry<Integer,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
 						int cId = entry2.getKey();
 					    if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
-					    	this.pivotMatchGfd.get(pId).put(cId, entry2.getValue());
+					    	this.pivotMatchGfd.get(pId).put(cId, new IntOpenHashSet());
 					    }
 					    else{
-					    	this.pivotMatchGfd.get(pId).get(cId).retainAll(entry2.getValue());
+					    	this.pivotMatchGfd.get(pId).get(cId).addAll(entry2.getValue());
 					    }
 					    
 					    if(!this.satCId.get(pId).containsKey(cId)){

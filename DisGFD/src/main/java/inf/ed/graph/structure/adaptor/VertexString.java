@@ -63,5 +63,9 @@ public class VertexString implements Vertex, Serializable {
 	public String toString() {
 		return "VertexStringL [ID=" + ID + ", attr=" + attr + "]";
 	}
+	
+	public String tofile(){
+		return "v\t"+ ID+"\t"+attr+"\n";
+	}
 
 }

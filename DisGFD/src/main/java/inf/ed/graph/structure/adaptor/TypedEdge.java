@@ -64,5 +64,8 @@ public class TypedEdge implements Edge, Serializable {
 		return "dEdge [f=" + from.getID() + ", t=" + to.getID() + ", attr=" + getAttrString()
 				+ " ]";
 	}
+	public String tofile(){
+		return "e\t"+from.getID() + "\t"+ to.getID() +  "\t"  + getAttrString() +"\n";
+	}
 
 }

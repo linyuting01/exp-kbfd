@@ -202,5 +202,45 @@ public class GFD2 implements Serializable {
 		}
 	}
 	
+	public void displayConnected() {
+		System.out.println("The GFD has the following structure: ");
+		System.out.println(this.getPattern().vertexSize() + " vertices ");
+		this.pattern.display(100);
+		this.condition.toString();	
+	}
+	
+	public void displayDisConnected() {
+		System.out.println("The GFD has the following structure: ");
+		for(Graph<VertexString, TypedEdge> pattern : this.patterns){
+			pattern.display(100);
+		}
+		this.condition.toString();	
+	}
+	
+	public String tofileC(){
+		StringBuffer s = new StringBuffer();
+		s.append("%ccNum\n1\n");
+		s.append(this.pattern.toString());
+		s.append(this.condition.toString());
+		return s.toString();
+		
+	}
+	public String tofileDC(){
+		StringBuffer s = new StringBuffer();
+		s.append("%ccNum\n");
+		s.append(this.patterns.size());
+		s.append("\n");
+		int i = 1;
+		for(Graph<VertexString, TypedEdge> pattern : this.patterns){
+			s.append("%p"+i+"\n");
+			s.append(pattern.toString());
+			//s.append("\n");
+		}
+		s.append(this.condition.toString());	
+		return s.toString();
+	}
+
+
+	
 	
 }

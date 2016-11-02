@@ -62,10 +62,10 @@ public class GfdNode implements Comparable<GfdNode> {
 	public boolean isConnected;
 	//public boolean isNegative;
 	public WorkUnit w = new WorkUnit();
-	public double supp;
+	public int supp;
 
 	public int nodeNum = 0;
-	public boolean extend = false;
+	public boolean extend = true;
 	
 	public Pair<Integer,Integer> addNode;
 	

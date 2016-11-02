@@ -568,7 +568,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					assignWorkunitsToWorkers();
 						
 				}
-				else{
+				if(!finalResult.checkGfd && !finalResult.extendPattern && !finalResult.isIsoCheck ){
 					finishLocalCompute();
 				}
 			}
@@ -582,7 +582,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		log.debug("begin compute support of edge pattern and extend condition y");
 		for(int s :finalResult.pivotMatchP.keySet()){	
 			//log.debug("node num" +finalResult.nodeNum);
-			double supp = ((double) finalResult.pivotMatchP.get(s).size())/finalResult.nodeNum;
+			int supp = finalResult.pivotMatchP.get(s).size();
+			log.debug("supp od rdgePattern"+ supp);
 			if(supp >= Params.VAR_SUPP){
 				//log.debug("supp value " + supp);
 				/////////////////////////////////
@@ -596,6 +597,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		
 		gfdTree.extendRoot(edgePattern, dfs2Id,finalResult);
 		
+		log.debug("edgePattern size" + edgePattern.size());
 		
 		log.debug("begin to extend dependencied empty->y and create "
 				+ "workunit for edge pattern with empty -> y ");
@@ -649,7 +651,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				GfdNode g = gfdTree.patterns_Map.get(pId);
 				LiterNode t = g.ltree.condition_Map.get(cId);
 				
-				double supp = ((double) entry2.getValue().size())/finalResult.nodeNum;
+				int supp =  entry2.getValue().size();
 				t.supp = supp;
 				t.pivotMatch = entry2.getValue();
 				//log.debug("supp value " + supp);//
@@ -679,6 +681,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							
 						}
 					}
+					
 				}
 			}
 		}
@@ -691,23 +694,25 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		boolean flagExtend = false;
 		//log.debug(flagExtend);
 		for(int pId: finalResult.pivotMatchGfd.keySet()){
+			GfdNode g = gfdTree.patterns_Map.get(pId);
+			Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 			for(int cId: finalResult.pivotMatchGfd.get(pId).keySet()){
-				GfdNode g = gfdTree.patterns_Map.get(pId);
+				
 				LiterNode t = g.ltree.condition_Map.get(cId);
 				//log.debug(t.children.size());
 				if(t.children!=null && t.extend ){
 					if(t.children.size()!= 0){
 						//log.debug("t chidrensize" + t.children.size());
 						flagExtend = true;
-						Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
 						for(LiterNode tc : t.children){
 							conditions.put(tc.cId, tc.dependency);
 						}
-						WorkUnit w = new WorkUnit(g.pId,conditions,true);
-						workunits.add(w);
+					
 					}			
 				}
 			}
+			WorkUnit w = new WorkUnit(g.pId,conditions,true);
+			workunits.add(w);
     	}
 		if(flagExtend){
 			assignWorkunitsToWorkers();
@@ -762,6 +767,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 		
 		if(cluster.isEmpty()){
+			
 			generateWorkUnitsForPatternCheck(finalResult);
 			assignWorkunitsToWorkers();
 		}
@@ -804,7 +810,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			GfdNode g = gfdTree.patterns_Map.get(pId);
 			for(GfdNode t:g.children){
 				if(t.extend){
-					gfdTree.extendGeneralNode(edgePattern, t);
+					//gfdTree.extendGeneralNode(edgePattern, t);
 			        DFS dfs = t.edgePattern.findDFS();
 					int id = dfs2Id.get(dfs);
 					Pair<Integer,Pair<Integer,Integer>> pair = new 
@@ -846,8 +852,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					log.debug("begin to verify pattern support");
 					for(int pId :finalResult.pivotMatchP.keySet()){
 						GfdNode g = gfdTree.patterns_Map.get(pId);
-					    double supp = ((double) finalResult.pivotMatchP.get(pId).size())/finalResult.nodeNum;
+					    int supp = finalResult.pivotMatchP.get(pId).size();
 					    g.supp = supp;
+					    log.debug("patterns support" + g.supp);
 					    if(supp == 0){
                             GFD2 gfd = new GFD2(g.pattern,null);
 							negGfds.add(gfd);
@@ -980,7 +987,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			writer = new PrintWriter(file1);
 			for(GFD2 gfd : negGfds){
 				log.debug(negGfds.size());
-				writer.println(gfd);
+				writer.println(gfd.tofileC());
 			}
 			writer.flush();
 			writer.close();
@@ -993,7 +1000,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			writer = new PrintWriter(file1);
 			log.debug(connectedGfds.size());
 			for(GFD2 gfd : connectedGfds){
-				writer.println(gfd);
+				writer.println(gfd.tofileC());
 			}
 			writer.flush();
 			writer.close();
@@ -1004,7 +1011,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			File file1 = new File(filename+".disconnected");
 			writer = new PrintWriter(file1);
 			for(GFD2 gfd : disConnectedGfds){
-				writer.println(gfd);
+				writer.println(gfd.tofileDC());
 			}
 			writer.flush();
 			writer.close();

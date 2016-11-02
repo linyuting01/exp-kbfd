@@ -213,17 +213,19 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		for(Pair<Integer, Pair<Integer,Integer>> edges :w.edgeIds.values()){
 			   int id = edges.x;
 				if(!transFlag.containsKey(id)){
-					for(Pair<Integer,Integer> p : edgePatternNodeMatch1.get(id)){
-						 String val1 = partition.getGraph().allVertices().get(p.x).getValue();
-						 String val2 = partition.getGraph().allVertices().get(p.y).getValue();
-						 VertexOString f1 = new VertexOString(p.x,val1);
-						 VertexOString t1 = new VertexOString(p.y,val2);
-						 
-				         if(!gfdMsg.transferingEdgeMatch.containsKey(id)){
-				        	 gfdMsg.transferingEdgeMatch.put(id, new ArrayList<Pair<VertexOString,VertexOString>>());
-				         }
-				         gfdMsg.transferingEdgeMatch.get(id).add(new Pair<VertexOString,VertexOString>(f1,t1));
-					     gfdMsg.partitionId = partition.getPartitionID(); 
+					if(edgePatternNodeMatch1.containsKey(id)){
+						for(Pair<Integer,Integer> p : edgePatternNodeMatch1.get(id)){
+							 String val1 = partition.getGraph().allVertices().get(p.x).getValue();
+							 String val2 = partition.getGraph().allVertices().get(p.y).getValue();
+							 VertexOString f1 = new VertexOString(p.x,val1);
+							 VertexOString t1 = new VertexOString(p.y,val2);
+							 
+					         if(!gfdMsg.transferingEdgeMatch.containsKey(id)){
+					        	 gfdMsg.transferingEdgeMatch.put(id, new ArrayList<Pair<VertexOString,VertexOString>>());
+					         }
+					         gfdMsg.transferingEdgeMatch.get(id).add(new Pair<VertexOString,VertexOString>(f1,t1));
+						     gfdMsg.partitionId = partition.getPartitionID(); 
+						}
 					}
 				}
 			}
@@ -391,6 +393,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			EdgePattern eP = new EdgePattern();
 			
 			Set<DFS> edgePattern = eP.edges(partition.getGraph());
+			log.debug("local edgePattern size" + edgePattern.size());
 					//eP.edgePattern(partition.getGraph(), pivotPMatch,
 					//edgePatternNodeMatch,literDom,varDom );
 			//log.debug(edgePattern.size());
@@ -471,19 +474,21 @@ private  void IncrePattern(Partition partition, Int2ObjectMap<List<Pair<Integer,
 private void IncPattern(WorkUnit w, Partition partition, Int2ObjectMap<List<Pair<Integer, Integer>>> edgePatternNodeMatch12){
 	
 	int ppId = w.oriPatternId;
-	List<Int2IntMap> pmatches = patternNodeMatchesP.get(ppId);
-	
-	//for each match of previous pattern ppId
-	for(Int2IntMap match : pmatches){
-		//for each edge wait to added into ppId
-	    for(Entry<Integer,Pair<Integer,Pair<Integer,Integer>>> entry : w.edgeIds.entrySet()){
-	    	int pId = entry.getKey();
-	    	
-	    		int edgeId = entry.getValue().x;
-	    		Pair<Integer,Integer> pair = entry.getValue().y;
-	    		IncPatterMatchEdge(match,ppId,pId,edgeId, pair,partition,edgePatternNodeMatch12);
-	    	}
-	    }
+	if(patternNodeMatchesP.containsKey(ppId)){
+		List<Int2IntMap> pmatches = patternNodeMatchesP.get(ppId);
+		
+		//for each match of previous pattern ppId
+		for(Int2IntMap match : pmatches){
+			//for each edge wait to added into ppId
+		    for(Entry<Integer,Pair<Integer,Pair<Integer,Integer>>> entry : w.edgeIds.entrySet()){
+		    	int pId = entry.getKey();
+		    	
+		    		int edgeId = entry.getValue().x;
+		    		Pair<Integer,Integer> pair = entry.getValue().y;
+		    		IncPatterMatchEdge(match,ppId,pId,edgeId, pair,partition,edgePatternNodeMatch12);
+		    	}
+		    }
+		}
 		
 	}
 

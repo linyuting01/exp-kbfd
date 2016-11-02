@@ -33,7 +33,7 @@ public class LiterNode implements Serializable {
 	public LiterNode parent; 
 	public List<LiterNode>  children;
 	
-	public double supp = 0.0;
+	public int supp = 0;
 	public boolean isSat = false;
 	public IntSet pivotMatch;
 	public boolean extend = false;

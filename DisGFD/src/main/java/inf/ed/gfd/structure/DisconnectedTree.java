@@ -91,7 +91,7 @@ public class DisconnectedTree {
 							break;
 						}
 						if(filter == 0){
-							double supp2 = extendPatterns.get(index-begin).supp;
+							int supp2 = extendPatterns.get(index-begin).supp;
 							if(t.supp* supp2 < Params.VAR_SUPP){
 								t.flag = index;
 								this.flag = index;
@@ -289,7 +289,7 @@ public class DisconnectedTree {
 					a.addAll(tmpt1.get(s).get(fId));
 					b.addAll(tmpt2.get(s).get(tId));
 				}
-				double supp = (double)(a.size()*b.size())/(nodeNum*nodeNum);
+				int supp = a.size()*b.size();
 				if(supp >= Params.VAR_SUPP){
 					
 					if(t.allVarCands == null){

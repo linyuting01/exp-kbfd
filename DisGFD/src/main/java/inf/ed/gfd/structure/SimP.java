@@ -13,14 +13,14 @@ public class SimP implements Comparable<SimP>, Serializable {
 	private static final long serialVersionUID = 1L;
 	 
 	int patternId;
-	double supp;
+	int supp;
 	int nodeNum;
 
 	public SimP() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public SimP(int pId, double supp2, int nodeNum2) {
+	public SimP(int pId, int supp2, int nodeNum2) {
 		// TODO Auto-generated constructor stub
 		this.patternId = pId;
 		this.supp = supp2;

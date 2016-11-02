@@ -78,14 +78,14 @@ public class GfdTree {
 			 g.varDom = r.varDom.get(g.pId);
 			 g.extend = true;
 		 }
-			 for(GfdNode t : this.root.children){
+			// for(GfdNode t : this.root.children){
 				// log.debug("extenf general t" + t.edgePattern.toString());
-				 extendRootChild(t,edgePattern);
+				// extendRootChild(t,edgePattern);
 				 /*
 				 for(GfdNode x :t.children){
 					 log.debug(x.edgePattern.toString());
 				 }*/
-		  }
+		 // }
 		 
 	 }
 	

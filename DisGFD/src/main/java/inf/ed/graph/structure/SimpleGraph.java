@@ -341,6 +341,41 @@ public class SimpleGraph<V extends Vertex, E extends Edge> implements Graph<V, E
 			}
 		}
 	}
+	
+	public void display() {
+		StringBuffer s = new StringBuffer();
+		s.append("The graph has the following structure: ");
+		s.append(graph.vertexSet().size() + " vertices ");
+		for (V v : graph.vertexSet()) {
+				s.append(v.toString());
+			}
+		
+		s.append(graph.edgeSet().size() + " edges ");
+		for (E e : graph.edgeSet()) {
+	
+				s.append(e.toString());
+			}
+		}
+	@Override
+	public String toString(){
+		StringBuffer s = new StringBuffer();
+		//s.append("v\n");
+		for (V v : graph.vertexSet()) {
+			s.append(v.toString());
+		}
+		//s.append("e\n");
+		s.append(graph.edgeSet().size() + " edges ");
+		for (E e : graph.edgeSet()) {
+	
+				s.append(e.toString());
+			}
+		return s.toString();
+		}
+		
+	
+	
+	
+	
 
 	public int getRadius(V center) {
 		int max = 0;

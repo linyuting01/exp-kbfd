@@ -96,7 +96,7 @@ public class Condition implements Serializable, Cloneable {
 		 cond2.XEqualsVariable.get(1).add(4);
 		 String conds1 = cond.toString();
 		 String conds2 = cond2.toString();
-		 log.debug(conds1 + "\t"+conds2);
+		 log.debug(conds1);
 		 
 		
 	}
@@ -257,63 +257,73 @@ public class Condition implements Serializable, Cloneable {
 	    @Override
 	    
 	    public String toString(){
-	      List<String> ts = new ArrayList<String>();
-	      transferIString(this.XEqualsLiteral,ts,0);
-	      transferIString(this.XEqualsVariable,ts,1);
+	      StringBuffer sb = new StringBuffer();
+	      sb.append("%x\n");
+	      transferIStringLit(this.XEqualsLiteral,sb);
+	      transferIStringVar(this.XEqualsVariable,sb);
+	      sb.append("%y\n");
 	      if(this.isLiteral){
-	    	  transferIString(this.YEqualsLiteral,ts,true);
+	    	  transferIString(this.YEqualsLiteral,sb,true);
 	      }
 	      else{
-	    	  transferIString(this.YEqualsVariable,ts,false);
+	    	  transferIString(this.YEqualsVariable,sb,false);
 	      }
-	      Collections.sort(ts);
-	      StringBuffer sb = new StringBuffer();
-	      for(String s :ts)
-	      {
-	        sb.append(s);
-	        sb.append(";");
-	      }
+	     // Collections.sort(ts);
+	     
+	
 	      return sb.toString();
     }
 	 
 
    
    
-      public <T> void transferIString(HashMap<Integer, T> literal, List<String> ts, int i) {
-        StringBuffer sb = new StringBuffer();
-        if(i==0){
-         sb.append("XEQ");
-        // sb.append(";");
+      public <T> void transferIStringVar(HashMap<Integer, IntSet> literal,  StringBuffer sb) {
+       // StringBuffer sb = new StringBuffer();
+        for(Entry<Integer, IntSet> entry : literal.entrySet()){
+        	for(int nodeId2 : entry.getValue()){
+        		 int i1 = entry.getKey();
+                 sb.append(i1);
+                 sb.append("\t");
+              	  sb.append("eq-var");
+                 	sb.append("\t");
+                  sb.append(nodeId2);
+                  sb.append("\n");
+        	}
         }
-        if(i==1){
-          sb.append("XEV");
-         // sb.append(";");
-         }
-        for(Entry<Integer, T> entry : literal.entrySet()){
-           int i1 = entry.getKey();
-           sb.append(i1);
-           sb.append(":");
-           sb.append(entry.getValue());
-           //sb.append(" ");
-        }
-        
-        ts.add(sb.toString());
-	  
+                  
+      
       }
-      public <T> void transferIString( Pair<Integer,T> p, List<String> ts, boolean isLiteral) {
-	      StringBuffer sb = new StringBuffer();
+      public <T> void transferIStringLit(HashMap<Integer, String> literal,  StringBuffer sb) {
+          // StringBuffer sb = new StringBuffer();
+           for(Entry<Integer, String> entry : literal.entrySet()){
+              int i1 = entry.getKey();
+              sb.append(i1);
+              sb.append("\t");
+             
+           	  sb.append("eq-let"); 
+           
+              	sb.append("\t");
+               sb.append(entry.getValue());
+               sb.append("\n");
+               //sb.append("\n");
+              }
+              //sb.append(" ");
+   	  
+         }
+      public <T> void transferIString( Pair<Integer,T> p,  StringBuffer sb, boolean isLiteral) {
+	     // StringBuffer sb = new StringBuffer();
+	      sb.append(p.x);
+	      sb.append("\t");
 	      if(isLiteral == true){
-	        sb.append("YEQ");
-	       // sb.append(";");
+	        sb.append("eq-let");
 	      }
 	      else{
-	        sb.append("YEV");
+	        sb.append("eq-var");
 	       // sb.append(";");
 	      }
-		sb.append(p.x);
-		sb.append(":");
-		sb.append(p.y);
-		ts.add(sb.toString());
+	      sb.append("\t");
+		   sb.append(p.y);
+		//ts.add(sb.toString());
   	  
   }
     

@@ -102,6 +102,26 @@
 			</execution>
 
 			<execution>
+				<id>build-sc-edgePattern</id>
+				<configuration>
+					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifest>
+							<mainClass>inf.ed.gfd.algorithm.sequential.EdgePattern</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<finalName>edgePattern</finalName>
+				</configuration>
+				<phase>package</phase>
+				<goals>
+					<goal>single</goal>
+				</goals>
+			</execution>
+
+			<execution>
 				<id>build-s-ParDis</id>
 				<configuration>
 					<appendAssemblyId>false</appendAssemblyId>

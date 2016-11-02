@@ -14,6 +14,7 @@ import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.OrthogonalEdge;
 import inf.ed.graph.structure.OrthogonalGraph;
 import inf.ed.graph.structure.OrthogonalVertex;
+import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -192,8 +193,83 @@ public class EdgePattern {
 	     }
 	   }
 	 }
+
+	
+public Set<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, Map<DFS,IntSet> pivotPMatch){
+	 
+  OrthogonalVertex fNode, tNode;
+  VertexOString fVertex , tVertex;
+  Set<DFS> dfss = new HashSet<DFS>(); 
+ // get all edge patterns and literals for nodes ;
+  for(OrthogonalEdge edge: KB.getAllEdges()){ 
+    //System.out.print("success");
+    
+    fNode = edge.from();
+    tNode = edge.to();
+    int fID = fNode.getID();
+    int tID = tNode.getID();
+    fVertex = KB.getVertex(fID);
+    tVertex = KB.getVertex(tID);
+    int fLabel = fVertex.getAttr();
+    int tLabel = tVertex.getAttr();
+    String fval = fVertex.getValue();
+    //log.debug(fval);
+    String tval = tVertex.getValue();
+   // log.debug(tval);
+    
+    int[] eLabel = edge.getAttr();
+    int elNum = edge.attrCount;
+    
+    Pair<Integer,Integer> f = new Pair<Integer,Integer>(fLabel,0);
+	 Pair<Integer,Integer> t = new Pair<Integer,Integer>(tLabel,0);
+	 if(fVertex.match(tVertex)){
+		 t.y = 1;
+	 }
+  
+    for(int i = 0; i< elNum; i++){
+   	 
+       DFS code = new DFS( f, t, eLabel[i]);
+      // int pId = dfs2Id.get(code);
+        
+        if(!pivotPMatch.containsKey(code)){
+       	 pivotPMatch.put(code, new IntOpenHashSet());  
+        }
+        pivotPMatch.get(code).add(fID);
+        dfss.add(code);
+      
+   
+    }
+  }
+  return dfss;
 }
-	           
+          
+public static void main(String args[]) {
+	
+	Graph<VertexOString, OrthogonalEdge> KB = new OrthogonalGraph<VertexOString>(VertexOString.class);
+	Map<DFS,IntSet> pivotPMatch  = new HashMap<DFS,IntSet>();
+	
+	KB.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p1", true);
+	
+	
+	
+	EdgePattern eP = new EdgePattern();
+	
+	Set<DFS> edgePattern = eP.edgePattern(KB,pivotPMatch);
+	log.debug(edgePattern.size());
+	for(DFS dfs : edgePattern ){
+		log.debug(dfs.toString() + "\t" +"support" +pivotPMatch.get(dfs).size() );
+	}
+
+	
+	
+	
+	
+	//Set<WorkUnitC2WEp> wsc = new HashSet<WorkUnitC2WEp>();
+	
+}      
+      
+}
+          
 	           
 	           
 	        		   
@@ -382,7 +458,7 @@ public static void IncPattern(WorkUnit w,
 	}
 	
 	
-/*
+
 		
 	public static void main(String args[]) {
 		

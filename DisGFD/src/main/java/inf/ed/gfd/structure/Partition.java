@@ -66,19 +66,19 @@ public class Partition implements Serializable {
 					String line = it.nextLine();
 					String[] tmpt = line.split("\t");
 					CrossingEdge e = new CrossingEdge(Integer.parseInt(tmpt[0]), 
-							Integer.parseInt(tmpt[1]), Integer.parseInt(tmpt[2]));
-					if (!this.graph.contains(e.source)) {
-						VertexOString vo = new VertexOString(e.source, e.sourceAttr, e.sourceLabel);
-						this.graph.addVertex(vo);
+							Integer.parseInt(tmpt[1]), Integer.parseInt(tmpt[2]),Integer.parseInt(tmpt[3]),
+							tmpt[4].trim());
+					if (this.graph.contains(e.source)) {
+						
+						if (!this.graph.contains(e.target)) {
+							VertexOString vo = new VertexOString(e.target, e.sourceAttr,e.targetLabel);
+							this.graph.addVertex(vo);
+						}
+						if (!this.graph.contains(e.source, e.target)) {
+							this.graph.addEdge(this.graph.getVertex(e.source), this.graph.getVertex(e.target));
+						}
+						this.graph.getEdge(e.source, e.target).setAttr(e.edgetype);
 					}
-					if (!this.graph.contains(e.target)) {
-						VertexOString vo = new VertexOString(e.target, e.sourceAttr,e.targetLabel);
-						this.graph.addVertex(vo);
-					}
-					if (!this.graph.contains(e.source, e.target)) {
-						this.graph.addEdge(this.graph.getVertex(e.source), this.graph.getVertex(e.target));
-					}
-					this.graph.getEdge(e.source, e.target).setAttr(e.edgetype);
 					
 				
 				}

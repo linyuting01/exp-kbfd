@@ -24,6 +24,14 @@ public class CrossingEdge implements Serializable {
 		this.edgetype = edgetype;
 		this.target = target;
 	}
+	
+	public CrossingEdge(int source, int edgetype, int target, int attr, String val) {
+		this.source = source;
+		this.edgetype = edgetype;
+		this.target = target;
+		this.targetAttr = attr;
+		this.targetLabel = val;
+	}
 
 	public String toString() {
 		return source + "-" + edgetype + "->" + target;

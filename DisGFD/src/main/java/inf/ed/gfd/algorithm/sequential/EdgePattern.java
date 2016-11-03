@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -256,7 +257,9 @@ public static void main(String args[]) {
 	Map<DFS,IntSet> pivotPMatch  = new HashMap<DFS,IntSet>();
 	Map<DFS,IntSet> pivotPMatchtmpt  = new HashMap<DFS,IntSet>();
 	
-	KB.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago", true);
+	File file = new File("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.v");
+	
+
 	
 	
 	edgePattern.clear();

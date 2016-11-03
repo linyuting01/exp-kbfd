@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
  * @author v1xliu33
  *
  */
-public class GfdNode implements Comparable<GfdNode> {
+public class GfdNode implements Comparable<GfdNode>, Serializable {
 
 	/**
 	 * 

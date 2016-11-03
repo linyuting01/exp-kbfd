@@ -108,12 +108,12 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				}
 				
 					if(w.isIsoCheck){
-						log.debug("begin iso check");
+						log.debug("begin iso checkthe" + round +"round, total" + size +"round");
 						checkIso(w);
 						i =1;
 					}
 					if(w.isPatternCheck){
-						log.debug("begin process gfdMsg" );
+						log.debug("begin process gfdMsg the" + round +"round, total" + size +"round");
 						gfdMsgProcess(w,partition);
 						i=2;
 			

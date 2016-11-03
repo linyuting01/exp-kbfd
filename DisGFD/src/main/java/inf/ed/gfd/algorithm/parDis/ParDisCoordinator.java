@@ -22,6 +22,7 @@ import inf.ed.grape.interfaces.Result;
 import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
+import inf.ed.graph.structure.adaptor.VertexOString;
 import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -153,6 +154,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	Set<String> dom  = new HashSet<String>();
 
 	static Logger log = LogManager.getLogger(ParDisCoordinator.class);
+	
+	
+	
+	//for literal extention;
+	
+	public  Int2ObjectMap<Int2ObjectMap<String>> literCands = new Int2ObjectOpenHashMap<Int2ObjectMap<String>>();
+	//var cand only for disconnected
+	
+	
 
 	/**
 	 * Instantiates a new coordinator.
@@ -445,12 +455,43 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 	}
 
+	public void loadLiteralInfo(){
+	    String filename = KV.GRAPH_FILE_PATH + ".liters";
+		try{
+			File literFile =new File(filename);
+			LineIterator it = FileUtils.lineIterator(literFile, "UTF-8");
+			try {
+				while (it.hasNext()) {
+					String line = it.nextLine();
+					String[] tmpt = line.split("\t");
+					int pId = Integer.parseInt(tmpt[0].trim());
+					int attrId = Integer.parseInt(tmpt[1].trim());
+					if(!literCands.containsKey(pId)){
+						literCands.put(pId, new Int2ObjectOpenHashMap<String>());
+					}
+					literCands.get(pId).put(attrId, tmpt[2].trim());
+					
+				
+				}
+			} finally {
+				LineIterator.closeQuietly(it);
+		}
+		}catch (IOException e) {
+			log.error("load liter file failed.");
+			e.printStackTrace();
+		}
+		return;
+	
+	}
 	public void preProcess() throws RemoteException {
+		
+		
 
 		wholeStartTime = System.currentTimeMillis();
 		// read border nodes;
 
 		// distributed partition;
+	
 		assignDistributedPartitions();
 		sendPartitionInfo();
 
@@ -462,6 +503,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		this.workerAcknowledgementSet.clear();
 		this.workerAcknowledgementSet.addAll(this.activeWorkerSet);
 		nextLocalCompute();
+		loadLiteralInfo();
 		//process();
 
 		//sendGFDs2Workers(queries);

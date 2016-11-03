@@ -5,16 +5,19 @@ import inf.ed.graph.structure.OrthogonalEdge;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
-
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,12 +31,19 @@ public class Condition implements Serializable, Cloneable {
 
 	static Logger log = LogManager.getLogger(Condition.class);
 
-	public HashMap<Integer, String> XEqualsLiteral;
-	public HashMap<Integer, IntSet> XEqualsVariable;
+	//public HashMap<Integer, String> XEqualsLiteral;
+	//public HashMap<Integer, IntSet> XEqualsVariable;
     
+	public Int2ObjectMap<Pair<Integer,String>> XEqualsLiteral;
+	public List<Pair<Integer,Integer>> XEVvId;
+	public List<Pair<Integer,Integer>> XEVattrId  = new ArrayList<Pair<Integer,Integer>>();
 	
-	public Pair<Integer, String> YEqualsLiteral;
-	public Pair<Integer,Integer> YEqualsVariable;
+	public Pair<Integer,Pair<Integer, String>> YEqualsLiteral;
+	
+	public Pair<Integer,Integer> YEVvId = new Pair<Integer,Integer>();
+	public Pair<Integer,Integer> YEVattrId  = new Pair<Integer,Integer>();
+
+
 	
 
 	//public HashMap<Integer, S tring> YEqualsLiteral;
@@ -45,23 +55,26 @@ public class Condition implements Serializable, Cloneable {
 
 	public Condition() {
 
-		XEqualsLiteral = new HashMap<Integer, String>();
-		XEqualsVariable = new HashMap<Integer, IntSet>();
+		XEqualsLiteral = new Int2ObjectOpenHashMap<Pair<Integer,String>>() ;
+		XEVvId = new ArrayList<Pair<Integer,Integer>>();
+		XEVattrId  = new ArrayList<Pair<Integer,Integer>>();
+		YEVvId = new Pair<Integer,Integer>();
+		YEVattrId  = new Pair<Integer,Integer>();
 
-		YEqualsLiteral = new Pair<Integer, String>();
-		YEqualsVariable = new Pair<Integer, Integer>();
+		YEqualsLiteral = new  Pair<Integer,Pair<Integer, String>>() ;
 	}
-	public void setYEqualsLiteral(int x, String y){
+	public void setYEqualsLiteral(int x, int attr,String y){
 		this.YEqualsLiteral.x = x;
-		this.YEqualsLiteral.y = y;
+		this.YEqualsLiteral.y = new Pair<Integer,String>(attr,y);
 	}
 	
-	public void setYEqualsVariable(int x, int y){
-		this.YEqualsVariable.x = x;
-		this.YEqualsVariable.y = y;
+	public void setYEqualsVariable(int x, int attrx,int y,int attry){
+		this.YEVvId = new Pair<Integer,Integer>(x,y);;
+		this.YEVattrId =  new Pair<Integer,Integer>(attrx,attry);;
 	}
 	
-	@Override  
+ 
+	/*
     public Object clone() {  
       Condition cond = null;  
         try{  
@@ -78,8 +91,8 @@ public class Condition implements Serializable, Cloneable {
         cond.YEqualsLiteral = new Pair<Integer, String>(this.YEqualsLiteral);
         
         return cond;  
-    } 
-	
+    } */
+	/*
 	 public static void main(String args[]) {  
 		 Condition cond = new Condition();
 		 cond.XEqualsLiteral.put(1,"asd");
@@ -164,8 +177,43 @@ public class Condition implements Serializable, Cloneable {
       return true;
   }    
 	/////////////////////////////////////////////
+	*/
+	public boolean verifyAttrLiter(Graph<VertexOString, OrthogonalEdge> KB,
+			int vertexID, int attr, String value){
+		OrthogonalEdge e1 = KB.getVertex(vertexID).GetFirstOut();
+		for (OrthogonalEdge e = e1; e != null; e = e.GetTLink()) {
+			if(e.getAttr().contains(attr)){
+				VertexOString t = (VertexOString) e.to();
+				if(t.getValue().equals(value)){
+					return true;
+				}
+			}
+		
+		}
+		return false;
+	}
 	
-	
+	public boolean verifyAttrVar(Graph<VertexOString, OrthogonalEdge> KB,
+			int vertexID,int vertexID2, int attr, int attr2){
+		Set<String> a = getValue(KB,vertexID,attr);
+		Set<String> b = getValue(KB,vertexID2,attr2);
+		
+		
+		return false;
+	}
+	public Set<String> getValue(Graph<VertexOString, OrthogonalEdge> KB,
+			int vertexID,int attr){
+		Set<String> a = new HashSet<String>();
+		OrthogonalEdge e1 = KB.getVertex(vertexID).GetFirstOut();
+		for (OrthogonalEdge e = e1; e != null; e = e.GetTLink()) {
+			if(e.getAttr().contains(attr)){
+				VertexOString t = (VertexOString) e.to();
+				a.add(t.getValue());
+			}
+		
+		}
+		return  a;
+	}
 
 	public boolean verify(Int2IntMap match, Graph<VertexOString, OrthogonalEdge> KB) {
 
@@ -173,20 +221,19 @@ public class Condition implements Serializable, Cloneable {
 
       // check for X
       for (int u : XEqualsLiteral.keySet()) {
-          // for literal equation, if not equals then it valid.
+    	  Pair<Integer,String> pair = XEqualsLiteral.get(u);
           int vertexID = match.get(u);
-          // log.debug(vertexID + ":" + KB.getVertex(vertexID).getAttr() +
-          // ", expt = "
-          // + XEqualsLiteral.get(u));
-          if (!KB.getVertex(vertexID).getValue().equals(XEqualsLiteral.get(u))) {
-              return true;
+          boolean flag = verifyAttrLiter(KB,vertexID,pair.x, pair.y);
+          if(!flag){
+        	  return false;
           }
       }
 
-      for (int u : XEqualsVariable.keySet()) {
-          // for variable equation, if not equals then it valid
-          int vertexID1 = match.get(u);
-          for(int value: XEqualsVariable.get(u)){
+      for (Pair<Integer,Integer> vId :XEVvId) {
+          int vertexID1 = match.get(vId.x);
+          int vertexID2 = match.get(vId.y);
+          
+          for(int value: X.g){
 			    int vertexID2 = match.get(value);
           // log.debug(vertexID1 + ":" + KB.getVertex(vertexID1).getAttr() +
           // "|" + +vertexID2 + ":"

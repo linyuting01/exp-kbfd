@@ -1,5 +1,12 @@
 package inf.ed.gfd.structure;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,14 +19,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.util.ColoneUtils;
-import inf.ed.gfd.util.Params;
 import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-public class GfdTree {
+public class GfdTree implements Serializable {
 	
 	static Logger log = LogManager.getLogger(GfdTree.class);
 	
@@ -32,10 +39,13 @@ public class GfdTree {
     
     public Map<DFS,Integer> dfs2Ids;
     
+    public Int2ObjectMap<Int2ObjectMap<String>> literCands ;
+    
     public GfdTree(){
         this.root = new GfdNode();
         this.root.key="";
         this.patterns_Map = new HashMap<Integer, GfdNode>();
+        this.literCands =  new Int2ObjectOpenHashMap<Int2ObjectMap<String>>();
     }
 
     
@@ -1004,6 +1014,32 @@ public class GfdTree {
 
 		*/
    
+   void writeToFile(String filename) {
+		try {
+			FileOutputStream fos = new FileOutputStream(filename, true);
+			BufferedOutputStream bos = new BufferedOutputStream(fos);
+			ObjectOutputStream oos = new ObjectOutputStream(bos);
+			oos.writeObject(this);
+			oos.close();
+		} catch (Exception e) {// Catch exception if any
+			e.printStackTrace();
+		}
+	}
+
+	static GfdTree readFromFile(String filename) {
+		GfdTree t = new GfdTree();
+		try {
+			FileInputStream fis = new FileInputStream(filename);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			ObjectInputStream ois = new ObjectInputStream(bis);
+			t = (GfdTree) ois.readObject();
+			ois.close();
+		} catch (Exception e) {// Catch exception if any
+			e.printStackTrace();
+		}
+		return t;
+	}
+   
 	
 
 	public static void main(String args[]) {  
@@ -1054,6 +1090,15 @@ public class GfdTree {
 				
 		    }
 		}
+		
+
+		System.out.println(gtree.patterns_Map.size());
+
+		String filename = "hello";
+		gtree.writeToFile(filename);
+
+		GfdTree t23 = GfdTree.readFromFile(filename);
+		System.out.println(t23.patterns_Map.size());
 	}
 }
 		

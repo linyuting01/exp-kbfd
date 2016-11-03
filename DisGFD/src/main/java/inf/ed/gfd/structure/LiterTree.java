@@ -3,28 +3,21 @@
  */
 package inf.ed.gfd.structure;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.Params;
-import inf.ed.graph.structure.Graph;
-import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
-import inf.ed.graph.structure.adaptor.TypedEdge;
-import inf.ed.graph.structure.adaptor.VertexString;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -32,7 +25,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
  * @author v1xliu33
  *
  */
-public class LiterTree {
+public class LiterTree implements Serializable {
 
 	/**
 	 * 
@@ -109,14 +102,14 @@ public class LiterTree {
 			//String s, int nodeId){
 		// if there is no nodeId.A = s; 
 
-		HashMap<Integer, String> l = t.dependency.XEqualsLiteral;
-	    HashMap<Integer, IntSet> v = t.dependency.XEqualsVariable;
+		//HashMap<Integer, String> l = t.dependency.XEqualsLiteral;
+	   // HashMap<Integer, IntSet> v = t.dependency.XEqualsVariable;
 	  
 	   
 	    
-		if(l.containsKey(nodeId)){
-			return false;
-		}
+		//if(l.containsKey(nodeId)){
+			//return false;
+		//}
 	
 		// and no nodeId.A = s && nodeId2.A = s -> nodeId.A = nodeId2.A
 		if(!t.getDependency().isLiteral){

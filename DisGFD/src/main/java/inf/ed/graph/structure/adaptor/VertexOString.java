@@ -35,16 +35,13 @@ public class VertexOString extends OrthogonalVertex implements Serializable {
 		String tmpt[] = line.split("\t");
 
 		this.id = Integer.parseInt(tmpt[0].trim());
-		if (tmpt.length == 3) {
+
 			this.attr =  Integer.parseInt(tmpt[1].trim());
 			this.value = tmpt[2].trim();
 		}
-		else{
-			this.attr = KV.ANY;;
-		    this.value = KV.SANY;
-		}
 		
-	}
+		
+	
 
 	public VertexOString(int id, int attr, String value ) {
 		this.id = id;

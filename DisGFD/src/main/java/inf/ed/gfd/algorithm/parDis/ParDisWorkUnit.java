@@ -96,9 +96,11 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		pivotPMatch1.clear();
 		isoResult.clear();
 		int i = -1;
+		int size = workload.size();
+		int round = 1;
 		for( WorkUnit w: workload){
 				if(w.isGfdCheck){
-					
+					log.debug("begin gfd check, the" + round +"round, total" + size +"round" );
 					checkGfd(w,partition);
 					//prepareResult(true);
 					
@@ -106,15 +108,17 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				}
 				
 					if(w.isIsoCheck){
+						log.debug("begin iso check");
 						checkIso(w);
 						i =1;
 					}
 					if(w.isPatternCheck){
-						
+						log.debug("begin process gfdMsg" );
 						gfdMsgProcess(w,partition);
 						i=2;
 			
-				}		
+				}
+					round++;
 			}
 		
 		if(i==2){
@@ -238,20 +242,29 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	private void checkGfd(WorkUnit w,Partition partition) {
 		// TODO Auto-generated method stub
 		int pId = w.patternId;
+		int round =1;
 		if(patternNodeMatchesP.containsKey(pId)){
-			Int2ObjectMap<Condition> conditions = w.conditions;
-			//log.debug("pattern match size" + patternNodeMatchesP.size());
-			for(Entry<Integer, Condition> entry : conditions.entrySet()){
-				int cId = entry.getKey();
-				Condition c = entry.getValue();
-		
-				if(!satCId1.containsKey(pId)){
-					satCId1.put(pId, new Int2BooleanOpenHashMap());	
-				}
-				if(!satCId1.get(pId).containsKey(cId)){
-					satCId1.get(pId).put(cId, true);
-				}
-				for(Int2IntMap match : patternNodeMatchesP.get(pId)){
+			
+			for(Int2IntMap match : patternNodeMatchesP.get(pId)){
+				log.debug("pattern matchsize" + patternNodeMatchesP.get(pId).size() + "now the " +round);
+				round++;
+				Int2ObjectMap<Condition> conditions = w.conditions;
+				int round2 =1;
+				//log.debug("pattern match size" + patternNodeMatchesP.size());
+				for(Entry<Integer, Condition> entry : conditions.entrySet()){
+					log.debug("condition size "+ conditions.size() + "now the"+ round2);
+					round2++;
+					int cId = entry.getKey();
+					Condition c = entry.getValue();
+			
+					if(!satCId1.containsKey(pId)){
+						satCId1.put(pId, new Int2BooleanOpenHashMap());	
+					}
+					if(!satCId1.get(pId).containsKey(cId)){
+						satCId1.get(pId).put(cId, true);
+					}
+					
+				
 					boolean flag = c.verify(match, partition.getGraph());
 					if(flag){
 						if(!pivotMatchGfd1.containsKey(pId)){
@@ -267,9 +280,13 @@ public class ParDisWorkUnit extends LocalComputeTask {
 						satCId1.get(pId).put(cId, false);
 					}
 					
-				}
+			}
 			}
 		}
+			
+			
+			
+		
 	}
 
 	
@@ -432,7 +449,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		literDom1.clear();
 		varDom1.clear();
 		int flag = processWorkUnitAndGfdMsg(partition);
-		//log.debug("flag" + flag);
+		log.debug("flag" + flag);
 		if(flag == 0){
 			prepareResult(0);
 		}
@@ -568,7 +585,7 @@ private void addMatch(Int2IntMap match, int pId, int fId, int tId, int flag, int
 		
 		 String val1 =partition.getGraph().allVertices().get(fId).getValue();
 		 String val2 =partition.getGraph().allVertices().get(tId).getValue();
-		int[] attrs= e.getAttr();
+		IntSet attrs= e.getAttr();
 		String[] val = new String[match.size()];
 		for(int m: attrs){
 			if(m == elabel) {

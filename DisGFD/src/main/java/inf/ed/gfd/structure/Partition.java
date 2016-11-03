@@ -79,6 +79,7 @@ public class Partition implements Serializable {
 							this.graph.addEdge(this.graph.getVertex(e.source), this.graph.getVertex(e.target));
 						}
 						this.graph.getEdge(e.source, e.target).setAttr(e.edgetype);
+						//log.debug(e.sourceAttr + "\t" +e.targetAttr +"\t"+ e.edgetype);
 					}
 					
 				

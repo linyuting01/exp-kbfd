@@ -1,7 +1,9 @@
 package inf.ed.graph.structure;
 
+import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.KV;
 import inf.ed.graph.structure.adaptor.TypedEdge;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.Serializable;
@@ -19,7 +21,7 @@ public class OrthogonalEdge implements Edge, Serializable {
 	private OrthogonalEdge hlink;// head link
 	private OrthogonalEdge tlink;// tail link
 
-	private int[] attrs = { -1, -1, -1 };
+	private IntSet attrs = new IntOpenHashSet();
 	public int attrCount = 0;
 
 	public OrthogonalEdge() {
@@ -86,27 +88,24 @@ public class OrthogonalEdge implements Edge, Serializable {
 
 	public void setAttr(int attr) {
 		// TODO
-		if (this.attrCount < KV.ATTR_LIMIT) {
-			this.attrs[attrCount] = attr;
+		    this.attrs.add(attr);
 			attrCount++;
-		}
+		
 	}
 
-	public int[] getAttr() {
+	public IntSet getAttr() {
 		return this.attrs;
 	}
 
 	public void copyAttr(OrthogonalEdge e) {
-		for (int i = 0; i < e.attrCount; i++) {
-			this.attrs[i] = e.getAttr()[i];
-			attrCount++;
-		}
+		this.attrs = new IntOpenHashSet(e.attrs);
+		this.attrCount = e.attrCount;
 	}
 
 	public String getAttrString() {
 		String s = "[";
-		for (int i = 0; i < attrCount; i++) {
-			s += attrs[i] + ",";
+		for (int i :this.attrs){
+			s = s+ i+",";
 		}
 		return s + "]";
 	}
@@ -116,31 +115,27 @@ public class OrthogonalEdge implements Edge, Serializable {
 			System.err.println("error");
 		} else if (o instanceof TypedEdge) {
 			TypedEdge e = (TypedEdge) o;
-			for (int i = 0; i < attrCount; i++) {
-				if (this.attrs[i] == e.getAttr()[0]) {
-					return true;
-				}
+			IntSet a = Fuc.Intersection(this.attrs, e.getAttr());
+					if(!a.isEmpty()){
+						return true;
+					}
 			}
 			return false;
-		}
-		System.out.println("type error.");
-		return false;
 	}
 
 	public boolean hasPossibleMatch(IntSet labelset) {
 		if (labelset == null) {
 			return true;
 		}
-		for (int i = 0; i < attrCount; i++) {
-			if (labelset.contains(this.attrs[i])) {
-				return true;
-			}
+		IntSet a = Fuc.Intersection(this.attrs, labelset);
+		if(!a.isEmpty()){
+			return true;
 		}
 		return false;
 	}
 
 	public String toString() {
-		return "oEdge [f=" + fromNode.getID() + ", t=" + toNode.getID() + ", attr=" + this.attrs
+		return "oEdge [f=" + fromNode.getID() + ", t=" + toNode.getID() + ", attr=" + this.attrs.toString()
 				+ " ]";
 	}
 

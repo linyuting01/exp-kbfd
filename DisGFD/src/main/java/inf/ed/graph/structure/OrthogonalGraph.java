@@ -495,16 +495,16 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 			if (distance == bound) {
 				for (e = vertex.GetFirstOut(); e != null; e = e.GetTLink()) {
 					if (b.vertices.containsKey(e.to().getID())) {
-						for (int i = 0; i < e.attrCount; i++) {
+						for (int i:e.getAttr()) {
 							b.edges.add(
-									new TransEdge(vertex.getID(), e.getAttr()[i], e.to().getID()));
+									new TransEdge(vertex.getID(), i, e.to().getID()));
 						}
 					}
 				}
 				for (e = vertex.GetFirstIn(); e != null; e = e.GetHLink()) {
 					if (b.vertices.containsKey(e.from().getID())) {
-						for (int i = 0; i < e.attrCount; i++) {
-							b.edges.add(new TransEdge(e.from().getID(), e.getAttr()[i],
+						for (int i:e.getAttr()) {
+							b.edges.add(new TransEdge(e.from().getID(), i,
 									vertex.getID()));
 						}
 					}
@@ -519,8 +519,8 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 					b.vertices.put(tv.getID(), tv.getAttr());
 					visited.put(tv.getID(), distance + 1);
 				}
-				for (int i = 0; i < e.attrCount; i++) {
-					b.edges.add(new TransEdge(vertex.getID(), e.getAttr()[i], tv.getID()));
+				for (int i:e.getAttr()) {
+					b.edges.add(new TransEdge(vertex.getID(),i, tv.getID()));
 				}
 			}
 
@@ -539,8 +539,8 @@ public class OrthogonalGraph<V extends OrthogonalVertex>
 					b.vertices.put(fv.getID(), fv.getAttr());
 					visited.put(fv.getID(), distance + 1);
 				}
-				for (int i = 0; i < e.attrCount; i++) {
-					b.edges.add(new TransEdge(fv.getID(), e.getAttr()[i], vertex.getID()));
+				for (int i:e.getAttr()) {
+					b.edges.add(new TransEdge(fv.getID(), i, vertex.getID()));
 				}
 			}
 

@@ -3,6 +3,8 @@ package inf.ed.graph.structure.adaptor;
 import inf.ed.gfd.util.KV;
 import inf.ed.graph.structure.Edge;
 import inf.ed.graph.structure.Vertex;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.Serializable;
 
@@ -14,7 +16,7 @@ public class TypedEdge implements Edge, Serializable {
 	private static final long serialVersionUID = 1L;
 	Vertex from;
 	Vertex to;
-	private int[] attrs = { -1, -1, -1 };
+	private IntSet attrs = new IntOpenHashSet();
 	public int attrCount = 0;
 
 	public TypedEdge(Object from, Object to) {
@@ -40,23 +42,23 @@ public class TypedEdge implements Edge, Serializable {
 		return to;
 	}
 
-	public int[] getAttr() {
+	public IntSet getAttr() {
 		return this.attrs;
 	}
 
 	public String getAttrString() {
 		String s = "[";
-		for (int i = 0; i < attrCount; i++) {
-			s += attrs[i] + ",";
+		for (int i: attrs) {
+			s += i+ ",";
 		}
 		return s + "]";
 	}
 
 	public void setAttr(int attr) {
-		if (attrCount < KV.ATTR_LIMIT) {
-			this.attrs[attrCount] = attr;
+		 
+			attrs.add(attr);
 			attrCount++;
-		}
+		
 	}
 
 	@Override

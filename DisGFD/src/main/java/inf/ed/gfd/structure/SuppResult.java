@@ -23,6 +23,7 @@ import inf.ed.grape.interfaces.Result;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -41,8 +42,11 @@ public class SuppResult extends Result implements Serializable {
 	public Int2ObjectMap<IntSet> pivotMatchP;
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> pivotMatchGfd;
 	public Int2ObjectMap<Int2BooleanMap> satCId;
-	public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
-	public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
+	//public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
+	//public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
+	
+	
+	public Int2IntMap patternMatchesNum;
 	
 	public Int2ObjectMap<IntSet> isoResult;
 	public Set<DFS> edgeCands;
@@ -55,19 +59,23 @@ public class SuppResult extends Result implements Serializable {
 	public boolean isFirst = false;
 	public boolean isIsoCheck = false;;
 	public boolean checkGfd = false; 
+	public boolean matchsize  = false;
+	//public boolean istest = false;
 	
 
 	public SuppResult(){
 		    this.edgeCands = new HashSet<DFS>();
 			this.pivotMatchP = new Int2ObjectOpenHashMap<IntSet>();
-			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
+			//this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+			//this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
 		
 			this.pivotMatchGfd = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
 			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
-			this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-			this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
+			//this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+			//this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
 			this.isoResult = new Int2ObjectOpenHashMap<IntSet>();
+			this.patternMatchesNum = new Int2IntOpenHashMap();
+			
 		}
 	
 	/*
@@ -133,8 +141,24 @@ public class SuppResult extends Result implements Serializable {
 			this.isIsoCheck = pr.isIsoCheck;
 			this.nodeNum = this.nodeNum + pr.nodeNum;
 			this.isFirst = pr.isFirst;
+			this.matchsize = pr.matchsize;
+			//this.istest = pr.istest;
+		
 			//log.debug("suppresult node num" + this.nodeNum);
 			//log.debug(this.extendPattern);
+			if(matchsize){
+				for(Entry<Integer,Integer> entry : pr.patternMatchesNum.entrySet()){
+					if(!patternMatchesNum.containsKey(entry.getKey())){
+						patternMatchesNum.put(entry.getKey(), entry.getValue());
+					}
+					else{
+						int key = entry.getKey();
+						int i = patternMatchesNum.get(entry.getKey());
+						int num = i + entry.getValue();
+						patternMatchesNum.put(key, num);
+					}
+				}
+			}
 			if(this.isFirst == true){
 				this.edgeCands.addAll(pr.edgeCands);
 			}
@@ -153,27 +177,7 @@ public class SuppResult extends Result implements Serializable {
 					
 					
 					
-					//if(this.dom.addAll(pr.dom));
-					if(!this.literDom.containsKey(entry.getKey())){
-						Int2ObjectMap<Set<String>> domLiteral = new Int2ObjectOpenHashMap<Set<String>>();
-						combineLiterDom(domLiteral,pr.literDom.get(entry.getKey()));
-						this.literDom.put(entry.getKey(), domLiteral);
-					}
-					else{
-						combineLiterDom(this.literDom.get(entry.getKey()),pr.literDom.get(entry.getKey()));
-					}
-					if(pr.varDom.containsKey(entry.getKey())){
-						if(!this.varDom.containsKey(entry.getKey())){
-							Int2ObjectMap<IntSet> domVar = new Int2ObjectOpenHashMap<IntSet>();
-							combineVarDom(domVar,pr.varDom.get(entry.getKey()));
-							this.varDom.put(entry.getKey(), domVar);
-						}
-						else{
-							combineVarDom(this.varDom.get(entry.getKey()),pr.varDom.get(entry.getKey()));
-						}
-					}
-					
-					
+				
 					
 				}
 			}

@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.VertexOString;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -18,6 +19,8 @@ public class GfdMsg implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public  Int2ObjectMap<List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch= new  
 			Int2ObjectOpenHashMap<List<Pair<VertexOString,VertexOString>>>();
+	
+	public Int2ObjectMap<Int2IntMap> pattermatches = new Int2ObjectOpenHashMap<Int2IntMap>();
 	public int partitionId;
 	
 	public GfdMsg(){

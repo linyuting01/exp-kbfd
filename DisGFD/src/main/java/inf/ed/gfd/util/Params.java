@@ -12,8 +12,9 @@ public class Params {
 	public static int N_PROCESSORS;
 	public static String CONFIG_FILENAME;
 	public static int GRAPHNODENUM;
-	public static int var_K;
+	public static int var_K = 10;
 	public static int VAR_SUPP;
+	public static Double VAR_SKEW;
 
 
 

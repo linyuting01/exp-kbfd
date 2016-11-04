@@ -6,6 +6,7 @@ import inf.ed.gfd.structure.CrossingEdge;
 import inf.ed.gfd.structure.GFD2;
 import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.Partition;
+import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Dev;
 import inf.ed.gfd.util.KV;
@@ -116,7 +117,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * Workers and to Master. It is set to true when a Worker is sending
 	 * messages to other Workers.
 	 */
-	private boolean stopSendingMessage;
+	private boolean stopSendingMessage = true;;
 
 	private boolean flagLastStep = true;
 
@@ -270,7 +271,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				
 				
 				while (flagLocalCompute) {
-					
+					partitionMsg.clear();
 					flagLocalCompute = false; 
 					partialResults.clear();
 					
@@ -282,37 +283,43 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 						
 						if(superstep == 0){
 							localComputeTask.init(holdingPartitionID);
-							localComputeTask.compute(workingPartition);
-						}
-						else{
-							
-							if(superstep == 1){
-								localComputeTask.compute2(workingPartition);
-							}
-							else{
-	
-							    /** not begin step. incremental compute */
-								int flag = localComputeTask.incrementalCompute(workingPartition);
-								if(flag == 2){
-									
-									if(localComputeTask.getMessages() != null){
-										updateOutgoingMessages(localComputeTask.getMessages());
-									    checkAndSendMessage();
-									}
-									List<Message<?>> messageForWorkingPartition = currentIncomingMessages
-											.get(localComputeTask.getPartitionID());
-									localComputeTask.incrementalCompute(workingPartition,
-											messageForWorkingPartition);
-								}
-							}
-						}
-							
-						
-						partialResults.put(localComputeTask.getPartitionID(),
+							//localComputeTask.compute(workingPartition);
+							localComputeTask.compute2(workingPartition);
+							partialResults.put(localComputeTask.getPartitionID(),
 									localComputeTask.getPartialResult());
 						//nextLocalComputeTasksQueue.add(localComputeTask);
 						log.debug("send suppreslut in superStep"  + superstep);
 						checkAndSendPartialResult();
+						}
+						else{
+							
+							
+							    /** not begin step. incremental compute */
+								int flag = localComputeTask.incrementalCompute(workingPartition);
+								if(flag == 0||flag ==1){
+									partialResults.put(localComputeTask.getPartitionID(),
+											localComputeTask.getPartialResult());
+								//nextLocalComputeTasksQueue.add(localComputeTask);
+								log.debug("send suppreslut in superStep"  + superstep);
+								checkAndSendPartialResult();
+								}
+								if(flag == 2){
+									
+									if(localComputeTask.getMessages() != null){
+										updateOutgoingMessages(localComputeTask.getMessages());
+										
+										
+										
+									    //checkAndSendMessage();
+									}
+								}
+									
+								
+							}
+						
+							
+						
+					
 					
 				}catch (Exception e) {
 					e.printStackTrace();
@@ -415,8 +422,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * @param messagesFromCompute
 	 *            Represents the map of destination vertex and its associated
 	 *            message to be send
+	 * @throws RemoteException 
 	 */
-	private void updateOutgoingMessages(List<Message<?>> messagesFromCompute) {
+	private void updateOutgoingMessages(List<Message<?>> messagesFromCompute) throws RemoteException {
 		log.debug("updateOutgoingMessages.size = " + messagesFromCompute.size());
 
 		String workerID = null;
@@ -436,6 +444,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 					outgoingMessages.put(workerID, workerMessages);
 				}
 			}
+		
+		coordinatorProxy.sendSyn(workerID);
+		
 		
 	}
 
@@ -524,9 +535,11 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * @throws RemoteException
 	 *             the remote exception
 	 */
+	
+	IntSet partitionMsg = new IntOpenHashSet();
 	@Override
 	public void receiveMessage(List<Message<?>> incomingMessages) throws RemoteException {
-
+        log.debug("receive message from workers");
 		Stat.getInstance().w2wcommunicationData += RamUsageEstimator.sizeOf(incomingMessages);
 
 		/** partitionID to message list */
@@ -536,6 +549,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 		for (Message<?> message : incomingMessages) {
 			partitionID = message.getDestinationPartitionID();
+			int oId = message.getSourcePartitionID();
+			partitionMsg.add(oId);
 			if (currentIncomingMessages.containsKey(partitionID)) {
 				currentIncomingMessages.get(partitionID).add(message);
 			} else {
@@ -543,6 +558,18 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				partitionMessages.add(message);
 				currentIncomingMessages.put(partitionID, partitionMessages);
 			}
+		}
+		if(partitionMsg.size() == Params.N_PROCESSORS -1){
+			List<Message<?>> messageForWorkingPartition = currentIncomingMessages
+					.get(localComputeTask.getPartitionID());
+			log.debug("receive message,then compute");
+			localComputeTask.incrementalCompute( partitions.get(holdingPartitionID),
+					messageForWorkingPartition);
+			partialResults.put(localComputeTask.getPartitionID(),
+					localComputeTask.getPartialResult());
+		//nextLocalComputeTasksQueue.add(localComputeTask);
+		    log.debug("send suppreslut in superStep"  + superstep);
+	    	checkAndSendPartialResult();
 		}
 	}
 
@@ -591,7 +618,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.previousIncomingMessages.putAll(this.currentIncomingMessages);
 		this.currentIncomingMessages.clear();
 
-		this.stopSendingMessage = false;
+		//this.stopSendingMessage = false;
 		this.flagLocalCompute = true;
 		//if(flagSetWorkUnit == true){
 			//this.flagLocalCompute = true;
@@ -691,6 +718,13 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		//this.flagLocalCompute = true;
 		
 		
+	}
+
+	@Override
+	public void synprocess()throws RemoteException {
+		// TODO Auto-generated method stub
+		stopSendingMessage = false;
+		checkAndSendMessage();
 	}
 	
 }

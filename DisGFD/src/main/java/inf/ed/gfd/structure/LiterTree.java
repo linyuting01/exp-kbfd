@@ -9,15 +9,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import inf.ed.gfd.util.ColoneUtils;
 import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.Params;
+import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
+import inf.ed.graph.structure.adaptor.TypedEdge;
+import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -38,8 +44,10 @@ public class LiterTree implements Serializable {
 	public HashMap<Integer, LiterNode> condition_Map;
 	public int layer = 0;
 	
-
+    public int addNew = 1;
 	public DisConnectedNode dNode;
+	List<EqLiteral> literArray = new LinkedList<EqLiteral>();
+	List<EqVarLiter> varArray = new LinkedList<EqVarLiter>();
 	
 	
 
@@ -48,6 +56,7 @@ public class LiterTree implements Serializable {
 		this.root = new LiterNode();
 		//this.gNode = new GfdNode();
 		this.condition_Map = new HashMap<Integer, LiterNode>();
+		this.condition_Map.put(-1, root);
 		
 	}
 	public LiterTree(GfdNode gNode) {
@@ -66,395 +75,262 @@ public class LiterTree implements Serializable {
 		this.root = root;
 	} 
 	
-	/*
-	public Condition getCondition(LiterNode t){
-	 LiterNode node = t.getParent();
-	 Condition cond = new Condition();
-	 while(node!= root){
-		 cond.combineCondition(t.getDependecy());	 
-		 node = node.getParent();
-	 }
-	 return cond;	 
-	}
-	*/
-	
-	/*
-	public void initialExtend(Set<String> dom){
-		 
-		 for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
-	        	
-	        	// add Literal: for all possible equal constant
-	        	for(String s : dom){
-        		    addNode(this.root,1,nodeId,s);
-	        	}
-	        	for(int nodeId2 = nodeId+1; nodeId2<= this.gNode.nodeNum; nodeId2++){
-	        		addNode(this.root,1,nodeId,nodeId2);
-	        	}
-		 }
-
-	}
-	*/
 	
 	
-	
-	private boolean addLiteral(LiterNode t, String s, int nodeId){
-			//HashMap<Integer, String> l, HashMap<Integer, IntSet> v, 
-			//String s, int nodeId){
-		// if there is no nodeId.A = s; 
-
-		//HashMap<Integer, String> l = t.dependency.XEqualsLiteral;
-	   // HashMap<Integer, IntSet> v = t.dependency.XEqualsVariable;
-	  
-	   
-	    
-		//if(l.containsKey(nodeId)){
-			//return false;
-		//}
-	
-		// and no nodeId.A = s && nodeId2.A = s -> nodeId.A = nodeId2.A
-		if(!t.getDependency().isLiteral){
-			 Pair<Integer, Integer> yv = t.dependency.YEqualsVariable;
-			  
-			if(l.containsKey(yv.x)){
-				if(l.get(yv.x).equals(s)){
-					return false;
-				}
-			}
-			if(l.containsKey(yv.y)){
-				if(l.get(yv.y).equals(s)){
-					return false;
-				}
-			}
-		}else{
-			Pair<Integer, String> yl = t.dependency.YEqualsLiteral;
+	// no prun;
+	public void extendNode(LiterNode t, Int2ObjectMap<Int2ObjectMap<String>> literCands ){
+		Graph<VertexString, TypedEdge> pattern = this.gNode.pattern;
 		
-		// and no nodeId.A = nodeId2.A && nodeId2.A = s -> nodeId.A =s
-			if(v.containsKey(nodeId)){
-				IntSet a = v.get(nodeId);
-				for(int i: a){
-					if(l.containsKey(i)){
-						if(l.get(i).equals(s)){
-							if(yl.y.equals(s)){
-								return false;
+		if(t == this.root){
+			for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
+				addPatternNodeLiter(nodeId,literCands,-1);
+			}
+			//x1.a = x1.a //add need to revise
+			
+			for(Entry<Integer,Integer> entry :this.gNode.attrs.entrySet()){
+				int attr = entry.getKey();
+				if(literCands.containsKey(attr)){
+					if(entry.getValue() >1){
+						for(int i= 1; i< entry.getValue();i++){
+							for(int j = i+1;j< entry.getValue();j++ ){
+								Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(entry.getKey(),i-1);
+								Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(entry.getKey(),j-1);
+								int nodeId1 = this.gNode.nodeSet.get(p1);
+								int nodeId2 = this.gNode.nodeSet.get(p2);
+								for(int k: literCands.get(attr).keySet()){
+									EqVarLiter xv = new EqVarLiter(nodeId1,nodeId2,k,k);
+									varArray.add(xv);
+									LiterNode g = addNodeYVar(xv,-1);
+									g.yVar = varArray.size()-1;
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-		return true;	
+							
+			if(t != this.root){
+				addNodeNotRoot(t,-1);
+			}	    
+		}
+	
+	
+	
+	
+	
+	public void extendNodeForPrune(LiterNode t, Int2ObjectMap<Int2ObjectMap<String>> literCands){
+		LiterNode pt = this.gNode.parent.ltree.condition_Map.get(t.cId);
+		int nodeId = -1;
+	    int num1 = this.gNode.parent.nodeNum;
+		int num = this.gNode.nodeNum;
+		if(pt.extend && !pt.negCheck){
+			for(LiterNode ptc : pt.children){
+				addNodeforPrune(ptc);
+				if(num1 < num ){
+					nodeId = num;
+					updateNodeforPrune(nodeId, t, literCands);		
+				}
+			}
+		}
+		
+		
+		
 	}
-	
-	private boolean addVar(LiterNode t, int nodeId, int nodeId2){
-
-		HashMap<Integer, String> l = t.dependency.XEqualsLiteral;
-	    HashMap<Integer, IntSet> v = t.dependency.XEqualsVariable;
-	  
-	  
-	    if(nodeId == nodeId2){
-	    	return false;
-	    }
-		//if there is no nodeId.A = c, nodeId2.A =c
-		if(l.containsKey(nodeId) && l.containsKey(nodeId2)){
-			if(l.get(nodeId).equals(l.get(nodeId2))){
-				return false;
-			}
-		}
-		// if there is no nodeId.A = nodeId2.A
-		if(v.containsKey(nodeId)){
-			if(v.get(nodeId).contains(nodeId2)){
-				return false;
-			}
-		}
-		if(t.getDependency().isLiteral){
-			 Pair<Integer, String> yl = t.dependency.YEqualsLiteral;
-			if(l.containsKey(nodeId)){
-				//there is no nodeId.A = nodeId2.A, nodeId.A =c -> nodeId2.A =c
-				if(l.get(nodeId) == yl.y && nodeId2 == yl.x){
-							return false;
+		
+		
+		///for prune;
+		private void addPatternNodeLiter(int nodeId, Int2ObjectMap<Int2ObjectMap<String>> literCands,int n){
+			Graph<VertexString, TypedEdge> pattern = this.gNode.pattern;
+			int attr = pattern.getVertex(nodeId).getAttr();
+			if(literCands.containsKey(attr)){
+				for(Entry<Integer, String> entry : literCands.get(attr).entrySet()){
+					EqLiteral x = new EqLiteral(nodeId,entry.getKey(),entry.getValue());
+					literArray.add(x);
+					LiterNode t = addNodeYLiteral(x,-1);
+					t.yLiterl = literArray.size()-1;
 				}
-			}
-			if(l.containsKey(nodeId2)){
-				//there is no nodeId.A = nodeId2.A, nodeId2.A =c -> nodeId.A =c
-				if(l.get(nodeId2) == yl.y && nodeId == yl.x){
-							return false;
-				}
-			}
-		}else{
-			 Pair<Integer, Integer> yv = t.dependency.YEqualsVariable;
-		//there is no nodeId.A = nodeId2.A -> nodeId.A = nodeId2.A
-			if(nodeId == yv.x && nodeId2 == yv.y){
-				return false;
 			}
 		}
 		
-		
-		return true;
-	}
-	// y is literal condition empty->y
-	private void addNode(LiterNode g, Condition y){
-		 if(y.isLiteral){
-			 int nodeId = y.YEqualsLiteral.x;
-			 String s =  y.YEqualsLiteral.y;
-			 addNode(g,1,nodeId, s);
-		 }else{
-			 int nodeId = y.YEqualsVariable.x;
-			 int nodeId2 = y.YEqualsVariable.y;
-			 addNode(g,1,nodeId, nodeId2);
-		 }
-	 }
+		private void addPatternNodeVar(int nodeId, Int2ObjectMap<Int2ObjectMap<String>> literCands,int n){
+			Graph<VertexString, TypedEdge> pattern = this.gNode.pattern;
+			int attr = pattern.getVertex(nodeId).getAttr();
+			if(literCands.containsKey(attr)){
+				int num = this.gNode.attrs.get(attr);
 			
-	 private LiterNode addNode(LiterNode g, int X, int nodeId, String s){
-		LiterNode t = new LiterNode();
-		t.setParent(g);
-		g.children.add(t);
-		if(X == 0){//X
-			t.setDependency((Condition) g.getDependency().clone());
-			t.addXLiteral = true;
-			t.addxl = new Pair<Integer,String>(nodeId,s);
-			t.getDependency().XEqualsLiteral.put(nodeId, s);
-			t.literNum ++;
-		}else{
-			t.dependency = new Condition();
-			t.getDependency().setYEqualsLiteral(nodeId, s);
-			t.getDependency().isLiteral = true;
-			//log.debug(this.root.children.size());
-		}
-		t.pos = g.childPos;//
-		g.childPos++;
-	//	t.key = t.getDependency().toString();
-		t.cId = condition_Map.size()+1;
-		condition_Map.put(t.cId, t);
-		return t;
-	 }
-		
-	private LiterNode addNode(LiterNode g, int X,  int nodeId, int nodeId2){
-		 
-		HashMap<Integer,IntSet> v = new HashMap<Integer,IntSet>();
-		LiterNode t = new LiterNode();
-		t.setDependency((Condition) g.getDependency().clone());
-		t.setParent(g);
-		g.children.add(t);
-		if(X == 0){
-			t.addXLiteral = false;
-			t.addxv = new Pair<Integer,Integer>(nodeId,nodeId2);
-			v = t.getDependency().XEqualsVariable;
-			if(!v.containsKey(nodeId)){
-				v.put(nodeId, new IntOpenHashSet());
-			}
-			v.get(nodeId).add(nodeId2);
-			if(!v.containsKey(nodeId2)){
-				v.put(nodeId2, new IntOpenHashSet());
-			}
-			v.get(nodeId2).add(nodeId);
-			t.literNum++;
-			
-		}else{
-			t.dependency = new Condition();
-			t.getDependency().setYEqualsVariable(nodeId, nodeId2);
-			t.getDependency().isLiteral = false;
-		}
-		
-		//t.key = t.getDependency().toString();
-		t.pos = g.childPos;//
-		g.childPos++;
-		//log.debug(nodeId+ "+"+ nodeId2);
-		//log.debug(t.key);
-		t.cId = condition_Map.size()+1;
-		condition_Map.put(t.cId, t);
-		return t;
-	 }
-	 
-	 
-	 
-	 
-		
-	 /***************************************************************************
-	  * ****************************************************************************
-	 * *
-	 *  Interface;
-	 * 
-	 ***************************************************************************
-	  * *****************************************************************************/
-	
-	 /**
-	  * after Sc assembel the dependencies, update the next level's literal tree
-	 * @param t current pattern node, need update next level
-	 * @param s current literal node (verified), need add the corrsponding literal for next level pattern. 
-	 */
-	
-
-		
-    /**
-     * when begin to verify a new gfdNode g, we should first complete its literal extention. 
-     * @param dom
-     * @param t// extend this node
-     * @param nodeId // the new added node
-     */
-    ///revise  do not update the literal but update the literaldom and vardom
-	/*	
-	public void updateNode(Set<String> dom, LiterNode t, int nodeId){
-		
-		if(t == this.root){
-			for(String s : dom){
-				 addNode(t,1,nodeId,s);
-			}
-			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
-				addNode(t,1,nodeId2,nodeId);	
-			}
-		}
-		else{
-			for(String s : dom){
-				boolean flag = addLiteral(t, s, nodeId);
-        		if(flag == true){
-        		   addNode(t,0,nodeId,s);	
-        		}
-			}
-    		for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
-    			boolean flag = addVar(t, nodeId2, nodeId);
-        		if(flag == true ){
-        		   addNode(t,0,nodeId2,nodeId);	
-        		}	
-			}
-    		if(t.dependency.isLiteral && t.dependency.YEqualsLiteral.x == nodeId){
-    			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
-    				for(String s : dom){
-    					boolean flag = addLiteral(t, s, nodeId);
-    	        		if(flag == true){
-    	        		   addNode(t,0,nodeId2,s);	
-    	        		}
-    				}
-    				
-    			}
-    			 for(int nodeId2 = 1; nodeId< this.gNode.nodeNum; nodeId2++){
-    		        	//add variable
-    		            for(int nodeId3 = nodeId+1; nodeId3<= this.gNode.nodeNum; nodeId3++){
-    		            	//for 
-    			            	boolean flag = addVar(t, nodeId2, nodeId3);
-    			            	if(flag == true){
-    			            		addNode(t,0,nodeId2,nodeId3);
-    			            	} 
-    		            	}
-    		           }
-    		    }
-    		if(!t.dependency.isLiteral && t.dependency.YEqualsVariable.y == nodeId){
-    			for(int nodeId2 = 1; nodeId2< this.gNode.nodeNum; nodeId2++){
-    				for(String s : dom){
-    					boolean flag = addLiteral(t, s, nodeId);
-    	        		if(flag == true){
-    	        		   addNode(t,0,nodeId2,s);	
-    	        		}
-    				}
-    				
-    			}
-    			 for(int nodeId2 = 1; nodeId< this.gNode.nodeNum; nodeId2++){
-    		        	//add variable
-    		            for(int nodeId3 = nodeId+1; nodeId3<= this.gNode.nodeNum; nodeId3++){
-    		            	//for 
-    			            	boolean flag = addVar(t, nodeId2, nodeId3);
-    			            	if(flag == true){
-    			            		addNode(t,0,nodeId2,nodeId3);
-    			            	} 
-    		            	}
-    		           }
-    		    }
-		}
-		
-	}*/
-	 
-	 /**
-	  * the final interface for connected gfd;
-	  * @param t
-	  */
-	
-public void extendNode(LiterNode t){
-		if(t == this.root){
-			//log.debug( this.gNode.literDom.size());
-			for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
-				if(this.gNode.literDom.containsKey(nodeId)){
-				for(String s : this.gNode.literDom.get(nodeId)){
-	        	    	addNode(this.root,1,nodeId,s);
-	        	    	//log.debug("nodeId"+nodeId +s);
-	        	    }
-				}
-			}
-			for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
-		        	//add variable
-				if(this.gNode.varDom != null){
-				if(this.gNode.varDom.containsKey(nodeId)){
-		           for(int nodeId2 : this.gNode.varDom.get(nodeId)){
-		            		addNode(this.root,1,nodeId,nodeId2);
-		            		//log.debug("nodeId"+nodeId + nodeId2);
-		           }
-				}
-				}
-			}
-		}
-		else{
-		
-			if(t.parent == this.root){
-				  for(int nodeId = 1; nodeId<= this.gNode.nodeNum; nodeId++){
-			        	
-			        	// add Literal: for all possible equal constant
-					  if(this.gNode.literDom.containsKey(nodeId)){
-			        	for(String s : this.gNode.literDom.get(nodeId)){
-			        		boolean flag = addLiteral(t, s, nodeId);
-			        		if(flag == true){
-			        			addNode(t,0,nodeId,s);	
-			        		}
-			        	}
-					  }
-				  }
-				  for(int nodeId = 1; nodeId< this.gNode.nodeNum; nodeId++){
-			        	//add variable
-					  if(this.gNode.varDom!= null){
-						  if(this.gNode.varDom.containsKey(nodeId)){
-						  for(int nodeId2 : this.gNode.varDom.get(nodeId)){
-				        	   boolean flag = addVar(t, nodeId, nodeId2);
-				            	if(flag == true){
-				            		addNode(t,0,nodeId,nodeId2);
-				            	} 
-				           }
-						  }
-					  }
-				 }
-				
-			}
-			else{
-				LiterNode parent = t.parent;
-				for(int i = t.pos; i<parent.children.size();i++){
-					if(parent.children.get(i).extend){
-						LiterNode tmp = parent.children.get(i);
-						if(tmp.addXLiteral){
-							boolean flag = addLiteral(t, tmp.addxl.y, tmp.addxl.x);
-			        		if(flag == true){
-			        			addNode(t,0,tmp.addxl.x,tmp.addxl.y);	
-			        		}
-						}else{
-							boolean flag = addVar(t, tmp.addxv.x, tmp.addxv.y);
-			        		if(flag == true){
-			        			addNode(t,0, tmp.addxv.x, tmp.addxv.y);	
-			        		}
+				if( num >1){
+					for(int i= 1; i< num -1;i++){
+						   
+							Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(attr,i-1);
+							
+							int nodeId1 = this.gNode.nodeSet.get(p1);
+							for(int k: literCands.get(attr).keySet()){
+								EqVarLiter xv = new EqVarLiter(nodeId1,nodeId,k,k);
+								varArray.add(xv);
+								LiterNode t = addNodeYVar(xv,n);
+								t.yVar = varArray.size()-1;
+							}
 						}
-						
 					}
 				}
-			}
-				
-			
-			
+					
 		}
-}
 		
-	 
+//prune;
+		
+		
+	
 
-	 	
-			
-			
-			
-			
+		private void addNodeNotRoot(LiterNode t,int n){
+			int i = t.addLiteral+1;
+		    for(; i<literArray.size() && i!= t.yLiterl;i++ ){
+		    	EqLiteral eql = literArray.get(i);
+		    	addNodeXLiteral(t,eql,n);			
+		    } 
+		    int j = t.addVar +1;
+		    for(; j<varArray.size() && j!= t.yVar;j++ ){
+		    	EqVarLiter eql = varArray.get(i);
+		        addNodeXVar(t,eql,n);
+
+		    }
+		}	
+				
+	private LiterNode addNodeYVar(EqVarLiter xv, int n) {
+			// TODO Auto-generated method stub
+		LiterNode t = new LiterNode();
+		t.setParent(this.root);
+		this.root.children.add(t);
+		t.dependency = new Condition();
+		t.getDependency().setYEqualsVariable(xv);
+		t.getDependency().isLiteral = false;
+		t.addLiteral = -1;
+		t.addVar = -1;
+		t.yVar = -1;
+		if(n== -1){
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
+		}else{
+			t.cId = n + addNew ;
+			condition_Map.put(t.cId, t);
+			addNew ++;
+		}
+		return t;
+	}
+	private LiterNode addNodeYLiteral( EqLiteral x, int n) {
+			// TODO Auto-generated method stub
+		LiterNode t = new LiterNode();
+		t.setParent(this.root);
+		this.root.children.add(t);
+		t.dependency = new Condition();
+		t.getDependency().setYEqualsLiteral(x);
+		t.getDependency().isLiteral = true;
+		if(n== -1){
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
+		}else{
+			t.cId = n + addNew ;
+			condition_Map.put(t.cId, t);
+			addNew ++;
+		}
+		t.addLiteral = -1;
+		t.addVar = -1;
+		t.yLiterl = -1;
+		return t;
+	}
+	private LiterNode addNodeXVar(LiterNode g, EqVarLiter xv,int n) {
+		// TODO Auto-generated method stub
+		LiterNode t = new LiterNode();
+		t.setParent(g);
+		g.children.add(t);
+	    t.dependency = ColoneUtils.clone(g.getDependency());
+		//t.addXLiteral = false;
+		t.addLiteral = g.addLiteral;
+		t.addVar = g.addVar+1;
+		t.getDependency().XEqualsVariable.add(xv);
+		t.literNum ++;
+		t.cId = condition_Map.size()+1;
+		condition_Map.put(t.cId, t);
+		t.yLiterl = g.yLiterl;
+		t.yVar = g.yVar;
+		if(n== -1){
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
+		}else{
+			t.cId = n + addNew ;
+			condition_Map.put(t.cId, t);
+			addNew ++;
+		}
+		return t;
 		
-   /**     	   
+	}
+
+	private LiterNode addNodeXLiteral(LiterNode g, EqLiteral x, int n) {
+		// TODO Auto-generated method stub
+		LiterNode t = new LiterNode();
+		t.setParent(g);
+		g.children.add(t);
+	    t.dependency = ColoneUtils.clone(g.getDependency());
+		//t.addXLiteral = true;
+		t.addLiteral = g.addLiteral+1;
+		t.addVar = g.addVar;
+		t.getDependency().XEqualsLiteral.add(x);
+		t.literNum ++;
+		t.yLiterl = g.yLiterl;
+		t.yVar = g.yVar;
+		t.cId = condition_Map.size()+1;
+		condition_Map.put(t.cId, t);
+		if(n== -1){
+			t.cId = condition_Map.size()+1;
+			condition_Map.put(t.cId, t);
+		}else{
+			t.cId = n + addNew ;
+			condition_Map.put(t.cId, t);
+			addNew ++;
+		}
+		return t;
+		
+	}
+
+
+// for prune;
+
+	private LiterNode addNodeforPrune(LiterNode g) {
+		// TODO Auto-generated method stub
+		int preCId = g.parent.cId;
+		LiterNode t = new LiterNode();
+		t.setParent(this.condition_Map.get(preCId));
+		this.root.children.add(t);
+		t.dependency = g.dependency;
+		t.cId = g.cId;
+		t.addLiteral = -1;
+		t.addVar = -1;
+		t.yVar = -1;
+		t.yLiterl = -1;
+		condition_Map.put(t.cId, t);
+		return t;
+	}
+	
+	private void updateNodeforPrune(int nodeId,LiterNode t, Int2ObjectMap<Int2ObjectMap<String>> literCands){
+		int n = this.gNode.parent.ltree.getConditionNum();
+		if(t == this.root){
+			addPatternNodeLiter( nodeId,  literCands,n);
+			addPatternNodeVar( nodeId,  literCands,n);	
+		}
+		if(t!= this.root){
+			addNodeNotRoot(t,n);
+		}	
+		
+	}
+
+	public int getConditionNum(){
+		return this.condition_Map.size();
+	}
+
+  
+			
+			
+/*
     * Just for the fgdtree root->children; 
     * @param dom
     * @param t
@@ -516,7 +392,7 @@ public void extendNode(LiterNode t){
 	 */
 
 	 
-	
+	/*
 	 
 	 public static void main(String args[]) {  
 		 LiterTree tree  = new LiterTree();
@@ -576,7 +452,7 @@ public void extendNode(LiterNode t){
 		// tree.extendNode(s, tree.getRoot());
 		 log.debug("t has children"+ tree.getRoot().getChildren().size());	 
 		
-	}
+	}*/
 
 
 	 /**********************************************************************
@@ -584,15 +460,16 @@ public void extendNode(LiterNode t){
 	  * add node for negative checking : public interface for negative pattern
 	  * ***********************************************************************
 	  * *************************************************************************/
-	 public void addNegCheck(LiterNode t){
+	 public void addNegCheck(LiterNode t,int n){
 		 if(t.dependency.isLiteral){
-			 Pair<Integer,String> p = t.dependency.YEqualsLiteral;
-			 LiterNode x = addNode(t,0, p.x,p.y);
+			 EqLiteral p = t.dependency.YEqualsLiteral;
+			 LiterNode x = addNodeXLiteral(t, p, n );
 			 x.negCheck = true;
+			 x.extend = false;
 		 }
 		 else{
-			 Pair<Integer,Integer> p = t.dependency.YEqualsVariable;
-			 LiterNode x = addNode(t,0, p.x,p.y);
+			  EqVarLiter p = t.dependency.YEqualsVariable;
+			  LiterNode x = addNodeXVar(t,p, n);
 			 x.negCheck = true;
 		 }
 	 }
@@ -608,7 +485,7 @@ public void extendNode(LiterNode t){
 	  * for disconnected pattern literal extention;// condition xy x : pattern num;
 	  * ***********************************************************************
 	  * *************************************************************************/
-	
+	/*
 	 private void processSupSatLiter(IntSet p1match1,IntSet p2match2 , IntSet p3match1,IntSet p3match2,
 			 DisconnectedTree dtree, List<Pair<Integer,String>> xl,Pair<Integer,Integer> p3){
 		 IntSet p1join = Fuc.Intersection(p1match1, p3match2);
@@ -878,7 +755,9 @@ public void extendNode(LiterNode t){
 				}
 			}		
 	 }
-	 		 
+	 	
+	 
+	 
 	
 	 private LiterNode extendRootNodeXl(List<Pair<Integer,String>> xl, Pair<Integer, Integer> vy){
 			LiterNode t = new LiterNode();
@@ -920,6 +799,7 @@ public void extendNode(LiterNode t){
 	  * the final interface; compute disconnected gfds with the same pattern (this.dNode);
 	  * @param dtree
 	  */
+	 /*
 	 public void extendDisConnected(DisconnectedTree dtree){
 		 Queue<LiterNode> sln = new LinkedList<LiterNode>();
 	 
@@ -938,138 +818,6 @@ public void extendNode(LiterNode t){
 				 sln.add(g);
 			 }
 		 }
-	 }
-/*
-	 public void extendSpace(DisConnectedNode n, DisconnectedTree t){
-		 int pIdenttity = 1;
-		 int size = n.patterns.size();
-		 int num[] = new int[size];
-		 for(int p :n.patterns){
-			 String pId = t.connectdPatternIndex.get(p);
-			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
-			 num[pIdenttity-1] = nodeNum;
-		 }
-		 //suppose only two components
-		// List<Set<Pair<Integer,String>>> spacexl = new  ArrayList<Set<Pair<Integer,String>>>();
-		// List<Set<Pair<Integer,Integer>>> spacexv = new  ArrayList<Set<Pair<Integer,Integer>>>();
-		 //test
-		 for(int i = 0; i< size; i++){
-			 Set<Pair<Integer,String>> xls =  extendLSpace(dom, num[i],i+1);
-			 spacexl.add(xls);
-			 for(int j=i+1;j<size;j++){
-				 Set<Pair<Integer,Integer>> xvs = extendVSpace(i,j,num[i],num[j]);
-				 spacexv.add(xvs);
-		     }
-		 }
-	 }
-		
-	 private Set<Pair<Integer,String>> extendLSpace(Set<String> dom, int nodenum, int pIdentity){
-		 Set<Pair<Integer,String>> space = new HashSet<Pair<Integer,String>>();
-		 for(int i = 0; i< nodenum ; i++){
-			 String s = ""+pIdentity+i;
-			 int nodeId = Integer.parseInt(s);
-			 for(String s2 : dom){
-				Pair<Integer,String> p =new Pair<Integer,String>(nodeId,s2);
-				space.add(p);
-			 }
-		 }
-		 return space;
-		 
-	 }
-	 private Set<Pair<Integer,Integer>> extendVSpace(int m,int n, int num1,int num2){
-		 Set<Pair<Integer,Integer>> space = new HashSet<Pair<Integer,Integer>>();
-			 if(num1>num2){
-				 int tmpt1 = num2;
-				 num2 = num1;
-				 num1 = tmpt1;
-				 int tmpt = n;
-				 n = m;
-				 m= tmpt;
-				 
-			 }
-			 else{
-			 for(int i=1 ;i<= num1;i++){
-				 for(int j=i;i<num2;j++){
-					 String s1 = ""+m+i;
-					 String s2 = ""+n+i;
-					 int nodeId1 = Integer.parseInt(s1);
-					 int nodeId2 = Integer.parseInt(s2);
-					 Pair<Integer,Integer> p= new Pair<Integer,Integer>(nodeId1,nodeId2);
-					 space.add(p);
-					 
-				 }
-			 }
-		 }
-	
-		 return space;
-		 
-	 }
-	 
-	 /*
-	 public void disExtendY(DisConnectedNode n, DisconnectedTree t, Set<String> dom, LiterNode g){
-		 int pIdenttity = 1;
-		 int num[] = new int[n.patterns.size()];
-		 for(int p :n.patterns){
-			 String pId = t.connectdPatternIndex.get(p);
-			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
-			 num[pIdenttity-1] = nodeNum;
-			 for(int i = 0; i< nodeNum ; i++){
-				 String s = ""+pIdenttity+i;
-				 int nodeId = Integer.parseInt(s);
-				 for(String s2 : dom){
-					 addNode(g, 1, nodeId, s2);
-				 }
-			 }
-			 pIdenttity++; 
-		 }
-		 for(int i = 1;i<=n.patterns.size();i++){
-			 for(int j= i+1;j<=n.patterns.size();j++){
-				 yVarTwoPattern(i,j,num[i-1],num[j-1],g);
-			 }
-		 }
-		 
-		 
-	 }
-	 
+	 }*/
 
-	 public void disExtendY(DisConnectedNode n, DisconnectedTree t, Set<String> dom, LiterNode g){
-		 int pIdenttity = 1;
-		 int num[] = new int[n.patterns.size()];
-		 for(int p :n.patterns){
-			 String pId = t.connectdPatternIndex.get(p);
-			 int nodeNum = t.disConnectedPatternIndex.get(pId).pNodeNum;
-			 num[pIdenttity-1] = nodeNum;
-		 }
-		 for(int i = 1;i<=n.patterns.size();i++){
-			 for(int j= i+1;j<=n.patterns.size();j++){
-				 yVarTwoPattern(i,j,num[i-1],num[j-1],g);
-			 }
-		 }
-		 
-		 
-	 }
-	 public void yVarTwoPattern(int m,int n, int num1,int num2, LiterNode g){
-		 if(num1>num2){
-			 int tmpt1 = num2;
-			 num2 = num1;
-			 num1 = tmpt1;
-			 int tmpt = n;
-			 n = m;
-			 m= tmpt;
-			 
-		 }
-		 else{
-		 for(int i=1 ;i<= num1;i++){
-			 for(int j=i;i<num2;j++){
-				 String s1 = ""+m+i;
-				 String s2 = ""+n+i;
-				 int nodeId1 = Integer.parseInt(s1);
-				 int nodeId2 = Integer.parseInt(s2);
-				 addNode(g, 1, nodeId1, nodeId2);
-				 
-			 }
-		 }
-	 }
-	 }
-	 */
 }

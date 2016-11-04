@@ -30,9 +30,9 @@ public class DisConnectedNode {
 	public LiterTree ltree;
 	public List<IntSet> pivotMatches;
 	
-	public HashMap<String, HashMap<Integer,IntSet>> stringCands; //just for root children
-	public HashMap<Integer,HashMap<Integer,List<IntSet>>> allVarCands;
-	public HashMap<Integer,HashMap<String,IntSet>> allLiterCands;
+	//public HashMap<String, HashMap<Integer,IntSet>> stringCands; //just for root children
+	//public HashMap<Integer,HashMap<Integer,List<IntSet>>> allVarCands;
+	//public HashMap<Integer,HashMap<String,IntSet>> allLiterCands;
 	
 	//public Set<GFD2> disResults = new HashSet<GFD2>();
 	public Set<Condition> conditions = new HashSet<Condition>();

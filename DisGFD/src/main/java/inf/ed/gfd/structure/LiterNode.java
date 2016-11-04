@@ -28,7 +28,7 @@ public class LiterNode implements Serializable {
 	
 	//public String key = "";
 	public Condition dependency;
-	public int cId;// from 1
+	public int cId = -1;// from 1
 
 	public LiterNode parent; 
 	public List<LiterNode>  children;
@@ -47,6 +47,12 @@ public class LiterNode implements Serializable {
 	boolean addXLiteral = false;
 	public Pair<Integer,String> addxl;
 	public Pair<Integer,Integer> addxv;
+	
+	int addLiteral;
+	int addVar;
+	int yLiterl;
+	int yVar;
+	
 	
 	//for disconnected gfd; ;may be add flag
 	boolean addXLiteral1;
@@ -71,6 +77,7 @@ public class LiterNode implements Serializable {
 	public LiterNode() {
 		this.children = new ArrayList<LiterNode>();
 		this.dependency = new Condition();
+		this.cId = -1;
 		// TODO Auto-generated constructor stub
 	}
 

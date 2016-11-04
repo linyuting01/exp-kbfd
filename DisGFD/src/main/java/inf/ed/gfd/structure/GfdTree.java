@@ -84,8 +84,8 @@ public class GfdTree implements Serializable {
 			 GfdNode g = newNode(root,dfs);
 			 g.pId = dfs2Id.get(dfs);
 				patterns_Map.put(g.pId, g);
-			 g.literDom = r.literDom.get(g.pId);
-			 g.varDom = r.varDom.get(g.pId);
+			// g.literDom = r.literDom.get(g.pId);
+			// g.varDom = r.varDom.get(g.pId);
 			 g.extend = true;
 		 }
 			// for(GfdNode t : this.root.children){
@@ -1014,7 +1014,7 @@ public class GfdTree implements Serializable {
 
 		*/
    
-   void writeToFile(String filename) {
+   public void writeToFile(String filename) {
 		try {
 			FileOutputStream fos = new FileOutputStream(filename, true);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
@@ -1090,7 +1090,6 @@ public class GfdTree implements Serializable {
 				
 		    }
 		}
-		
 
 		System.out.println(gtree.patterns_Map.size());
 

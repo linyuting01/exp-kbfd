@@ -25,7 +25,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -245,7 +249,7 @@ public Set<DFS> edgePattern( Graph<VertexOString, OrthogonalEdge> KB, Map<DFS,In
   return dfss;
 }
           
-public static void main(String args[]) {
+public static void main(String args[]) throws IOException {
 	
 	Set<DFS> edgePattern = new HashSet<DFS> ();
 	Set<DFS> edgePatterntmpt = new HashSet<DFS> ();
@@ -257,106 +261,140 @@ public static void main(String args[]) {
 	Map<DFS,IntSet> pivotPMatch  = new HashMap<DFS,IntSet>();
 	Map<DFS,IntSet> pivotPMatchtmpt  = new HashMap<DFS,IntSet>();
 	
-	File file = new File("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.v");
+	KB.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago",true);
 	
 
+	
 	
 	
 	edgePattern.clear();
 	EdgePattern eP = new EdgePattern();
 	
-	edgePattern = eP.edges(KB);
+	edgePattern = eP.edgePattern(KB,pivotPMatch);
 	
 	log.debug(edgePattern.size());
-	List<DFS> dfsl = new ArrayList<DFS>();
-	dfsl.addAll(edgePattern);
-	Collections.sort(dfsl);
-	for(DFS dfs : dfsl ){
-		log.debug(dfs.toString() +"\n" );
-	}
-	
-	KB1.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p0", true);
-	
-	edgePattern.clear();
-	edgePattern = eP.edges(KB1);
-	List<DFS> dfsl2 = new ArrayList<DFS>();
-	dfsl2.addAll(edgePattern);
-	Collections.sort(dfsl2);
-	for(DFS dfs : dfsl2 ){
-		log.debug(dfs.toString() +"\n" );
-	}
-	/*
-	edgePattern.clear();
-	edgePatterntmpt.clear();
-	pivotPMatch.clear();
-	
-	KB1.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p0", true);
-	edgePatterntmpt = eP.edgePattern(KB1,pivotPMatch);
-	log.debug("p0 size" + edgePatterntmpt.size());
-	for(DFS dfs : edgePatterntmpt ){
-		log.debug(dfs.toString() + "\t" );
-	}
-	edgePattern.addAll(edgePatterntmpt);
-	
-	
-	KB2.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p1", true);
-	edgePatterntmpt.clear();
-	edgePatterntmpt = eP.edges(KB2);
-	log.debug("p1 size" + edgePatterntmpt.size());
-	for(DFS dfs : edgePatterntmpt ){
-		log.debug(dfs.toString() + "\t" );
-	}
-	edgePattern.addAll(edgePatterntmpt);
-	log.debug(edgePattern.size());
-	
-	
-	KB3.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p2", true);
-	edgePatterntmpt.clear();
-	edgePatterntmpt = eP.edges(KB3);
-	log.debug("p2 size" + edgePatterntmpt.size());
-	for(DFS dfs : edgePatterntmpt ){
-		log.debug(dfs.toString() + "\t" );
-	}
-	edgePattern.addAll(edgePatterntmpt);
-	log.debug(edgePattern.size());
-	
-	
-	KB4.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p3", true);
-	edgePatterntmpt.clear();
-	edgePatterntmpt = eP.edges(KB4);
-	log.debug("p3 size" + edgePatterntmpt.size());
-	for(DFS dfs : edgePatterntmpt ){
-		log.debug(dfs.toString() + "\t" );
-	}
-	edgePattern.addAll(edgePatterntmpt);
-	log.debug("size"+ edgePattern.size());
-	
-	
+	List<DFSF> dfsl = new ArrayList<DFSF>();
 	
 	for(DFS dfs : edgePattern ){
-		log.debug(dfs.toString() + "\t" );
+		int i = pivotPMatch.get(dfs).size();
+		DFSF df = eP.new DFSF(dfs,i);
+		dfsl.add(df);
+		
+	}
+	Collections.sort(dfsl);
+	 
+	   File file = new File("dfs.dat");
+	 
+	   // if file doesnt exists, then create it
+	   if (!file.exists()) {
+	    file.createNewFile();
+	   }
+	 
+	   FileWriter fw = new FileWriter(file.getAbsoluteFile());
+	   BufferedWriter bw = new BufferedWriter(fw);
+	   for(DFSF d : dfsl){
+		   String s = d.dfs.toString()+"\t" +d.freq;
+	       bw.write(s);
+	       bw.newLine();
+	   }
+	   bw.close();
+	
+	
+		 
+
+	
+	
+}
+
+public class DFSF implements Comparable<DFSF>{
+	DFS dfs;
+	int freq;
+	
+	public DFSF(DFS dfs,int n){
+		this.dfs = dfs;
+		this.freq = n;
+	}
+	@Override
+	public int compareTo(DFSF o) {
+		// TODO Auto-generated method stub
+		return this.freq-o.freq;
 	}
 	
-	Partition partition = new Partition(0);
-	partition.loadPartitionDataFromEVFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.p0");
-	partition.addCrossingEdges("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago.cross.fulfil");
-	edgePatterntmpt.clear();
-	edgePatterntmpt = eP.edges(partition.getGraph());
-	log.debug(edgePatterntmpt.size());
+}
+
+public void edgePattern(Graph<VertexOString, OrthogonalEdge> KB, Int2ObjectMap<IntSet> pivotPMatch,
+		Int2ObjectMap<List<Pair<Integer, Integer>>> edgePatternNodeMatch,
+		Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesN, Map<DFS, Integer> dfs2Id,Int2IntMap matchNum) {
+	  OrthogonalVertex fNode, tNode;
+	   VertexOString fVertex , tVertex;
+	   Set<DFS> DFS = new HashSet<DFS>(); 
+     // get all edge patterns and literals for nodes ;
+	   for(OrthogonalEdge edge: KB.getAllEdges()){ 
+	     //System.out.print("success");
+	     
+	    fVertex = (VertexOString) edge.from();
+	     tVertex = (VertexOString)edge.to();
+	     int fID = fVertex.getID();
+	     int tID = tVertex.getID();
+	     int fLabel = fVertex.getAttr();
+	     int tLabel = tVertex.getAttr();
+   
+	    // String fval = fVertex.getValue();
+	     //log.debug(fval);
+	    // String tval = tVertex.getValue();
+	    // log.debug(tval);
+	     
+	     IntSet eLabel = edge.getAttr();
+	     int elNum = edge.attrCount;
+	     
+	     Pair<Integer,Integer> f = new Pair<Integer,Integer>(fLabel,0);
+	     Pair<Integer,Integer> t = new Pair<Integer,Integer>(tLabel,0);
+	     if(fVertex.match(tVertex)){
+	    	 t.y = 1;
+	     }
+	   
+	     for(int i:eLabel){
+	    	 
+		        DFS code = new DFS( f, t, i);
+		        if(dfs2Id.containsKey(code)){
+		        	
+		        
+		        int pId = dfs2Id.get(code);
+		         
+		         if(!pivotPMatch.containsKey(pId)){
+		        	 pivotPMatch.put(pId, new IntOpenHashSet());  
+		         }
+		         pivotPMatch.get(pId).add(fID);
+		         if(!matchNum.containsKey(pId)){
+		        	 matchNum.put(pId, 1);  
+		         }else{
+		        	 int i1 = matchNum.get(pId);
+		        	 matchNum.put(pId, i1+1);
+		         }
+		         
+		         if(!edgePatternNodeMatch.containsKey(pId)){
+		        	 edgePatternNodeMatch.put(pId, new ArrayList<Pair<Integer,Integer>>()); 
+		        	 edgePatternNodeMatch.get(pId).add(new Pair<Integer,Integer>(fID,tID)); 
+		         }
+		         if(! patternNodeMatchesN.containsKey(pId)){
+		          	 patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());  
+		           }
+		           
+		           Int2IntMap e = new Int2IntOpenHashMap();
+		           e.put(1, fID);
+		           e.put(2, tID);
+		           
+		           
+		           patternNodeMatchesN.get(pId).add(e);
+		       }
+	           
+	 
+	        	
+	     }
+	   }
+	 
 	
-	for(DFS dfs : edgePatterntmpt){
-		log.debug(dfs.toString() + "\t" );
-	}
-	*/
-	
-	
-	
-	
-	
-	
-	//Set<WorkUnitC2WEp> wsc = new HashSet<WorkUnitC2WEp>();
-	
-}      
+}
       
 }
           

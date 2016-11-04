@@ -191,7 +191,7 @@ public class DisconnectedTree {
 	private void intialVerifyPivotMatch(LiterNode t){
 		//first partition dependency
 		Condition c = t.dependency;
-		Pair<Integer,Integer> yv = c.YEqualsVariable;
+		EqVarLiter yv = c.YEqualsVariable;
 		
 		
 	}
@@ -209,7 +209,7 @@ public class DisconnectedTree {
 	
 	
 	
-	
+	/*
 	private void updateTree(DisWorkUnit w){
 		for(Pair<Integer,Integer> p :w.disPatterns){
 			if(!this.connectdPatternIndex.containsKey(p.x)){
@@ -228,7 +228,7 @@ public class DisconnectedTree {
 			GfdNode g = gfdtree.patterns_Map.get(pId);
 			for(LiterNode ln : g.ltree.getRoot().children){
 				if(ln.dependency.isLiteral){
-					Pair<Integer,String> yl = ln.dependency.YEqualsLiteral;
+					EqLiteral yl = ln.dependency.YEqualsLiteral;
 					if(dn.stringCands == null){
 						dn.stringCands = new HashMap<String,HashMap<Integer,IntSet>>();
 					}
@@ -254,6 +254,8 @@ public class DisconnectedTree {
 	
 		
 	private void updateTree(DisConnectedNode t, GfdTree gfdtree){
+		Set<EqVarLiter> varCands = new HashSet<EqVaeLiter>();
+		Set<EqLiteral> literCands = new HashSet<EqLiteral>();
 		HashMap<Integer,HashMap<Integer,Set<String>>> varCands = new HashMap<Integer,HashMap<Integer,Set<String>>>();
 		//for disconnected pattens;
 		int pId1 = t.patterns.get(0);
@@ -331,7 +333,7 @@ public class DisconnectedTree {
 			
 			
 			
-		}
+		}*/
 	
 	
 }

@@ -9,6 +9,8 @@ import inf.ed.graph.structure.Graph;
 import inf.ed.graph.structure.adaptor.Pair;
 import inf.ed.graph.structure.adaptor.TypedEdge;
 import inf.ed.graph.structure.adaptor.VertexString;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -39,6 +41,9 @@ public class WorkUnit implements  Serializable {
 	//public HashMap<DFS, Pair<Integer,Integer>> edgeIds;
 	
 	public Int2ObjectMap<DFS> id2Dfs;
+	
+	public Int2DoubleMap avgMatch = new Int2DoubleOpenHashMap();
+	public boolean isAvg = false;
 	
 	public WorkUnit(){
 		this.edgeIds = new Int2ObjectOpenHashMap<Pair<Integer,Pair<Integer,Integer>>>();

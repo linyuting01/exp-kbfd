@@ -258,6 +258,15 @@ public class ParDisWorkerProxy implements Runnable, Worker2Coordinator {
 		// TODO Auto-generated method stub
 		this.coordinator.localComputeCompleted(workerID, activeWorkerSet);
 	}
+	@Override
+	public void sendSyn(String workerID) throws RemoteException {
+		// TODO Auto-generated method stub
+		this.coordinator.synprocess(workerID);
+	}
+	public void sendworkerSyn() throws RemoteException {
+		// TODO Auto-generated method stub
+		this.worker.synprocess();
+	}
 	
 
 	

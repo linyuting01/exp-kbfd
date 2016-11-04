@@ -68,6 +68,8 @@ public class KV {
             Params.var_K = Config.getInstance().getIntProperty("PATTERN_NUM");
 			
 			Params.VAR_SUPP = Config.getInstance().getIntProperty("SUPP_THRESHOLD");
+			
+			Params.VAR_SKEW =  Config.getInstance().getDoubleProperty("SKEW_THRESHOLD");
 
 			
 

@@ -33,4 +33,8 @@ public interface Worker2Coordinator extends java.rmi.Remote, Serializable {
 	public void sendPartialResult(String workerID, Map<Integer, Result> partialResults, 
 			double communicationData) throws RemoteException;
 
+	public void sendSyn(String workerID) throws RemoteException;
+
+	//public void sendSyn(String workerID);
+
 }

@@ -192,31 +192,6 @@ public class GfdNode implements Comparable<GfdNode>, Serializable {
 	}
 	
 
-	public void updategfdNodeDom( LiterNode t){
-		if(t.dependency.XEqualsLiteral.isEmpty() && t.dependency.XEqualsVariable.isEmpty()){
-			//update literdom and vardom;
-			
-			if(t.dependency.isLiteral){
-				Pair<Integer,String> p = t.dependency.YEqualsLiteral;
-				if(this.literDom.containsKey(p.x)){
-					for(String s: this.literDom.get(p.x)){
-					  if(s.equals(p.y)){
-						  this.literDom.get(p.x).remove(s);
-					  }
-					}
-				}
-			}
-			else{
-				Pair<Integer,Integer> p = t.dependency.YEqualsVariable;
-				if(this.varDom.containsKey(p.x)){
-					for(int s: this.varDom.get(p.x)){
-					  if(s == p.y){
-						  this.varDom.get(p.x).remove(s);
-					  }
-					}
-				}
-			}
-		}
-	}
+
 
 }

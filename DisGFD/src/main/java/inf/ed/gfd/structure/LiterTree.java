@@ -289,8 +289,8 @@ public class LiterTree implements Serializable {
 			condition_Map.put(t.cId, t);
 			addNew ++;
 		}
-		log.debug(t.cId);
-		log.debug(condition_Map.get(t.cId));
+		//log.debug(t.cId);
+		//log.debug(condition_Map.get(t.cId));
 		return t;
 		
 	}

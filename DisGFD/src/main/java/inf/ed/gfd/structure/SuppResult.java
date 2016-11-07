@@ -167,7 +167,7 @@ public class SuppResult extends Result implements Serializable {
 		
 		
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
-		log.debug(partialResults.size());
+		log.debug("partial result size " + partialResults.size());
 		for(Result r : partialResults){
 			SuppResult pr = (SuppResult) r;
 			this.extendPattern = pr.extendPattern;
@@ -207,12 +207,7 @@ public class SuppResult extends Result implements Serializable {
 					if(!this.pivotMatchP.containsKey(entry.getKey())){
 						this.pivotMatchP.put(entry.getKey(), new IntOpenHashSet());
 					}
-					this.pivotMatchP.get(entry.getKey()).addAll(entry.getValue());
-					
-					
-					
-				
-					
+					this.pivotMatchP.get(entry.getKey()).addAll(entry.getValue());	
 				}
 			}
 				

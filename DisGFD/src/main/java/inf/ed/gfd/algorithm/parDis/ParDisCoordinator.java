@@ -495,7 +495,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					String s = tmpt[0].trim();
 					DFS dfs = Fuc.getDfsFromString(s);
 					//log.debug("begin to create id for edgePatterns");
-					log.debug(dfs.toString());
+					//
+					//log.debug(dfs.toString());
 					edgePattern.add(dfs);
 						//dfs2Id.put(dfs, i);
 						//id2Dfs.put(i, dfs);
@@ -591,12 +592,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			/** receive all the partial results, assemble them. */
 			log.info("assemble the result");
 				SuppResult finalResult = new SuppResult();
-				log.debug(resultMap.size());
+				log.debug("begin to assembel result! Results size");
 				//log.debug(finalResult.pivotMatchP.size());
 				//log.debug(resultMap.values().size());
 				finalResult.assemblePartialResults(resultMap.values());
 				
-				log.debug(finalResult.toString());
+				//log.debug(finalResult.toString());
 				//log.debug(finalResult.pivotMatchP.size());
 				//log.debug("graph node num : " +finalResult.nodeNum);
 				log.debug("assembel done!");
@@ -628,10 +629,13 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	public void extendAndDistributeWorkUnits(SuppResult finalResult) throws RemoteException{
 		workunits.clear();
 				if(finalResult.checkGfd ){
+					log.info("begin verify gfd and generate workunits");
 					verifyGfdAndGenerateWorkUnits(finalResult);
+					log.info("end verify gfd and generate workunits");
 				}
 				//patternCheck
 				if(finalResult.extendPattern){
+					log.info("begin verify pattern and generate workunits");
 					avgWork.clear();
 					for(Entry<Integer,Integer> entry : finalResult.patternMatchesNum.entrySet()){
 						   int key = entry.getKey();
@@ -641,12 +645,13 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 						}
 						//isEstimateBanlance = true;
 					verifyPatternAndGenerateWorkUnits(finalResult);
-					
+					log.info("end verify gfd and generate workunits");
 				}
 				if(finalResult.isIsoCheck){
+					log.info("begin verify isomorphism and generate workunits");
 					isoCheckProcess(finalResult);
 					generateWorkUnitsForPatternCheck(finalResult);
-					
+					log.info("end verify isomorphism and generate workunits");
 						
 				}
 			
@@ -759,20 +764,20 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 			int pId = entry.getKey();
 			if(!finalResult.pivotMatchGfd.get(pId).isEmpty()){
 			for(Entry<Integer,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
-				log.debug("pattern  =  " + pId);
+				//log.debug("pattern  =  " + pId);
 				
 				int cId = entry2.getKey();
-				log.debug("condition cid " + cId);
+				//log.debug("condition cid " + cId);
 				GfdNode g = gfdTree.patterns_Map.get(pId);
-				log.debug(g.pId);
-				log.debug("condition cid " + cId);
+				//log.debug(g.pId);
+				//log.debug("condition cid " + cId);
 				LiterNode t = g.ltree.condition_Map.get(cId);
-				log.debug(t.cId);
+			//	log.debug(t.cId);
 				int supp =  entry2.getValue().size();
-				log.debug(supp);
+			//	log.debug(supp);
 				t.supp = supp;
 				t.pivotMatch = entry2.getValue();
-				log.debug("supp value " + supp);//
+				//log.debug("supp value " + supp);//
 				
 				//log.debug("check negative gfd ");//
 				if(t.negCheck){
@@ -787,7 +792,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					//is a minimum gfd; check negative, update liter and var dom;
 					if(supp >= Params.VAR_SUPP){
 						t.extend = true;
-						log.debug("supp: " + supp);//
+						//log.debug("supp: " + supp);//
 						int unsat = finalResult.satCId.get(pId).get(cId).size();
 						double unsatRatio = (double) unsat/(supp+unsat);
 						if(unsatRatio <= Params.UNSAT_RATIO){
@@ -951,7 +956,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		for(int i: tmpPatternCheck){
 			s += ""+i+"\t";
 		}
-		log.debug("tmptPatternCheck patterns = "+ s);
+		//log.debug("tmptPatternCheck patterns = "+ s);
 		for(int pId :tmpPatternCheck){
 			GfdNode g = gfdTree.patterns_Map.get(pId);
 			for(GfdNode t:g.children){
@@ -1190,8 +1195,9 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		try {
 			File file1 = new File(filename+".neg");
 			writer = new PrintWriter(file1);
+			log.debug(negGfds.size());
 			for(GFD2 gfd : negGfds){
-				log.debug(negGfds.size());
+			
 				writer.println(gfd.tofileC());
 			}
 			writer.flush();

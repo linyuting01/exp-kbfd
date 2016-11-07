@@ -804,7 +804,7 @@ public class GfdTree implements Serializable {
 	 // if(!t.extendDfss.contains(dfs)){
 	 
 		  if(!t.extendDfss.contains(dfs) && !dfs.fLabel.equals(dfs.tLabel)){
-		    log.debug("extend dfs : " + dfs);
+		   // log.debug("extend dfs : " + dfs);
 	        t.extendDfss.add(dfs);
 		    //log.debug(dfs.toString());
 			GfdNode g = new GfdNode();
@@ -823,7 +823,7 @@ public class GfdTree implements Serializable {
 			g.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>(t.nodeSet);
 			g.nodeNum = t.nodeNum;
 			if(!g.nodeSet.containsKey(e1)){
-				log.debug("add nodeSet");
+				//log.debug("add nodeSet");
 				int attr1 = e1.x;
 			
 					VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
@@ -845,7 +845,7 @@ public class GfdTree implements Serializable {
 			
 			int fId = g.nodeSet.get(e1);
 			int tId = g.nodeSet.get(e2);
-			log.debug(dfs.toString()+"\t" +fId +"\t" +tId +"\n");
+			//log.debug(dfs.toString()+"\t" +fId +"\t" +tId +"\n");
 			if(g.getPattern().contains(fId, tId)){
 				TypedEdge e = g.getPattern().getEdge(fId, tId);
 				e.setAttr(dfs.eLabel);

@@ -84,7 +84,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	private String workerID;
 
 	/** Coordinator Proxy object to interact with Master. */
-	private Worker2Coordinator coordinatorProxy ;
+	private Worker2Coordinator coordinatorProxy;
 
 	/** VertexID 2 PartitionID Map */
 	// private Map<Integer, Integer> mapVertexIdToPartitionId;
@@ -101,7 +101,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	/** PartitionID to Outgoing Results Map. */
 	private Map<Integer, Result> partialResults;
 
-	/** partitionId to Previous Incoming messages - Used in current Super Step. */
+	/**
+	 * partitionId to Previous Incoming messages - Used in current Super Step.
+	 */
 	private Map<Integer, List<Message<?>>> previousIncomingMessages;
 
 	/** partitionId to Current Incoming messages - used in next Super Step. */
@@ -117,7 +119,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * Workers and to Master. It is set to true when a Worker is sending
 	 * messages to other Workers.
 	 */
-	private boolean stopSendingMessage = true;;
+	private boolean stopSendingMessage;
 
 	private boolean flagLastStep = true;
 
@@ -126,34 +128,37 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 	/** These are for GFD project **/
 	private int holdingPartitionID = 0;
-	
+
 	private ParDisWorkUnit localComputeTask = new ParDisWorkUnit();
 
 	private boolean flagSetWorkUnit = true;
-	
-	
-	
-	//public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
-	
-	  // here String denotes the pattern string P previous, N id the extended 
-	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
-	  //the ith layer , now ;
-	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
-	  
-	  
-	 //public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
-	  
-	  //public GfdMsg gfdMsg = new GfdMsg();
-	  
-	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
-	  
-	// public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
-	  
-	  //IntSet borderNodes = new IntOpenHashSet();
-	  
-	  //the ith layer , now ;
-	 // HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 
+	public boolean processMessage;
+
+	// public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
+
+	// here String denotes the pattern string P previous, N id the extended
+	// public HashMap<String, List<Int2IntMap> > patternNodeMatchesP = new
+	// HashMap<String, List<Int2IntMap>>();
+	// the ith layer , now ;
+	// public HashMap<String, List<Int2IntMap> > patternNodeMatchesN = new
+	// HashMap<String, List<Int2IntMap>>();
+
+	// public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch
+	// = new HashMap<String, List<Pair<Integer,Integer>>>();
+
+	// public GfdMsg gfdMsg = new GfdMsg();
+
+	// HashMap<String,List<Int2IntMap>> boderMatch = new
+	// HashMap<String,List<Int2IntMap>> ();
+
+	// public HashMap<String,IntSet> pivotPMatch = new HashMap<String,IntSet>();
+
+	// IntSet borderNodes = new IntOpenHashSet();
+
+	// the ith layer , now ;
+	// HashMap<String, List<Int2IntMap> > patternNodeMatchesN = new
+	// HashMap<String, List<Int2IntMap>>();
 
 	static Logger log = LogManager.getLogger(ParDisWorker.class);
 
@@ -186,13 +191,14 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.outgoingMessages = new HashMap<String, List<Message<?>>>();
 		this.numThreads = 1;
 		this.stopSendingMessage = false;
-		//this.coordinatorProxy = new ParDisWorkerProxy();
+		this.processMessage = false;
+		// this.coordinatorProxy = new ParDisWorkerProxy();
 		/////////////////////////////////////////////////////
-		//this.localComputeTask.
-		//this.currentLocalComputeTaskQueue.add(localComputeTask);
+		// this.localComputeTask.
+		// this.currentLocalComputeTaskQueue.add(localComputeTask);
 
-		//this.mapBorderVertex2Ball = new Int2ObjectOpenHashMap<Ball>();
-		//this.mapBorderVertex2BallSize = new Int2IntOpenHashMap();
+		// this.mapBorderVertex2Ball = new Int2ObjectOpenHashMap<Ball>();
+		// this.mapBorderVertex2BallSize = new Int2IntOpenHashMap();
 
 		for (int i = 0; i < numThreads; i++) {
 			log.debug("Starting syncThread " + (i + 1));
@@ -219,15 +225,15 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	@Override
 	public void addPartitionID(int partitionID) throws RemoteException {
 		String filename = KV.GRAPH_FILE_PATH + ".p" + partitionID;
-		String crossingEdges =  KV.GRAPH_FILE_PATH + ".cross.fulfil";
+		String crossingEdges = KV.GRAPH_FILE_PATH + ".cross.fulfil";
 		Partition partition = new Partition(partitionID);
 		partition.loadPartitionDataFromEVFile(filename.trim());
-	
+
 		Params.GRAPHNODENUM = partition.getGraph().vertexSize();
 		partition.addCrossingEdges(crossingEdges.trim());
-		
-		log.debug("nodeNUm"+Params.GRAPHNODENUM);
-		//partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
+
+		log.debug("nodeNUm" + Params.GRAPHNODENUM);
+		// partition.loadBorderVerticesFromFile(KV.GRAPH_FILE_PATH);
 		this.partitions.put(partitionID, partition);
 		totalPartitionsAssigned = 1;
 		this.holdingPartitionID = partitionID;
@@ -258,6 +264,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	/**
 	 * The Class SyncWorkerThread.
 	 */
+	//int flag = -1;
 	private class WorkerThread extends Thread {
 
 		@Override
@@ -268,125 +275,179 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
-				
-				
+
 				while (flagLocalCompute) {
-					partitionMsg.clear();
-					flagLocalCompute = false; 
-					partialResults.clear();
-					
+
+					log.debug(this + "superstep loop start for superstep " + superstep);
+
 					try {
+						LocalComputeTask localComputeTask = currentLocalComputeTaskQueue.take();
+
+						Partition workingPartition = partitions.get(localComputeTask.getPartitionID());
+
+						if (superstep == 0) {
+
+							localComputeTask.compute2(workingPartition);
+
+						} else {
+							log.debug("processMessage" + processMessage);
+
+							if (!processMessage) {
+
+								/** not begin step. incremental compute */
+								int  flag = localComputeTask.incrementalCompute(workingPartition);
+								log.debug("flag = " + flag);
+
+								if (flag == 2 || flag == 3) {
+									log.debug("flag == " + flag);
+
+									processMessage = true;
+
+									updateOutgoingMessages(localComputeTask.getMessages());
+									// recieveMessage = true;
+
+								}
+								
+							} else {
+								  // while(currentMessageCount != Params.N_PROCESSORS-1){
+									   //log.debug("wait for receving message");
+								   //}
+							
+							    	currentMessageCount = 0;
+									processMessage = false;
+									List<Message<?>> messageForWorkingPartition = previousIncomingMessages
+											.get(localComputeTask.getPartitionID());
+	                                
+	                               
+	                                	log.debug("has received message, negin process!");
+	                                	localComputeTask.incrementalCompute(workingPartition, messageForWorkingPartition);
+
+								}
+							}
+
 						
 
-						log.debug(this + "superstep loop start for superstep " + superstep);
-						Partition workingPartition = partitions.get(holdingPartitionID);
-						
-						if(superstep == 0){
-							localComputeTask.init(holdingPartitionID);
-							//localComputeTask.compute(workingPartition);
-							localComputeTask.compute2(workingPartition);
-							partialResults.put(localComputeTask.getPartitionID(),
-									localComputeTask.getPartialResult());
-						//nextLocalComputeTasksQueue.add(localComputeTask);
-						log.debug("send suppreslut in superStep"  + superstep);
-						checkAndSendPartialResult();
+						if (!processMessage) {
+							partialResults.put(localComputeTask.getPartitionID(), localComputeTask.getPartialResult());
 						}
-						else{
-							
-							
-							    /** not begin step. incremental compute */
-								int flag = localComputeTask.incrementalCompute(workingPartition);
-								if(flag == 0||flag ==1){
-									partialResults.put(localComputeTask.getPartitionID(),
-											localComputeTask.getPartialResult());
-								//nextLocalComputeTasksQueue.add(localComputeTask);
-								log.debug("send suppreslut in superStep"  + superstep);
-								checkAndSendPartialResult();
-								}
-								if(flag == 2){
-									
-									if(localComputeTask.getMessages() != null){
-										updateOutgoingMessages(localComputeTask.getMessages());
-										
-										
-										
-									    //checkAndSendMessage();
-									}
-								}
-									
-								
-							}
-						
-							
-						
-					
-					
-				}catch (Exception e) {
-					e.printStackTrace();
+
+						localComputeTask.prepareForNextCompute();
+
+						nextLocalComputeTasksQueue.add(localComputeTask);
+
+						checkAndSendMessage();
+						//localComputeCompleted
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			 }
 			}
 		}
 
 	}
+	int currentMessageCount = 0;
 
+	// boolean recieveMessage = false;
+	@Override
+	public void receiveMessage(List<Message<?>> incomingMessages) throws RemoteException {
+		log.debug("begin receive message from workers");
+		Stat.getInstance().w2wcommunicationData += RamUsageEstimator.sizeOf(incomingMessages);
+		currentMessageCount++;
+		/** partitionID to message list */
+		List<Message<?>> partitionMessages = null;
+
+		int partitionID = -1;
+
+		for (Message<?> message : incomingMessages) {
+			partitionID = message.getDestinationPartitionID();
+			int oId = message.getSourcePartitionID();
+			//currentMessageCount++;
+			if (currentIncomingMessages.containsKey(partitionID)) {
+				currentIncomingMessages.get(partitionID).add(message);
+			} else {
+				partitionMessages = new ArrayList<Message<?>>();
+				partitionMessages.add(message);
+				currentIncomingMessages.put(partitionID, partitionMessages);
+			}
+		}
+		log.debug("end  receive message , and has receive" + currentMessageCount +"messages" );
+		if (currentMessageCount == Params.N_PROCESSORS - 1) {
+		    
+			//flagLocalCompute = true;
+			//currentMessageCount = 0;
+			log.debug("end receive mesage form all workers");
+		
+		}
+		
 	
-	private synchronized void checkAndSendPartialResult() {
-		
-		//log.debug("send partital result to coordinator for assemble");
-		try {
-			//log.debug("patilResult size"+ partialResults.size());
-			coordinatorProxy.sendPartialResult(workerID, partialResults);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		
-		boolean activeWorkerSet  = true;
-		if(partialResults.isEmpty()){
-			activeWorkerSet = false;
-		}
-		
-		try {
-			coordinatorProxy.localComputeCompleted(workerID, activeWorkerSet);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+
 	}
-		
+
 
 	private synchronized void checkAndSendMessage() {
-		/**
-		 * Check and send message. Notice: this is a critical code area, which
-		 * should put outside of the thread code.
-		 * 
-		 * @throws RemoteException
-		 */
 
 		log.debug("synchronized checkAndSendMessage!");
 
-		//log.debug("nextQueueSize:" + nextLocalComputeTasksQueue.size() + " == partitionAssigned:"
-				//+ totalPartitionsAssigned);
-		if ((!stopSendingMessage) ) {
+		log.debug("nextQueueSize:" + nextLocalComputeTasksQueue.size() + " == partitionAssigned:"
+				+ totalPartitionsAssigned);
+		if (!stopSendingMessage) {
 			log.debug("sendMessage!");
 
-			   stopSendingMessage = true;
+			stopSendingMessage = true;
+			flagLocalCompute = false;
 
-				log.debug(" Worker: Superstep " + superstep + " pattern checking :begin send infomation .");
+			log.debug("processMessage = " + processMessage);
 
-				flagLocalCompute = false;
-                 
+			if (!processMessage) {
+				try {
+					coordinatorProxy.sendPartialResult(workerID, partialResults);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+
+				log.info("send partial result done!");
+			}
+
+			else {
+
+				log.debug(" Worker: Superstep " + superstep + " completed begin send infomation .");
+
 				for (Entry<String, List<Message<?>>> entry : outgoingMessages.entrySet()) {
 					try {
-						log.info("+++++try to send message to " + entry.getKey() + ", message = "
-								+ entry.getValue());
+						log.info("+++++try to send message to " + entry.getKey() + ", message ");
 						worker2WorkerProxy.sendMessage(entry.getKey(), entry.getValue());
 					} catch (RemoteException e) {
-						System.out.println("Can't send message to Worker " + entry.getKey()
-								+ " which is down");
+						System.out.println("Can't send message to Worker " + entry.getKey() + " which is down");
 						e.printStackTrace();
 					}
 				}
+				
+				log.info("sent all the message to workers.");
+
+				// This worker will be active only if it has some messages
+				// queued up in the next superstep.
+				// activeWorkerSet will have all the workers who will be
+				// active
+				// in the next superstep.
+				Set<String> activeWorkerSet = new HashSet<String>();
+				activeWorkerSet.addAll(outgoingMessages.keySet());
+				activeWorkerSet.add(workerID);
+				//if (currentIncomingMessages.size() > 0) {
+					
+				//}
+				// Send a message to the Master saying that this superstep
+				// has
+				// been completed.
+				try {
+					coordinatorProxy.localComputeCompleted(workerID, activeWorkerSet);
+					
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+
 		}
+
 	}
 
 	/**
@@ -411,7 +472,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		this.mapPartitionIdToWorkerId.clear();
 		// this.currentPartitionQueue.clear();
 		this.previousIncomingMessages.clear();
-		this.stopSendingMessage = false;
+		//this.stopSendingMessage = false;
 		this.flagLocalCompute = false;
 		this.totalPartitionsAssigned = 0;
 	}
@@ -422,7 +483,7 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * @param messagesFromCompute
 	 *            Represents the map of destination vertex and its associated
 	 *            message to be send
-	 * @throws RemoteException 
+	 * @throws RemoteException
 	 */
 	private void updateOutgoingMessages(List<Message<?>> messagesFromCompute) throws RemoteException {
 		log.debug("updateOutgoingMessages.size = " + messagesFromCompute.size());
@@ -433,21 +494,19 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 		for (Message<?> message : messagesFromCompute) {
 
+			//log.debug(message.toString());
 			partitionID = message.getDestinationPartitionID();
 			workerID = mapPartitionIdToWorkerId.get(partitionID);
 
-				if (outgoingMessages.containsKey(workerID)) {
-					outgoingMessages.get(workerID).add(message);
-				} else {
-					workerMessages = new ArrayList<Message<?>>();
-					workerMessages.add(message);
-					outgoingMessages.put(workerID, workerMessages);
-				}
+			if (outgoingMessages.containsKey(workerID)) {
+				outgoingMessages.get(workerID).add(message);
+			} else {
+				workerMessages = new ArrayList<Message<?>>();
+				workerMessages.add(message);
+				outgoingMessages.put(workerID, workerMessages);
 			}
-		
-		coordinatorProxy.sendSyn(workerID);
-		
-		
+		}
+
 	}
 
 	/**
@@ -464,10 +523,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * @throws RemoteException
 	 */
 	@Override
-	public void setWorkerPartitionInfo(int totalPartitionsAssigned,
-			Map<Integer, Integer> mapVertexIdToPartitionId,
+	public void setWorkerPartitionInfo(int totalPartitionsAssigned, Map<Integer, Integer> mapVertexIdToPartitionId,
 			Map<Integer, String> mapPartitionIdToWorkerId, Map<String, Worker> mapWorkerIdToWorker)
-			throws RemoteException {
+					throws RemoteException {
 		this.totalPartitionsAssigned = totalPartitionsAssigned;
 		this.mapPartitionIdToWorkerId = mapPartitionIdToWorkerId;
 		this.worker2WorkerProxy = new Worker2WorkerProxy(mapWorkerIdToWorker);
@@ -505,8 +563,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 			String masterURL = "//" + coordinatorMachineName + "/" + KV.COORDINATOR_SERVICE_NAME;
 			Worker2Coordinator worker2Coordinator = (Worker2Coordinator) Naming.lookup(masterURL);
 			Worker worker = new ParDisWorker();
-			Worker2Coordinator coordinatorProxy = worker2Coordinator.register(worker,
-					worker.getWorkerID(), worker.getNumThreads());
+			Worker2Coordinator coordinatorProxy = worker2Coordinator.register(worker, worker.getWorkerID(),
+					worker.getNumThreads());
 
 			worker.setCoordinatorProxy(coordinatorProxy);
 			log.info("Worker is bound and ready for computations ");
@@ -535,44 +593,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 * @throws RemoteException
 	 *             the remote exception
 	 */
+
 	
-	IntSet partitionMsg = new IntOpenHashSet();
-	@Override
-	public void receiveMessage(List<Message<?>> incomingMessages) throws RemoteException {
-        log.debug("receive message from workers");
-		Stat.getInstance().w2wcommunicationData += RamUsageEstimator.sizeOf(incomingMessages);
-
-		/** partitionID to message list */
-		List<Message<?>> partitionMessages = null;
-
-		int partitionID = -1;
-
-		for (Message<?> message : incomingMessages) {
-			partitionID = message.getDestinationPartitionID();
-			int oId = message.getSourcePartitionID();
-			partitionMsg.add(oId);
-			if (currentIncomingMessages.containsKey(partitionID)) {
-				currentIncomingMessages.get(partitionID).add(message);
-			} else {
-				partitionMessages = new ArrayList<Message<?>>();
-				partitionMessages.add(message);
-				currentIncomingMessages.put(partitionID, partitionMessages);
-			}
-		}
-		if(partitionMsg.size() == Params.N_PROCESSORS -1){
-			List<Message<?>> messageForWorkingPartition = currentIncomingMessages
-					.get(localComputeTask.getPartitionID());
-			log.debug("receive message,then compute");
-			localComputeTask.incrementalCompute( partitions.get(holdingPartitionID),
-					messageForWorkingPartition);
-			partialResults.put(localComputeTask.getPartitionID(),
-					localComputeTask.getPartialResult());
-		//nextLocalComputeTasksQueue.add(localComputeTask);
-		    log.debug("send suppreslut in superStep"  + superstep);
-	    	checkAndSendPartialResult();
-		}
-	}
-
 	/**
 	 * Receives the messages sent by all the vertices in the same node and
 	 * updates the current incoming message queue.
@@ -608,31 +630,29 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		/**
 		 * Next local compute. No generated new local compute tasks. Transit
 		 * compute task and status from the last step.
-		 * */
+		 */
 
 		this.superstep = superstep;
-
+		
+		flagLocalCompute = true;
+		
+		// flagLocalCompute = true;
+		// processMessage = false;
 		// Put all elements in current incoming queue to previous incoming queue
 		// and clear the current incoming queue.
 		this.previousIncomingMessages.clear();
 		this.previousIncomingMessages.putAll(this.currentIncomingMessages);
 		this.currentIncomingMessages.clear();
 
-		//this.stopSendingMessage = false;
-		this.flagLocalCompute = true;
-		//if(flagSetWorkUnit == true){
-			//this.flagLocalCompute = true;
-		//}
-
 		this.outgoingMessages.clear();
+		stopSendingMessage = false;
 
 		// Put all local compute tasks in current task queue.
 		// clear the completed partitions.
 		// Note: To avoid concurrency issues, it is very important that
 		// completed partitions is cleared before the Worker threads start to
 		// operate on the partition queue in the next super step
-		BlockingQueue<LocalComputeTask> temp = new LinkedBlockingDeque<LocalComputeTask>(
-				nextLocalComputeTasksQueue);
+		BlockingQueue<LocalComputeTask> temp = new LinkedBlockingDeque<LocalComputeTask>(nextLocalComputeTasksQueue);
 		this.nextLocalComputeTasksQueue.clear();
 		this.currentLocalComputeTaskQueue.addAll(temp);
 
@@ -640,12 +660,11 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 	@Override
 	public void processPartialResult() throws RemoteException {
-		BlockingQueue<LocalComputeTask> temp = new LinkedBlockingDeque<LocalComputeTask>(
-				nextLocalComputeTasksQueue);
+		BlockingQueue<LocalComputeTask> temp = new LinkedBlockingDeque<LocalComputeTask>(nextLocalComputeTasksQueue);
 		this.nextLocalComputeTasksQueue.clear();
 		this.currentLocalComputeTaskQueue.addAll(temp);
 
-		//this.flagLastStep = true;
+		// this.flagLastStep = true;
 		this.stopSendingMessage = false;
 
 	}
@@ -665,18 +684,16 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 		throw new IllegalArgumentException("this mothod doesn't support in synchronised model.");
 	}
 
-	
-	
 	@Override
 	public void addPartitionList(List<Partition> workerPartitions) throws RemoteException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void addPartitionIDList(List<Integer> workerPartitionIDs) throws RemoteException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -686,45 +703,38 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	}
 
 	@Override
-	public void setWorkUnits(Set<WorkUnit> workload)throws RemoteException {
-		
-         
-		log.info("Get " + workload.size() + " work units from coordinator ");
-       // log.debug("this.partitions's size" + this.partitions.size());
+	public void setWorkUnits(Set<WorkUnit> workload) throws RemoteException {
+
+		log.info("superstrp " + superstep+ "Get " + workload.size() + " work units from coordinator ");
+		// log.debug("this.partitions's size" + this.partitions.size());
 		for (Entry<Integer, Partition> entry : this.partitions.entrySet()) {
 
 			try {
+				log.debug(localComputeTask.patternNodeMatchesN.size());
+				log.debug(localComputeTask.patternNodeMatchesP.size());
 				localComputeTask.workload.clear();
-				
-				localComputeTask.init(entry.getKey());	
+
+				localComputeTask.init(entry.getKey());
 				localComputeTask.setWorkUnits(workload);
-				if(!localComputeTask.patternNodeMatchesN.isEmpty()){
+				
+				if (!localComputeTask.patternNodeMatchesN.isEmpty()) {
 					localComputeTask.patternNodeMatchesP.clear();
-					localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(localComputeTask.patternNodeMatchesN);
-					// add fetch
-					//localComputeTask.setPrefetchQuest(prefetchRequests);
-					//localComputeTask.setMapBorderVertex2Ball(mapBorderVertex2Ball);
+					localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(
+							localComputeTask.patternNodeMatchesN);
 					localComputeTask.patternNodeMatchesN.clear();
 					log.debug(localComputeTask.patternNodeMatchesP.size());
 				}
 				localComputeTask.pivotPMatch1.clear();
+				localComputeTask.satCId1.clear();
+				localComputeTask.pivotMatchGfd1.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
-				this.flagSetWorkUnit = true;
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		//this.flagLocalCompute = true;
-		
-		
-	}
+		// flagLocalCompute = true;
+		// this.flagLocalCompute = true;
 
-	@Override
-	public void synprocess()throws RemoteException {
-		// TODO Auto-generated method stub
-		stopSendingMessage = false;
-		checkAndSendMessage();
 	}
-	
 }

@@ -60,11 +60,11 @@ public class VertexString implements Vertex, Serializable {
 	}
 
 	@Override
-	public String toString() {
-		return "VertexStringL [ID=" + ID + ", attr=" + attr + "]";
-	}
+	//public String toString() {
+		//return "VertexStringL [ID=" + ID + ", attr=" + attr + "]";
+	//}
 	
-	public String tofile(){
+	public String toString(){
 		return "v\t"+ ID+"\t"+attr+"\n";
 	}
 

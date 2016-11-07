@@ -41,7 +41,7 @@ public class SuppResult extends Result implements Serializable {
 	
 	public Int2ObjectMap<IntSet> pivotMatchP;
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> pivotMatchGfd;
-	public Int2ObjectMap<Int2BooleanMap> satCId;
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> satCId;
 	//public Int2ObjectMap<Int2ObjectMap<IntSet>> varDom ;
 	//public Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom;
 	
@@ -66,13 +66,8 @@ public class SuppResult extends Result implements Serializable {
 	public SuppResult(){
 		    this.edgeCands = new HashSet<DFS>();
 			this.pivotMatchP = new Int2ObjectOpenHashMap<IntSet>();
-			//this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-			//this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
-		
 			this.pivotMatchGfd = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
-			this.satCId = new Int2ObjectOpenHashMap<Int2BooleanMap>();
-			//this.varDom = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-			//this.literDom = new Int2ObjectOpenHashMap<Int2ObjectMap<Set<String>>>();
+			this.satCId = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 			this.isoResult = new Int2ObjectOpenHashMap<IntSet>();
 			this.patternMatchesNum = new Int2IntOpenHashMap();
 			
@@ -111,11 +106,50 @@ public class SuppResult extends Result implements Serializable {
 		this.pivotMatchP = pivotPMatch;
 	}
 	
+	public String toString(){
+		
+		String s1 = " boolean extendPattern =" + extendPattern+"\n";
+		s1+= " boolean checkGfd =" + checkGfd+"\n";
+
+		 s1+=   " boolean isIsoCheck =" + isIsoCheck+"\n";
+		 s1+=   " boolean isFirst =" + isFirst+"\n";
+		 s1+=   " boolean isFirst =" + isFirst+"\n";
+	
+		 s1+= " boolean matchsize =" + matchsize+"\n";
+		 if(extendPattern){
+			 
+				for(Entry<Integer, IntSet> entry:pivotMatchP.entrySet()){
+					s1+= "pId= "+ entry.getKey() + "\t" + "matches size" +entry.getValue().size() +"\n";
+					
+				}
+				
+		 }
+		 if(checkGfd){
+			 for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pivotMatchGfd.entrySet()){
+					int pId = entry.getKey();
+					for(Entry<Integer,IntSet> entry2 : pivotMatchGfd.get(pId).entrySet()){
+						int cId = entry2.getKey();
+						s1+= "pId= "+ pId + "\t" + "cId = "+  cId +"matches size" +entry2.getValue().size() +
+								"sat info" + satCId.get(pId).get(cId)+"\n";
+					}
+			 }
+			 
+		 }
+		 if(isIsoCheck){
+			 for(Entry<Integer,IntSet> entry : isoResult.entrySet()){
+				 s1+= "pattern pId = " +entry.getKey() + "isomorphism to " + entry.getValue().toString();
+			 }
+		 }
+		 
+		return s1;
+		
+	}
+	
 
 
 
 	public SuppResult(Int2ObjectMap<Int2ObjectMap<IntSet>>pivotMatchGfd2,
-			Int2ObjectMap<Int2BooleanMap>  satCId2) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>>  satCId2) {
 		this.pivotMatchGfd = pivotMatchGfd2;
 		this.satCId = satCId2;
 		
@@ -189,36 +223,40 @@ public class SuppResult extends Result implements Serializable {
 						this.pivotMatchGfd.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 					}
 					if(!this.satCId.containsKey(pId)){
-						this.satCId.put(pId, new Int2BooleanOpenHashMap());	
+						this.satCId.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 					}
 					for(Entry<Integer,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
 						int cId = entry2.getKey();
 					    if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
 					    	this.pivotMatchGfd.get(pId).put(cId, new IntOpenHashSet());
 					    }
-					    else{
-					    	this.pivotMatchGfd.get(pId).get(cId).addAll(entry2.getValue());
-					    }
-					    
+					    this.pivotMatchGfd.get(pId).get(cId).addAll(entry2.getValue());
+					}
+					for(Entry<Integer,IntSet> entry2 :pr.satCId.get(pId).entrySet()){
+						int cId = entry2.getKey();
+						 
 					    if(!this.satCId.get(pId).containsKey(cId)){
-							this.satCId.get(pId).put(cId, true);
+							this.satCId.get(pId).put(cId,  new IntOpenHashSet());
 						}
-					    if(pr.satCId.get(pId).get(cId) == false){
-							this.satCId.get(pId).put(cId, false);
-					    }
+					    this.satCId.get(pId).get(cId).addAll(entry2.getValue());
+					    
+					}
+					 
+					  
+					    
+					   
 					}
 					
 					
 				}
 			
-			}
-				
-		}	
+	
 		if(this.isIsoCheck){
 			Int2ObjectMap<IntSet> a = new Int2ObjectOpenHashMap<IntSet>(this.isoResult);
 			this.isoResult = Fuc.getIsoResult(a);
-			
 		}
+			
+	}
 	
 			
 	}

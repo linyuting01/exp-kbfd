@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.DFS;
+import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.graph.structure.adaptor.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -73,6 +74,12 @@ public class Fuc {
 				result.add(a);
 			}
 			return resultx;
+		}
+		public static WorkUnit getRandomWorkUnit(Set<WorkUnit> workload){
+			for(WorkUnit w :workload ){
+				return w;
+			}
+			return null;
 		}
 		public static void main(String args[]) {
 			////Pair<Integer,Integer> a = new Pair<String,Integer> ("a",5);

@@ -22,6 +22,7 @@ import inf.ed.gfd.structure.GfdMsg;
 import inf.ed.gfd.structure.GfdNode;
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
+import inf.ed.gfd.structure.TransAttr;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.KV;
@@ -38,10 +39,12 @@ import inf.ed.isomorphism.VF2IsomorphismInspector;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -58,29 +61,29 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public Int2ObjectMap<IntSet> pivotPMatch1  = new Int2ObjectOpenHashMap<IntSet>();
 	public Int2ObjectMap<List<Int2IntMap> > patternNodeMatchesN =  new Int2ObjectOpenHashMap<List<Int2IntMap>>();
 	public Int2ObjectMap<List<Int2IntMap> > patternNodeMatchesP =  new Int2ObjectOpenHashMap<List<Int2IntMap>>();
-	
+	public Int2ObjectMap<List<Int2IntMap> > transPatternNodeMatches =  new Int2ObjectOpenHashMap<List<Int2IntMap>>();
 	Set<WorkUnit> workload = new HashSet<WorkUnit>();
 	HashMap<String,Boolean> transFlag = new HashMap<String,Boolean>();
-	Int2ObjectMap<Int2ObjectMap<List<Pair<Integer,Integer>>>> transferMatch =
-			new Int2ObjectOpenHashMap<Int2ObjectMap<List<Pair<Integer,Integer>>>>();
+	IntSet transAttrFlag  = new IntOpenHashSet();
+	Int2ObjectMap<List<Pair<Integer,Integer>>> transferMatch =
+			new Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>();
 	
 	public Int2ObjectMap<List<Pair<Integer,Integer>>> edgePatternNodeMatch1 = new Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>();
 	//SuppResult suppResult = new SuppResult();
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> pivotMatchGfd1 = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>() ;
-	public Int2ObjectMap<Int2BooleanMap> satCId1 = new Int2ObjectOpenHashMap<Int2BooleanMap>();
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> satCId1 = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 	
-	
+	public Int2ObjectMap<List<TransAttr>> kbAttr_Map = new Int2ObjectOpenHashMap<List<TransAttr>>();
 	
 	
 	public Map<DFS,Integer> dfs2Id = new HashMap<DFS,Integer>();
 	public Int2ObjectMap<DFS> id2Dfs = new Int2ObjectOpenHashMap<DFS>();
 	
-	//Set<IntSet> isoCheckResult = new HashSet<IntSet>();
+	public Int2ObjectMap<IntList> nodeAttr_Map = new Int2ObjectOpenHashMap<IntList>();
 	
-
-	//public boolean isGfdCheck;
+    public Int2ObjectMap<List<TransAttr>> transAttr_Map = new Int2ObjectOpenHashMap<List<TransAttr>>();
 	
-	Set<String> dom = new HashSet<String>();
+	Int2DoubleMap avgMatch = new Int2DoubleOpenHashMap();
 	
 	public ParDisWorkUnit() {
 		// TODO Auto-generated constructor stub
@@ -94,36 +97,48 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	
 
 	public int processWorkUnitAndGfdMsg(Partition partition){
-		pivotPMatch1.clear();
+		//pivotPMatch1.clear();
 		isoResult.clear();
 		int i = -1;
 		int size = workload.size();
 		int round = 1;
-		for( WorkUnit w: workload){
-				if(w.isGfdCheck){
-					log.debug("begin gfd check, the" + round +"round, total" + size +"round" );
-					checkGfd(w,partition);
-					//prepareResult(true);
-					
-					i = 0;
+		WorkUnit ws = Fuc.getRandomWorkUnit(workload);
+		if(ws.isAvg){
+			for( WorkUnit w: workload){
+				if(patternNodeMatchesP.containsKey(w.patternId)){
+					avgMatch.put(w.patternId, w.avg);
 				}
-				//if(w.isAvg){
-					//loadBalance(w.avgMatch);
-				//}
-				
-					if(w.isIsoCheck){
-						log.debug("begin iso checkthe" + round +"round, total" + size +"round");
-						checkIso(w);
-						i =1;
-					}
-					if(w.isPatternCheck){
-						log.debug("begin process gfdMsg the" + round +"round, total" + size +"round");
-						gfdMsgProcess(w,partition);
-						i=2;
-			
-				}
-					round++;
 			}
+			loadBalance();
+			log.debug("begin to balance pattern match");
+			sendBalanceMsg();
+			return 3;
+			
+			
+		}
+		if(ws.isGfdCheck){
+			i = 0;
+		}
+		if(ws.isIsoCheck){
+			i =1;
+		}
+		if(ws.isPatternCheck){
+			i=2;
+		}
+		
+		for( WorkUnit w: workload){
+			if(i == 0){
+				checkGfd(w,partition);
+			}
+			if(i == 1){
+				checkIso(w);
+			}
+			if(i == 2){
+			  gfdMsgProcess(w,partition);
+			}
+				
+		}
+		
 		
 		if(i==2){
 		//prepareResult(false);
@@ -131,30 +146,14 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				if(Params.N_PROCESSORS > 1){
 			
 					sendTransferData(partition.getPartitionID());
-					prepareResult(3);
+					//prepareResult(3);
 				}
 			}
 		//}
 		return i;
 	
 	}
-	
-	IntSet balancePId = new IntOpenHashSet();
-	private void loadBalance(Int2DoubleMap avgMatch) {
-		// TODO Auto-generated method stub
-		for(Entry<Integer, Double> entry : avgMatch.entrySet()){
-			int key = entry.getKey();
-			
-			if(matchNum.containsKey(key)){
-				double avg = entry.getValue();
-				int m = matchNum.get(key);
-				double skew = m/avg;
-				if(skew > Params.VAR_SKEW){
-					balancePId.add(key);
-				}
-			}
-		}
-	}
+
 	
 
 	Int2ObjectMap<IntSet> isoResult = new Int2ObjectOpenHashMap<IntSet>();
@@ -166,17 +165,21 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				for(Entry<Integer, VertexString> entryattr: w.isoPatterns.y.allVertices().entrySet()){
 					int attr2 = entryattr.getValue().getAttr();
 					if(attr1 == attr2){
+						log.debug("begin to check pattern isomorphism!");
+						
 						VF2IsomorphismInspector isomorphismChecker = new VF2IsomorphismInspector();
 						boolean flag =isomorphismChecker.isSubgraphIsomorphic( w.isoPatterns.x, 1, 
 								w.isoPatterns.y, entryattr.getKey());
+						log.debug("begin to verify pattens isomorphism and the result == " + flag);
 						if(flag){
 							 if(!isoResult.containsKey(w.isoIds.x)){
 							    	isoResult.put(w.isoIds.x, new IntOpenHashSet());
+							    	break;
 							    }
 							isoResult.get(w.isoIds.x).add(w.isoIds.y);
 							//update isoResult
 							//updateIsoResult(w.isoIds.x,w.isoIds.y);
-							break;
+							
 						}
 					}
 				}
@@ -237,25 +240,29 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 	public void gfdMsgProcess(WorkUnit w, Partition partition){
 		gfdMsg.clear();
+		if(w.edgeIds != null &&!w.edgeIds.isEmpty()){
 		for(Pair<Integer, Pair<Integer,Integer>> edges :w.edgeIds.values()){
 			   int id = edges.x;
 				if(!transFlag.containsKey(id)){
 					if(edgePatternNodeMatch1.containsKey(id)){
-						for(Pair<Integer,Integer> p : edgePatternNodeMatch1.get(id)){
-							 String val1 = partition.getGraph().allVertices().get(p.x).getValue();
-							 String val2 = partition.getGraph().allVertices().get(p.y).getValue();
-							 VertexOString f1 = new VertexOString(p.x,val1);
-							 VertexOString t1 = new VertexOString(p.y,val2);
-							 
-					         if(!gfdMsg.transferingEdgeMatch.containsKey(id)){
-					        	 gfdMsg.transferingEdgeMatch.put(id, new ArrayList<Pair<VertexOString,VertexOString>>());
-					         }
-					         gfdMsg.transferingEdgeMatch.get(id).add(new Pair<VertexOString,VertexOString>(f1,t1));
-						     gfdMsg.partitionId = partition.getPartitionID(); 
+						if(!gfdMsg.transferingEdgeMatch.containsKey(id)){
+				        	 gfdMsg.transferingEdgeMatch.put(id, edgePatternNodeMatch1.get(id));
+				         }
+						gfdMsg.partitionId = partition.getPartitionID();
+						for(Pair<Integer,Integer> p : edgePatternNodeMatch1.get(id)){    
+						 	if(!transAttrFlag.contains(p.x)){
+						 		transAttrFlag.add(p.x);
+						 		gfdMsg.transAttr_Map.put(p.x, kbAttr_Map.get(p.x));
+						 	}
+						 	if(!transAttrFlag.contains(p.y)){
+						 		transAttrFlag.add(p.y);
+						 		gfdMsg.transAttr_Map.put(p.y, kbAttr_Map.get(p.y));
+						 	}
 						}
 					}
 				}
 			}
+		}
 			
 		}
 		
@@ -267,42 +274,48 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		int pId = w.patternId;
 		int round =1;
 		if(patternNodeMatchesP.containsKey(pId)){
-			
+			if(!pivotMatchGfd1.containsKey(pId)){
+				pivotMatchGfd1.put(pId, new Int2ObjectOpenHashMap<IntSet>());
+				
+			}
+			if(!satCId1.containsKey(pId)){
+				satCId1.put(pId, new Int2ObjectOpenHashMap<IntSet>());	
+			}
 			for(Int2IntMap match : patternNodeMatchesP.get(pId)){
-				log.debug("pattern matchsize" + patternNodeMatchesP.get(pId).size() + "now the " +round);
+				//log.debug("pattern matchsize" + patternNodeMatchesP.get(pId).size() + "now the " +round);
 				round++;
 				Int2ObjectMap<Condition> conditions = w.conditions;
 				int round2 =1;
 				//log.debug("pattern match size" + patternNodeMatchesP.size());
 				for(Entry<Integer, Condition> entry : conditions.entrySet()){
-					log.debug("condition size "+ conditions.size() + "now the"+ round2);
+					//log.debug("condition size "+ conditions.size() + "now the"+ round2);
 					round2++;
 					int cId = entry.getKey();
 					Condition c = entry.getValue();
 			
-					if(!satCId1.containsKey(pId)){
-						satCId1.put(pId, new Int2BooleanOpenHashMap());	
-					}
+					
 					if(!satCId1.get(pId).containsKey(cId)){
-						satCId1.get(pId).put(cId, true);
+						satCId1.get(pId).put(cId, new IntOpenHashSet());
 					}
 					
 				
-					boolean flag = c.verify(match, partition.getGraph());
+					boolean flag = c.verifyX( match, kbAttr_Map);
 					if(flag){
-						if(!pivotMatchGfd1.containsKey(pId)){
-							pivotMatchGfd1.put(pId, new Int2ObjectOpenHashMap<IntSet>());
-							
-						}
-						if(!pivotMatchGfd1.get(pId).containsKey(cId)){
-							pivotMatchGfd1.get(pId).put(cId, new IntOpenHashSet());
-						}
-						pivotMatchGfd1.get(pId).get(cId).add(match.get(1));
-					}
-					else{
-						satCId1.get(pId).put(cId, false);
-					}
 					
+						boolean flag2 = c.verifyY(match, kbAttr_Map);
+						if(flag2){
+							if(!pivotMatchGfd1.get(pId).containsKey(cId)){
+								pivotMatchGfd1.get(pId).put(cId, new IntOpenHashSet());
+							}
+							pivotMatchGfd1.get(pId).get(cId).add(match.get(1));
+						}
+						else{
+							//not satisfy condition but satisfy x
+							satCId1.get(pId).get(cId).add(match.get(1));
+						}
+						
+					}
+				
 			}
 			}
 		}
@@ -312,28 +325,6 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		
 	}
 
-	/*
-	List<Int2IntMap> tmpt = new ArrayList<Int2IntMap>();
-	
-    if(Params.RUN_MODE == 2){
-    	
-    	//gfdMsg.pattermatches = getMatch()
-    	if(!balancePId.isEmpty()){
-			for(int pId:balancePId){
-				//int avg = 
-			}
-    	
-    }
-    }*/
-    
-
-	
-	
-		
-			
-
-	
-	
 	private void sendTransferData(int partitionId) {
 		log.debug(Params.N_PROCESSORS);
 			for (int targetPartitionID = 0; targetPartitionID < Params.N_PROCESSORS  
@@ -342,33 +333,96 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				Message<GfdMsg> nMsg = new Message<GfdMsg>(partitionId,
 						targetPartitionID, gfdMsg);
 				this.generatedMessages.add(nMsg);
-				log.debug(this.generatedMessages.size());
+				//log.debug(this.generatedMessages.size());
 			  }
 			}
 	}
 	
+
 	
-	public List<Int2IntMap> getMatch(int pId, int avg){
-		//Int2ObjectMap<List<Int2IntMap>> tmpt = new Int2ObjectOpenHashMap<List<Int2IntMap>>();
-		//if(!balancePId.isEmpty()){
-			//for(int pId:balancePId){
+	
+	
+	IntSet balancePId = new IntOpenHashSet();
+	private void loadBalance() {
+		balancePId.clear();
+		// TODO Auto-generated method stub
+		for(Entry<Integer, Double> entry : avgMatch.entrySet()){
+			int key = entry.getKey();
+			
+			if(matchNum.containsKey(key)){
+				double avg = entry.getValue();
+				int m = matchNum.get(key);
+				double skew = m/avg;
+				if(skew > Params.VAR_SKEW){
+					balancePId.add(key);
+				}
+			}
+		}
+	}	
+			
+
+	
+	
+	
+	
+	public Int2ObjectMap<List<Int2IntMap>> getMatch(GfdMsg gfdMsg){
+		Int2ObjectMap<List<Int2IntMap>> tmpt = new Int2ObjectOpenHashMap<List<Int2IntMap>>();
+		if(!balancePId.isEmpty()){
+			for(int pId:balancePId){
 				int i = 1;
 				List<Int2IntMap> tmptm = new ArrayList<Int2IntMap>();
 				Iterator<Int2IntMap> it = patternNodeMatchesP.get(pId).iterator();
+				int size = matchNum.get(pId);
+				int avg = size/Params.N_PROCESSORS;
 				  while(it.hasNext() && i<avg) {
 					  Int2IntMap a =  it.next();
     					tmptm.add(a);
     					i++;
     					it.remove();
+    					for(int node :a.values()){
+    						if(!transAttrFlag.contains(node)){
+						 		transAttrFlag.add(node);
+						 		  gfdMsg.transAttr_Map.put(node, kbAttr_Map.get(node));
+						 	}
+    					}
     				}
-    				 
-    				//tmpt.put(pId, tmptm);
-    				
-    				//break;
-    			//}
-			//}
-		
-		return tmptm;
+    			tmpt.put(pId, tmptm);
+			}
+		}
+		return tmpt;
+	}
+	
+	private void sendBalanceMsg(){
+		//gfdMsg.clear();
+		//transAttr_Map.clear();
+		//loadBalance();
+		for (int targetPartitionID = 0; targetPartitionID < Params.N_PROCESSORS  
+				; targetPartitionID++) {
+		  if(targetPartitionID!= partitionId ){
+			  GfdMsg gm = new GfdMsg();
+			  gm.patternmatches =  getMatch(gm);
+			  Message<GfdMsg> nMsg = new Message<GfdMsg>(partitionId,
+					targetPartitionID, gm);
+			 this.generatedMessages.add(nMsg);
+			//log.debug(this.generatedMessages.size());
+		  }
+	}
+	}
+	
+	private void receiveBalancedMsg(Partition partition,  List<Message<?>> incomingMessages){
+		if (incomingMessages != null) {
+			for (Message<?> recvMsg : incomingMessages) {
+				GfdMsg msg = (GfdMsg)recvMsg.getContent();
+				for(Entry<Integer,List<Int2IntMap> >entry :msg.patternmatches.entrySet()){
+					int pId = entry.getKey();
+					if(!patternNodeMatchesP.containsKey(pId)){
+						patternNodeMatchesP.put(pId, new ArrayList<Int2IntMap>());
+					}
+					patternNodeMatchesP.get(pId).addAll(entry.getValue());
+				
+			}
+			}
+		}
 	}
 
 	private void receiveTransferedData(Partition partition,  List<Message<?>> incomingMessages) {
@@ -390,29 +444,24 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	 */
 	public void processMsg(Message<?> recvMsg,Partition partition){
 		GfdMsg recvContent = (GfdMsg) recvMsg.getContent();
-		for(Entry<Integer, List<Pair<VertexOString,VertexOString>>> entry: 
+		for(Entry<Integer, List<Pair<Integer,Integer>>> entry: 
 			recvContent.transferingEdgeMatch.entrySet()){
-			for(Pair<VertexOString,VertexOString> pair : entry.getValue()){
-				if(!partition.getGraph().contains(pair.x.getID())){
-					partition.getGraph().addVertex(pair.x);
-				}
-				if(!partition.getGraph().contains(pair.y.getID())){
-					partition.getGraph().addVertex(pair.y);
-				}
-				if(!transferMatch.containsKey(entry.getKey())){
-					transferMatch.put(recvContent.partitionId, 
-							new Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>());
-				}
-				if(!transferMatch.get(recvContent.partitionId).containsKey(entry.getKey())){
-					transferMatch.get(recvContent.partitionId).put(entry.getKey(), 
-							new ArrayList<Pair<Integer,Integer>>());
-				}
-				transferMatch.get(recvContent.partitionId).get(
-						entry.getKey()).add(new Pair<Integer,Integer>(pair.x.getID(), pair.y.getID()));
-				
+			int edgeId = entry.getKey();
+			if(!transferMatch.containsKey(edgeId)){
+				transferMatch.put(edgeId,new ArrayList<Pair<Integer,Integer>>());
 			}
+			transferMatch.get(edgeId).addAll(entry.getValue());
+		}
+		for(Entry<Integer, List<TransAttr>> entry: 
+			recvContent.transAttr_Map.entrySet()){
+			int nodeId = entry.getKey();
+			if(!kbAttr_Map.containsKey(nodeId)){
+				kbAttr_Map.put(nodeId,entry.getValue());
+			}
+			
 		}
 	}
+	
 
 
 	@Override
@@ -472,6 +521,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		//log.debug(partition.getPartitionID());
 		
 			//generate edge patterns.
+		/*
 			EdgePattern eP = new EdgePattern();
 			
 			Set<DFS> edgePattern = eP.edges(partition.getGraph());
@@ -481,7 +531,12 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			//log.debug(edgePattern.size());
 		    SuppResult w = (SuppResult)this.generatedResult;
 		    w.edgeCands = edgePattern;
-		    w.isFirst = true;
+		    w.extendPattern = true;*/
+		for(WorkUnit w : workload){
+			checkGfd(w,partition);
+		}
+		prepareResult(0);
+		
 	}
 	
 	Int2IntMap matchNum = new Int2IntOpenHashMap();
@@ -490,12 +545,15 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		EdgePattern eP = new EdgePattern();
 		for(WorkUnit w: workload){
 			//log.debug(w.id2Dfs.size());
-			id2Dfs = w.id2Dfs;
-			for(Entry<Integer,DFS> entry : id2Dfs.entrySet()){
-				dfs2Id.put(entry.getValue(), entry.getKey());
+			dfs2Id= w.dfs2Ids;
+			nodeAttr_Map = w.nodeAttr_Map;
+			for(Entry<DFS,Integer> entry : dfs2Id.entrySet()){
+				id2Dfs.put(entry.getValue(), entry.getKey());
 			}
 		}
-		 eP.edgePattern(partition.getGraph(), pivotPMatch1,edgePatternNodeMatch1,patternNodeMatchesN,dfs2Id,matchNum);
+		 eP.edgePattern(partition.getGraph(), pivotPMatch1,edgePatternNodeMatch1,
+				 patternNodeMatchesN,dfs2Id,matchNum,kbAttr_Map,nodeAttr_Map);
+		log.debug("pattern matches " +patternNodeMatchesN.size());
 		 SuppResult w = (SuppResult)this.generatedResult;
 		 w.extendPattern = true;
 		 w.pivotMatchP = pivotPMatch1;
@@ -506,16 +564,13 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 
 
-
+   int flag = -1;
 	@Override
 	public int incrementalCompute(Partition partition){
 		log.info("now incremental compute to verify  ");
-		pivotMatchGfd1.clear();
-		satCId1.clear();
-		pivotPMatch1.clear();
-		
-		int flag = processWorkUnitAndGfdMsg(partition);
-		log.debug("flag" + flag);
+	
+		flag = processWorkUnitAndGfdMsg(partition);
+		//log.debug("flag" + flag);
 		if(flag == 0){
 			prepareResult(0);
 		}
@@ -528,17 +583,31 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 
 	   // log.info("now incremental compute ");
-		 IncrePattern(partition,edgePatternNodeMatch1);
-		
-		if(Params.N_PROCESSORS > 1){
-			receiveTransferedData(partition,  incomingMessages);
-			for(Int2ObjectMap<List<Pair<Integer,Integer>>> edgeMatch: transferMatch.values()){
-				log.debug("Incremtnal pattern for comming message");
-				IncrePattern(partition,edgeMatch);
-			 }
-		} 
-		 prepareResult(2);
-	    }
+		if(flag == 2){
+	         log.debug("receive the edgematch mas, begin to check pattern");
+			 IncrePattern(partition,edgePatternNodeMatch1);
+			 
+			
+			if(Params.N_PROCESSORS > 1){
+				receiveTransferedData(partition,  incomingMessages);
+				IncrePattern(partition,transferMatch);
+				
+			} 
+			 prepareResult(2);
+		}
+		if(flag == 3){
+			log.debug("receive the balance msg begin to check gfd");
+			receiveBalancedMsg(partition,  incomingMessages);
+			for(WorkUnit w : workload){
+				checkGfd(w,partition);
+			}
+			 prepareResult(0);
+		}
+	
+
+			
+		}
+	    
 
 		
 	
@@ -550,6 +619,7 @@ private  void IncrePattern(Partition partition, Int2ObjectMap<List<Pair<Integer,
 	    //patternNodeMatchesP = (HashMap<String, List<Int2IntMap>>)patternNodeMatchesN.clone();
 	   // patternNodeMatchesN. clear();
 	    for(WorkUnit w: workload){
+	    	//log.debug(w.toString());
 		    	IncPattern( w, partition,edgePatternNodeMatch12);
 		    }
 			   
@@ -558,15 +628,18 @@ private  void IncrePattern(Partition partition, Int2ObjectMap<List<Pair<Integer,
 private void IncPattern(WorkUnit w, Partition partition, Int2ObjectMap<List<Pair<Integer, Integer>>> edgePatternNodeMatch12){
 	
 	int ppId = w.oriPatternId;
+	log.debug("prevous patter ID = " +ppId);
 	if(patternNodeMatchesP.containsKey(ppId)){
 		List<Int2IntMap> pmatches = patternNodeMatchesP.get(ppId);
-		
+		log.debug("pattern match size = "+ pmatches.size());
 		//for each match of previous pattern ppId
 		for(Int2IntMap match : pmatches){
 			//for each edge wait to added into ppId
 		    for(Entry<Integer,Pair<Integer,Pair<Integer,Integer>>> entry : w.edgeIds.entrySet()){
 		    	int pId = entry.getKey();
-		    	
+		    	if(!pivotPMatch1.containsKey(pId)){
+					pivotPMatch1.put(pId, new IntOpenHashSet());
+				}
 		    		int edgeId = entry.getValue().x;
 		    		Pair<Integer,Integer> pair = entry.getValue().y;
 		    		IncPatterMatchEdge(match,ppId,pId,edgeId, pair,partition,edgePatternNodeMatch12);
@@ -594,13 +667,15 @@ private void IncPattern(WorkUnit w, Partition partition, Int2ObjectMap<List<Pair
 						if(match.containsKey(tId)){// add AB AB is in ppId
 							Pair<Integer,Integer> p = new Pair<Integer,Integer>(match.get(fId),match.get(tId));
 							if(pairL.contains(p)){
+								//log.debug("find a match by two nodes ");
 									addMatch(match, pId, fId, tId, 0,0 );
 								
 							}
 						}
 						else{
 							for(Pair<Integer,Integer> p: pairL){
-								if(p.x == match.get(fId)){
+								if(p.x == match.get(fId) && !match.values().contains(p.y)){
+									//log.debug("find a match by fnodes");
 										addMatch(match, pId, fId, tId, 1,(int)p.y);
 									}
 									
@@ -612,7 +687,8 @@ private void IncPattern(WorkUnit w, Partition partition, Int2ObjectMap<List<Pair
 					
 					if(match.containsKey(tId)){
 						for(Pair<Integer,Integer> p: pairL){
-							if(p.y == match.get(tId)){
+							if(p.y == match.get(tId) && !match.values().contains(p.x)){
+								//log.debug("find a match by tnode");
 									addMatch(match, pId, fId, tId, 2,(int)p.x);
 								}
 							}
@@ -641,9 +717,7 @@ private void addMatch(Int2IntMap match, int pId, int fId, int tId, int flag, int
 			patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());
 		}
 		patternNodeMatchesN.get(pId).add(tmpt);
-		if(!pivotPMatch1.containsKey(pId)){
-			pivotPMatch1.put(pId, new IntOpenHashSet());
-		}
+		
 		pivotPMatch1.get(pId).add(tmpt.get(1));
 		  if(!matchNum.containsKey(pId)){
 	        	 matchNum.put(pId, 1);  

@@ -57,7 +57,6 @@ public interface Worker extends Remote {
 	public void setWorkUnits(Set<WorkUnit> workload) throws RemoteException ;
 
 
-	public void synprocess() throws RemoteException;
 
 	//void setWorkUnits(Set<workload> workload) throws RemoteException;
 

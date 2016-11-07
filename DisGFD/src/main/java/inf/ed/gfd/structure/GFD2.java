@@ -102,6 +102,7 @@ public class GFD2 implements Serializable {
 		return this.candidate2et;
 	}
 
+	/*
 	public int verify(List<Int2IntMap> matches, Graph<VertexOString, OrthogonalEdge> KB) {
 		int violationCount = 0;
 		for (Int2IntMap match : matches) {
@@ -200,7 +201,7 @@ public class GFD2 implements Serializable {
 			e.setAttr(label);
 			labelSet.add(label);
 		}
-	}
+	}*/
 	
 	public void displayConnected() {
 		System.out.println("The GFD has the following structure: ");
@@ -221,7 +222,9 @@ public class GFD2 implements Serializable {
 		StringBuffer s = new StringBuffer();
 		s.append("%ccNum\n1\n");
 		s.append(this.pattern.toString());
+		if(this.condition != null && !condition.isEmpty()){
 		s.append(this.condition.toString());
+		}
 		return s.toString();
 		
 	}

@@ -62,11 +62,11 @@ public class TypedEdge implements Edge, Serializable {
 	}
 
 	@Override
-	public String toString() {
-		return "dEdge [f=" + from.getID() + ", t=" + to.getID() + ", attr=" + getAttrString()
-				+ " ]";
-	}
-	public String tofile(){
+	//public String toString() {
+	//	return "dEdge [f=" + from.getID() + ", t=" + to.getID() + ", attr=" + getAttrString()
+		//		+ " ]";
+	//}
+	public String toString(){
 		return "e\t"+from.getID() + "\t"+ to.getID() +  "\t"  + getAttrString() +"\n";
 	}
 

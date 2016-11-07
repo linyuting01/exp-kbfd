@@ -28,7 +28,7 @@ public class LiterNode implements Serializable {
 	
 	//public String key = "";
 	public Condition dependency;
-	public int cId = -1;// from 1
+	public int cId = 1;// from 1
 
 	public LiterNode parent; 
 	public List<LiterNode>  children;
@@ -77,7 +77,7 @@ public class LiterNode implements Serializable {
 	public LiterNode() {
 		this.children = new ArrayList<LiterNode>();
 		this.dependency = new Condition();
-		this.cId = -1;
+		this.cId = 0;
 		// TODO Auto-generated constructor stub
 	}
 

@@ -9,6 +9,7 @@ import inf.ed.gfd.structure.LiterNode;
 import inf.ed.gfd.structure.LiterTree;
 import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
+import inf.ed.gfd.structure.TransAttr;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Params;
 import inf.ed.graph.structure.Graph;
@@ -22,6 +23,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -50,20 +52,20 @@ public class EdgePattern {
 
 	static Logger log = LogManager.getLogger(EdgePattern.class);
 	  // here String denotes the pattern string P previous, N id the extended 
-	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
+	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesP =  new HashMap<String, List<Int2IntMap>>();
 	  //the ith layer , now ;
-	  public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
+	 // public HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
 	  
 	  
 	//  public HashMap<String, List<Pair<Integer,Integer>>> edgePatternNodeMatch = new HashMap<String, List<Pair<Integer,Integer>>>();
 	  
-	  public GfdMsg gfdMsg = new GfdMsg();
+	//  public GfdMsg gfdMsg = new GfdMsg();
 	  
 	  //HashMap<String,List<Int2IntMap>> boderMatch = new HashMap<String,List<Int2IntMap>> ();
 	  
 	//  public HashMap<String,IntSet> pivotPMatch  = new HashMap<String,IntSet>();
 	  
-	  IntSet borderNodes = new IntOpenHashSet();
+	  //IntSet borderNodes = new IntOpenHashSet();
 	  
 	  //the ith layer , now ;
 	 // HashMap<String, List<Int2IntMap> > patternNodeMatchesN =  new HashMap<String, List<Int2IntMap>>();
@@ -120,19 +122,18 @@ public class EdgePattern {
 		   ,Int2ObjectMap<Int2ObjectMap<Set<String>>> literDom,
 		   Int2ObjectMap<Int2ObjectMap<IntSet>> varDom, Map<DFS, Integer> dfs2Id){
 		 
-	   OrthogonalVertex fNode, tNode;
+	
 	   VertexOString fVertex , tVertex;
 	   Set<DFS> DFS = new HashSet<DFS>(); 
       // get all edge patterns and literals for nodes ;
 	   for(OrthogonalEdge edge: KB.getAllEdges()){ 
 	     //System.out.print("success");
-	     
-	     fNode = edge.from();
-	     tNode = edge.to();
-	     int fID = fNode.getID();
-	     int tID = tNode.getID();
-	     fVertex = KB.getVertex(fID);
-	     tVertex = KB.getVertex(tID);
+		   
+		  fVertex = (VertexOString) edge.from();
+		  tVertex = (VertexOString)edge.to();
+	     int fID = fVertex.getID();
+	     int tID = tVertex.getID();
+	    
 	     int fLabel = fVertex.getAttr();
 	     int tLabel = tVertex.getAttr();
 	     String fval = fVertex.getValue();
@@ -150,6 +151,7 @@ public class EdgePattern {
     	 }
 	   
 	     for(int i:eLabel){
+	    	
 	    	 
 	        DFS code = new DFS( f, t, i);
 	        int pId = dfs2Id.get(code);
@@ -324,8 +326,10 @@ public class DFSF implements Comparable<DFSF>{
 
 public void edgePattern(Graph<VertexOString, OrthogonalEdge> KB, Int2ObjectMap<IntSet> pivotPMatch,
 		Int2ObjectMap<List<Pair<Integer, Integer>>> edgePatternNodeMatch,
-		Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesN, Map<DFS, Integer> dfs2Id,Int2IntMap matchNum) {
-	  OrthogonalVertex fNode, tNode;
+		Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesN, Map<DFS, Integer> dfs2Id,Int2IntMap matchNum,
+		Int2ObjectMap<List<TransAttr>> kbAttr_Map,
+		 Int2ObjectMap<IntList> nodeAttr_Map ) {
+	  
 	   VertexOString fVertex , tVertex;
 	   Set<DFS> DFS = new HashSet<DFS>(); 
      // get all edge patterns and literals for nodes ;
@@ -338,6 +342,7 @@ public void edgePattern(Graph<VertexOString, OrthogonalEdge> KB, Int2ObjectMap<I
 	     int tID = tVertex.getID();
 	     int fLabel = fVertex.getAttr();
 	     int tLabel = tVertex.getAttr();
+	     String tval = tVertex.getValue();
    
 	    // String fval = fVertex.getValue();
 	     //log.debug(fval);
@@ -354,7 +359,15 @@ public void edgePattern(Graph<VertexOString, OrthogonalEdge> KB, Int2ObjectMap<I
 	     }
 	   
 	     for(int i:eLabel){
-	    	 
+	    	 if(nodeAttr_Map.containsKey(fLabel)){
+		    	 if(nodeAttr_Map.get(fLabel).contains(i)){
+			    		if(!kbAttr_Map.containsKey(fID)){
+			    			kbAttr_Map.put(fID, new ArrayList<TransAttr>());
+			    		}
+			    		TransAttr a = new TransAttr(i,tval);
+			    		kbAttr_Map.get(fID).add(a);
+			    	}
+	    	 }
 		        DFS code = new DFS( f, t, i);
 		        if(dfs2Id.containsKey(code)){
 		        	

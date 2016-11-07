@@ -56,7 +56,7 @@ public class LiterTree implements Serializable {
 		this.root = new LiterNode();
 		//this.gNode = new GfdNode();
 		this.condition_Map = new HashMap<Integer, LiterNode>();
-		this.condition_Map.put(-1, root);
+		this.condition_Map.put(0, root);
 		
 	}
 	public LiterTree(GfdNode gNode) {
@@ -120,23 +120,28 @@ public class LiterTree implements Serializable {
 	
 	
 	public void extendNodeForPrune(LiterNode t, Int2ObjectMap<Int2ObjectMap<String>> literCands){
-		LiterNode pt = this.gNode.parent.ltree.condition_Map.get(t.cId);
-		int nodeId = -1;
-	    int num1 = this.gNode.parent.nodeNum;
-		int num = this.gNode.nodeNum;
-		if(pt.extend && !pt.negCheck){
-			for(LiterNode ptc : pt.children){
-				addNodeforPrune(ptc);
-				if(num1 < num ){
-					nodeId = num;
-					updateNodeforPrune(nodeId, t, literCands);		
+		LiterNode pt = new LiterNode();
+		if(t == this.root){
+		     pt = this.gNode.parent.ltree.getRoot();
+		}else{
+			 pt = this.gNode.parent.ltree.condition_Map.get(t.cId);
+		}
+			int nodeId = -1;
+		    int num1 = this.gNode.parent.nodeNum;
+			int num = this.gNode.nodeNum;
+			if(pt.extend && !pt.negCheck){
+				for(LiterNode ptc : pt.children){
+					addNodeforPrune(ptc);
+					if(num1 < num ){
+						nodeId = num;
+						updateNodeforPrune(nodeId, t, literCands);		
+					}
 				}
 			}
 		}
 		
 		
-		
-	}
+			
 		
 		
 		///for prune;
@@ -249,8 +254,6 @@ public class LiterTree implements Serializable {
 		t.addVar = g.addVar+1;
 		t.getDependency().XEqualsVariable.add(xv);
 		t.literNum ++;
-		t.cId = condition_Map.size()+1;
-		condition_Map.put(t.cId, t);
 		t.yLiterl = g.yLiterl;
 		t.yVar = g.yVar;
 		if(n== -1){
@@ -278,8 +281,6 @@ public class LiterTree implements Serializable {
 		t.literNum ++;
 		t.yLiterl = g.yLiterl;
 		t.yVar = g.yVar;
-		t.cId = condition_Map.size()+1;
-		condition_Map.put(t.cId, t);
 		if(n== -1){
 			t.cId = condition_Map.size()+1;
 			condition_Map.put(t.cId, t);
@@ -288,6 +289,8 @@ public class LiterTree implements Serializable {
 			condition_Map.put(t.cId, t);
 			addNew ++;
 		}
+		log.debug(t.cId);
+		log.debug(condition_Map.get(t.cId));
 		return t;
 		
 	}

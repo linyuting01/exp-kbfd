@@ -17,32 +17,39 @@ public class GfdMsg implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public  Int2ObjectMap<List<Pair<VertexOString,VertexOString>>> transferingEdgeMatch= new  
-			Int2ObjectOpenHashMap<List<Pair<VertexOString,VertexOString>>>();
+	public  Int2ObjectMap<List<Pair<Integer,Integer>>> transferingEdgeMatch= new  
+			Int2ObjectOpenHashMap<List<Pair<Integer,Integer>>>();
 	
-	public Int2ObjectMap<Int2IntMap> pattermatches = new Int2ObjectOpenHashMap<Int2IntMap>();
+	public Int2ObjectMap<List<Int2IntMap>> patternmatches = new Int2ObjectOpenHashMap<List<Int2IntMap>>();
+	
+	public Int2ObjectMap<List<TransAttr>> transAttr_Map = new Int2ObjectOpenHashMap<List<TransAttr>>();
+	
 	public int partitionId;
 	
 	public GfdMsg(){
-		
 	}
-	public GfdMsg( Int2ObjectMap<List<Pair<VertexOString,VertexOString>>>  transferingEdgeMatch, int pId){
+	public GfdMsg( Int2ObjectMap<List<Pair<Integer,Integer>>>  transferingEdgeMatch, int pId){
 		this.transferingEdgeMatch = transferingEdgeMatch;
 		this.partitionId = pId;
 	}
 
 
 	public String toString() {
-		int size = 0;
-		for(Entry<Integer, List<Pair<VertexOString,VertexOString>>> entry : transferingEdgeMatch.entrySet()){
-			size =size + entry.getValue().size();
-		}
 		String ret = "";
-		ret += " transfering match node size = " + 2*size;
-		return ret;
+		int size = 0;
+		for(Entry<Integer, List<Pair<Integer,Integer>>> entry : transferingEdgeMatch.entrySet()){
+			size =entry.getValue().size();
+			ret += " transfering edge pattern match" + entry.getKey() + " node size = " + size;
+			
+		}
+	return ret;
+		
 	}
 	public void clear(){
 		this.transferingEdgeMatch.clear();
+		this.patternmatches.clear();
 		
 	}
+	
+	
 }

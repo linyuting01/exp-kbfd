@@ -363,8 +363,8 @@ public class SimpleGraph<V extends Vertex, E extends Edge> implements Graph<V, E
 		for (V v : graph.vertexSet()) {
 			s.append(v.toString());
 		}
-		//s.append("e\n");
-		s.append(graph.edgeSet().size() + " edges ");
+		s.append("e\n");
+		//s.append(graph.edgeSet().size() + " edges ");
 		for (E e : graph.edgeSet()) {
 	
 				s.append(e.toString());

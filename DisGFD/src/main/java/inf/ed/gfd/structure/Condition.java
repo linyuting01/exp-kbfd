@@ -7,6 +7,7 @@ import inf.ed.graph.structure.adaptor.VertexOString;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Serializable;
@@ -36,8 +37,8 @@ public class Condition implements Serializable, Cloneable {
 	public Set<EqLiteral> XEqualsLiteral;
 	public Set<EqVarLiter> XEqualsVariable;
 	
-	public EqLiteral YEqualsLiteral;
-	public EqVarLiter YEqualsVariable;
+	public EqLiteral YEqualsLiteral = null ;
+	public EqVarLiter YEqualsVariable = null;
 	
 	
 	
@@ -57,8 +58,6 @@ public class Condition implements Serializable, Cloneable {
 		XEqualsLiteral = new HashSet<EqLiteral>();
 		XEqualsVariable = new HashSet<EqVarLiter>();
 		
-		YEqualsLiteral = new EqLiteral();
-		YEqualsVariable = new EqVarLiter();
 	}
 	public void setYEqualsLiteral(EqLiteral x){
 		this.YEqualsLiteral = x;
@@ -71,7 +70,7 @@ public class Condition implements Serializable, Cloneable {
 	
  
 	
-	public boolean verifyAttrLiter(Graph<VertexOString, OrthogonalEdge> KB, EqLiteral xl){
+	public boolean verifyAttrLiter(Graph<VertexOString, OrthogonalEdge> KB, EqLiteral xl,Int2ObjectMap<String[]> kbAttr_Map){
 			
 		int vertexID = xl.nId;
 		int attr = xl.attrId;
@@ -115,47 +114,92 @@ public class Condition implements Serializable, Cloneable {
 	
 	}
 
-	public boolean verify(Int2IntMap match, Graph<VertexOString, OrthogonalEdge> KB) {
 
-      // log.debug("begin verify: " + match.toString());
+		public boolean verifyX(Int2IntMap match, Int2ObjectMap<List<TransAttr>> kbAttr_Map) {
 
-      // check for X
-      for (EqLiteral eql : XEqualsLiteral) {
-    	  int vertexID = match.get(eql.nId);
-    	  EqLiteral x = new EqLiteral(vertexID,eql.attrId,eql.val);
-          boolean flag = verifyAttrLiter(KB,x);
-          if(!flag){
-        	  return false;
-          }
-      }
+		      // log.debug("begin verify: " + match.toString());
 
-      for(EqVarLiter eqv : XEqualsVariable){
-    	  int vertexID = match.get(eqv.fId);
-    	  int vertexID2 = match.get(eqv.tId);
-    	  EqVarLiter xv = new EqVarLiter(vertexID,vertexID2,eqv.fattr,eqv.tattr);
-    	  boolean flag = verifyAttrVar(KB,xv);
-    	  if(!flag){
-        	  return false;
-          }
-      }
-      
+		      // check for X
+		      for (EqLiteral eql : XEqualsLiteral) {
+		    	  int vertexID = match.get(eql.nId);
+		    	  if(kbAttr_Map.containsKey(vertexID)){
+		    		  TransAttr a = new TransAttr(eql.attrId,eql.val);
+		    
+			    	  if(!kbAttr_Map.get(vertexID).contains(a)){
+			    		  return false;
+			    	  }
+			    	}
+		      }
+
+		      for(EqVarLiter eqv : XEqualsVariable){
+		    	  int vertexID = match.get(eqv.fId);
+		    	  int vertexID2 = match.get(eqv.tId);
+		    	  Set<String> fval = new HashSet<String>();
+		    	  Set<String> tval = new HashSet<String>();
+		    	
+		    	  if(kbAttr_Map.containsKey(vertexID) && kbAttr_Map.containsKey(vertexID2) ){
+		    		  for(TransAttr a : kbAttr_Map.get(vertexID) ){
+		    			  if(a.attr ==  eqv.fattr){
+		    				  fval.add(a.val);
+		    			  }
+		    		
+		    		  }
+		    		  for(TransAttr a : kbAttr_Map.get(vertexID2) ){
+		    			  if(a.attr ==  eqv.tattr){
+		    				  tval.add(a.val);
+		    			  }
+		    		
+		    		  }
+		    		  fval.retainAll(tval);
+		    		  if(fval.isEmpty()){
+		    			  return false;
+		    		  }
+			    	 
+		    	  }
+		      }
+		
+		return true;
+	 }
+	public boolean verifyY(Int2IntMap match, Int2ObjectMap<List<TransAttr>> kbAttr_Map) {
+
       // check for Y. it valid only satisfy the condition
       if(this.isLiteral == true){
 	    	  int vertexID = match.get(YEqualsLiteral.nId);
-	    	  EqLiteral x = new EqLiteral(vertexID,YEqualsLiteral.attrId,YEqualsLiteral.val);
-	          boolean flag = verifyAttrLiter(KB,x);
-	          if(!flag){
-	        	  return false;
-	          }
+		    	  if(kbAttr_Map.containsKey(vertexID)){
+		    		  TransAttr a = new TransAttr(YEqualsLiteral.attrId,YEqualsLiteral.val);
+		    
+			    	  if(!kbAttr_Map.get(vertexID).contains(a)){
+			    		  return false;
+			    	  }
+			    	}
+	
 	     }
 		else{
-			 int vertexID = match.get(YEqualsVariable.fId);
+			  int vertexID = match.get(YEqualsVariable.fId);
 	    	  int vertexID2 = match.get(YEqualsVariable.tId);
-	    	  EqVarLiter xv = new EqVarLiter(vertexID,vertexID2,YEqualsVariable.fattr,YEqualsVariable.tattr);
-	    	  boolean flag = verifyAttrVar(KB,xv);
-	    	  if(!flag){
-	        	  return false;
-	          }
+	    	  Set<String> fval = new HashSet<String>();
+	    	  Set<String> tval = new HashSet<String>();
+	    	
+	    	  if(kbAttr_Map.containsKey(vertexID) && kbAttr_Map.containsKey(vertexID2) ){
+	    		  for(TransAttr a : kbAttr_Map.get(vertexID) ){
+	    			  if(a.attr ==  YEqualsVariable.fattr){
+	    				  fval.add(a.val);
+	    			  }
+	    		
+	    		  }
+	    		  for(TransAttr a : kbAttr_Map.get(vertexID2) ){
+	    			  if(a.attr ==  YEqualsVariable.tattr){
+	    				  tval.add(a.val);
+	    			  }
+	    		
+	    		  }
+	    		  fval.retainAll(tval);
+	    		  if(fval.isEmpty()){
+	    			  return false;
+	    		  }
+		    	 
+	    	  }
+	    	  
 		}
       return true;
   }
@@ -182,7 +226,12 @@ public class Condition implements Serializable, Cloneable {
 	       return sb.toString();
 	 }
 
-  
+  public  boolean isEmpty(){
+	  if(this.YEqualsLiteral == null && this.YEqualsVariable == null){
+		  return true;
+	  }
+	  return false;
+   }
 
     
   

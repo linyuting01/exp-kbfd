@@ -6,7 +6,7 @@ public class EqLiteral implements Comparable<EqLiteral>, Serializable{
 	
 	private static final long serialVersionUID = 8852252918165328207L;
 
-	int patterId = -1;//for disconnected
+	int patterId = 1;//for disconnected
 	int nId;
 	int attrId;
 	String val;

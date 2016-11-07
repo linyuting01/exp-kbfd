@@ -12,6 +12,12 @@ java -Djava.security.policy=security.policy -Xmx12G -jar ./client.jar aws05
 
 
 
+mvn clean package 
+java -Djava.security.policy=security.policy -Xmx12G -jar ./parDis-coordinator.jar ./config-sample.properties  4  2 
+ java -Djava.security.policy=security.policy -Xmx12G -jar ./parDis-worker.jar localhost ./config-sample.properties 4 2 
+java -Djava.security.policy=security.policy -Xmx12G -jar ./client.jar localhost
+
+
 
 
 

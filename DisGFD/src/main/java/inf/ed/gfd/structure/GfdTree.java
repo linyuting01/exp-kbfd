@@ -32,12 +32,14 @@ public class GfdTree implements Serializable {
 	
     private GfdNode root;
     
+    public int beginId = 0;
+    
    
     
     //public HashMap<String, GfdNode> pattern_Map;
     public HashMap<Integer, GfdNode> patterns_Map;
     
-    public Map<DFS,Integer> dfs2Ids;
+   public Map<DFS,Integer> dfs2Ids;
     
     public Int2ObjectMap<Int2ObjectMap<String>> literCands ;
     
@@ -45,7 +47,9 @@ public class GfdTree implements Serializable {
         this.root = new GfdNode();
         this.root.key="";
         this.patterns_Map = new HashMap<Integer, GfdNode>();
+        //this.patterns_Map.put(0, root);
         this.literCands =  new Int2ObjectOpenHashMap<Int2ObjectMap<String>>();
+        this.dfs2Ids =  new HashMap<DFS,Integer>();
     }
 
     
@@ -79,14 +83,10 @@ public class GfdTree implements Serializable {
 	}*/
 	
 	
-	public void extendRoot(List<DFS> edgePattern,   Map<DFS,Integer> dfs2Id,SuppResult r){
+	public void extendRoot(List<DFS> edgePattern){
 		 for(DFS dfs: edgePattern){
-			 GfdNode g = newNode(root,dfs);
-			 g.pId = dfs2Id.get(dfs);
-				patterns_Map.put(g.pId, g);
-			// g.literDom = r.literDom.get(g.pId);
-			// g.varDom = r.varDom.get(g.pId);
-			 g.extend = true;
+			  newNode(root,dfs);
+			 //g.extend = true;
 		 }
 			// for(GfdNode t : this.root.children){
 				// log.debug("extenf general t" + t.edgePattern.toString());
@@ -100,89 +100,59 @@ public class GfdTree implements Serializable {
 	 }
 	
 	
-	public void extendGeneralNode(List<DFS> edgePattern, GfdNode t){
+	
+	public void extendGeneral(List<DFS> edgePattern, GfdNode t){
+		if(t.parent.parent == this.root){
+			Collections.sort(edgePattern);
+			extendRootChild(t,edgePattern);
+		}
+		else{
 		DFS dfs = t.edgePattern;
 		int fx = dfs.fLabel.x;
 		int tx = dfs.tLabel.x;
 		int fy = dfs.fLabel.y;
 		int ty = dfs.tLabel.y;
-		int m =0 ;
-		int n =0;
+		//log.debug("extend dfs:"+ dfs);
 		for(DFS dfs1 : edgePattern){
+			//log.debug("extend's candidate:" + dfs1);
 			int fx1 = dfs1.fLabel.x;
 			int tx1 = dfs1.tLabel.x;
-			int e = dfs1.eLabel;
-			if(t.attrs.containsKey(fx1)){
-				m = t.attrs.get(fx1);
-			}
-			if(t.attrs.containsKey(tx1)){
-				n = t.attrs.get(tx1);
-			}
-			if(t.attrs.containsKey(fx1) ||t.attrs.containsKey(tx1)){
-				if(fx1 > fx){
-					for(int i=0;i<=m;i++){
-						Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(fx1,m);
-						for(int k =0;k<n;k++){
-							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
-							DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
-						}
-					}
-				}
-				if(fx1< fx){
-					Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(fx1,m);
-					for(int k =0;k<n;k++){
-						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
-						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
-					}
-				}
-				if(fx1 == fx){
-					if(tx1 >tx){
-						for(int k =0;k<=n;k++){
-							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
-							DFS dfs11 = new DFS(dfs.fLabel,p2,dfs1.eLabel);
-						}
-					}
-					if(tx1 <tx){
-						
-					}
-				}
-						
-			}
-		}
-	}
-
-	public void extendGeneral(List<DFS> edgePattern, GfdNode t){
-		DFS dfs = t.edgePattern;
-		Integer fx = dfs.fLabel.x;
-		Integer tx = dfs.tLabel.x;
-		int fy = dfs.fLabel.y;
-		int ty = dfs.tLabel.y;
-		for(DFS dfs1 : edgePattern){
-			Integer fx1 = dfs1.fLabel.x;
-			Integer tx1 = dfs1.tLabel.x;
-			if(fx1.equals(fx)){  // t: A_mC_n
-				if(tx1.equals(tx)){  //edgepattern: AC
+			if(fx1==fx){  // t: A_mC_n
+				if(tx1 == tx){  //edgepattern: AC
+					int n1 = t.attrs.get(tx);//A_mC_n+1
+					Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n1);
+					DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
+					
+				
+					newNode(t,dfs13);	
 					int m = t.attrs.get(fx);
 					Pair<Integer,Integer> p1 = new Pair<Integer,Integer>(fx,m);  //A_m+1
 					int n = t.attrs.get(tx);
 					for(int k = 0;k<n;k++){//A_m+1C_0,..., A_m+1C_n
 						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx,k);
 						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
+						
 						//log.debug(dfs11.toString());
+						
 						 newNode(t,dfs11);		
 					}
 					if(dfs.isEqualL()){// A_mA_n
 						if(fy <ty){ //m<n add A_nA_m
 							DFS dfs12 = new DFS(dfs.tLabel,dfs.fLabel,dfs1.eLabel);	
 							//log.debug(dfs12.toString());
+							
 							newNode(t,dfs12);
+							
 						}
 					}
 				}
-				if(tx1.compareTo(tx)>0){//edgePattern: AD
+				if(tx1 > tx){//edgePattern: AD
 					if(!t.attrs.containsKey(tx1)){ //AD
 						DFS dfs12 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
+				
+						
 						newNode(t,dfs12);
+						
 						//log.debug(dfs12.toString());
 					}
 					else{//AD_1.AD_n
@@ -190,7 +160,9 @@ public class GfdTree implements Serializable {
 						for(int k=0;k<=n;k++){
 							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
 							DFS dfs12 = new DFS(dfs.fLabel,p2,dfs1.eLabel);
+							
 							 newNode(t,dfs12);	
+							
 							// log.debug(dfs12.toString());
 						}
 						
@@ -198,126 +170,144 @@ public class GfdTree implements Serializable {
 				}
 				
 				if(tx1<tx){
-					/*
+					
 					if(!t.attrs.containsKey(tx1)){
 						DFS dfs3 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
+					
+						
 						newNode(t,dfs3);
 					
-					}*/
+					}
 					if(t.attrs.containsKey(tx1)){
 						int n = t.attrs.get(tx1);
 						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,n);
 						DFS dfs3 = new DFS(dfs.fLabel,p2,dfs1.eLabel);
+						
+						
 						newNode(t,dfs3);
 					}
+				}
 				
 		
-			}
-			if(tx1.equals(tx)){//A_mC_n
-			
-				if(fx1.equals(fx)){//AC
-					int n = t.attrs.get(tx);//A_mC_n+1
-					Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n);
-					DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
-					newNode(t,dfs13);	
-					//log.debug(dfs13.toString());
-				}
-				if(fx1.compareTo(fx) >0){ //BC
-					int n = t.attrs.get(tx);
-					for(int k=0;k<n;k++){ //BC_0,BC_n
-						Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n);
-						DFS dfs13 = new DFS(dfs1.fLabel,p3,dfs1.eLabel);
-						newNode(t,dfs13);
-						//log.debug(dfs13.toString());
-					}
-				}
-				if(fx1<fx){
-					/*
-					if(!t.attrs.containsKey(tx1)){
-						DFS dfs3 = new DFS(dfs.fLabel,dfs1.tLabel,dfs1.eLabel);
-						newNode(t,dfs3);
+			}else{
+				if(tx1 == tx){//A_mC_n
 					
-					}*/
-					if(t.attrs.containsKey(fx1)){
-						int n = t.attrs.get(fx1);
-						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,n);
-						DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
-						newNode(t,dfs3);
-					}
-					
-			}
-			
-			if(fx1.equals(tx)){ // A_mC_n
-				if(fx1.compareTo(fx)>0){ //CB
-					if(!t.attrs.containsKey(tx1)){//CB_0,CB_1
-						 newNode(t,dfs1);
-						 //log.debug(dfs1.toString());
-					}
-					else{
-						int n = t.attrs.get(tx1);
-						for(int k =0;k<=n;k++){
-							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
-							DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
-							newNode(t,dfs3);
-							//log.debug(dfs3.toString());
-						}
+					if(fx1 > fx){ //BC
+						int n = t.attrs.get(tx);
+						for(int k=0;k<n;k++){ //BC_0,BC_n
+							Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n);
+							DFS dfs13 = new DFS(dfs1.fLabel,p3,dfs1.eLabel);
+							
 						
-					}	
-				}
-				
-				if(fx1 < fx){
-					/*
-				}
-					if(!t.attrs.containsKey(tx1)){
-						DFS dfs3 = new DFS(dfs.tLabel,dfs1.tLabel,dfs1.eLabel);
-						newNode(t,dfs3);
-					
-					}*/
-					if(t.attrs.containsKey(tx1)){
-						int n = t.attrs.get(tx1);
-						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,n);
-						DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
-						newNode(t,dfs3);
+							newNode(t,dfs13);
+							//log.debug(dfs13.toString());
+						}
 					}
+					if(fx1<fx){
+						
+						if(!t.attrs.containsKey(tx1)){
+							DFS dfs3 = new DFS(dfs1.fLabel,dfs1.tLabel,dfs1.eLabel);
+							DFS dfsn = dfs3.findDFS();
+							
+							newNode(t,dfs3);
+						
+						}
+						if(t.attrs.containsKey(fx1)){
+							int n = t.attrs.get(fx1);
+							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,n);
+							
+							DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
+							
+							newNode(t,dfs3);
+						}
+					}
+						
+				}
+				else{
+				
+				if(fx1 == tx){ // A_mC_n
+					if(fx1 > fx){ //CB
+						if(!t.attrs.containsKey(tx1)){//CB_0,CB_1
+							
+							 newNode(t,dfs1);
+							 //log.debug(dfs1.toString());
+						}
+						else{
+							int n = t.attrs.get(tx1);
+							for(int k =0;k<=n;k++){
+								Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,k);
+								DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
+								
+								newNode(t,dfs3);
+								//log.debug(dfs3.toString());
+							}
+							
+						}	
+					}
+					
+					if(fx1 < fx){
+					
+						if(!t.attrs.containsKey(tx1)){
+							DFS dfs3 = new DFS(dfs.tLabel,dfs1.tLabel,dfs1.eLabel);
+							
+							newNode(t,dfs3);
+						
+						}
+						if(t.attrs.containsKey(tx1)){
+							int n = t.attrs.get(tx1);
+							Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx1,n);
+							DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
+							
+							newNode(t,dfs3);
+						}
+					}
+				}
+				else{
+			
+					  if(tx1 == fx){ //A_mC_n
+						  if(fx1 > fx){ //DA
+							  if(!t.attrs.containsKey(fx1)){//D_A_m
+								 DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
+								
+								  newNode(t,dfs3);
+								 // log.debug(dfs3.toString());
+							  }
+							  else{////D_0A_m,D_n,A_m
+								  int m = t.attrs.get(fx1);
+								  for(int k=0;k<=m;k++){
+									  Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,k);
+										DFS dfs3 = new DFS(p2,dfs.fLabel,dfs1.eLabel);
+										
+										newNode(t,dfs3);
+										//log.debug(dfs3.toString());
+								  }
+									  
+								  }
+							  }
+						  if(fx1<fx){
+							 
+						            
+								  if(!t.attrs.containsKey(fx1)){
+										DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
+										
+										newNode(t,dfs3);
+									
+									}
+								  if(t.attrs.containsKey(fx1)){
+										int n = t.attrs.get(fx1);
+										Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,n);
+										DFS dfs3 = new DFS(p2,dfs.fLabel,dfs1.eLabel);
+										
+										newNode(t,dfs3);
+									}
+						  }
+					  }	
+				}
 				}
 			}
-		  if(tx1.equals(fx)){ //A_mC_n
-			  if(fx1.compareTo(fx) >0){ //DA
-				  if(!t.attrs.containsKey(fx1)){//D_A_m
-					 DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
-					  newNode(t,dfs3);
-					 // log.debug(dfs3.toString());
-				  }
-				  else{////D_0A_m,D_n,A_m
-					  int m = t.attrs.get(tx1);
-					  for(int k=0;k<=m;k++){
-						  Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,k);
-							DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
-							newNode(t,dfs3);
-							//log.debug(dfs3.toString());
-					  }
-						  
-					  }
-				  }
-			  if(fx1<fx){
-				 
-			            
-				  if(!t.attrs.containsKey(fx1)){
-						DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
-						newNode(t,dfs3);
-					
-					}
-				  if(t.attrs.containsKey(fx1)){
-						int n = t.attrs.get(fx1);
-						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,n);
-						DFS dfs3 = new DFS(p2,dfs.fLabel,dfs1.eLabel);
-						newNode(t,dfs3);
-					}
-			  }
-		  }
-		 if(!fx1.equals(fx) && !tx1.equals(tx) && !fx1.equals(tx) && !tx1.equals(fx)){
+		 if(fx1!=fx && tx1!=tx && fx1 != tx && tx1!=fx){
 			   if(t.attrs.containsKey(tx1) ){
-				  if(fx1.compareTo(fx)>0){
+				  if(fx1>fx){
 					 if(!t.attrs.containsKey(fx1)){
 						 newNode(t,dfs1); 
 						 //log.debug(dfs1.toString());
@@ -326,7 +316,8 @@ public class GfdTree implements Serializable {
 						   int m = t.attrs.get(fx1);
 						   for(int k=0;k<=m;k++){
 								  Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(fx1,k);
-									DFS dfs3 = new DFS(p2,dfs.tLabel,dfs1.eLabel);
+									DFS dfs3 = new DFS(p2,dfs1.tLabel,dfs1.eLabel);
+									
 									newNode(t,dfs3);
 									//log.debug(dfs3.toString());
 							  }
@@ -334,11 +325,12 @@ public class GfdTree implements Serializable {
 						   
 					  }
 				}
-		  }
-			}
-			}
+		 }
 		}
-	}
+		}
+	
+	
+		}
 
 
 	
@@ -356,6 +348,7 @@ public class GfdTree implements Serializable {
 					  DFS dfs2 = edgePattern.get(index);
 					  if(dfs2.fLabel.x.equals(tdfs.fLabel.x)){
 						  DFS dfs1 = new DFS(tdfs.tLabel,dfs2.tLabel,dfs2.eLabel);
+						 
 						  newNode(t,dfs1);
 						 
 						  newNode(t,dfs2);
@@ -364,6 +357,8 @@ public class GfdTree implements Serializable {
 					  }
 					  if(dfs2.tLabel.x.equals(tdfs.fLabel.x)){
 						  DFS dfs3 = new DFS(dfs2.fLabel,tdfs.tLabel,dfs2.eLabel);
+						  DFS dfsn = dfs3.findDFS();
+						
 						  newNode(t,dfs3);
 						  
 						 newNode(t,dfs2);
@@ -382,6 +377,8 @@ public class GfdTree implements Serializable {
 							  dfs2.tLabel.x.equals(tdfs.fLabel.x) ||
 									  dfs2.fLabel.x.equals(tdfs.tLabel.x) || 
 											 dfs2.tLabel.x.equals( tdfs.tLabel.x)){
+						 
+						
 						  newNode(t,dfs2);
 						  
 					  }
@@ -801,23 +798,32 @@ public class GfdTree implements Serializable {
     * @return
     */
   
-   private GfdNode newNode(GfdNode t, DFS dfs){
+   private void newNode(GfdNode t, DFS dfs){
+	   
+	  // for(Entry<pair<Integer,Integer>,Integer> entry: g.nodeSet.)
 	 // if(!t.extendDfss.contains(dfs)){
-		  
-		    
+	 
+		  if(!t.extendDfss.contains(dfs) ){
+		    log.debug("extend dfs : " + dfs);
 	        t.extendDfss.add(dfs);
 		    //log.debug(dfs.toString());
 			GfdNode g = new GfdNode();
 			g.setParent(t);
-			g.setPattern(ColoneUtils.clone((SimpleGraph<VertexString, TypedEdge>)t.pattern));
+			if(t != this.root){
+				g.setPattern(ColoneUtils.clone((SimpleGraph<VertexString, TypedEdge>)t.pattern));
+			}
 			//g.setPatternCode(ColoneUtils.clone(t.patternCode));
 			g.edgePattern = dfs;
 			t.children.add(g);
 			//how to create new node for pattern;
+			
+			//g.getPatternCode().add(dfs);
 			Pair<Integer,Integer> e1 = dfs.fLabel;
 			Pair<Integer,Integer> e2 = dfs.tLabel;
-			//g.getPatternCode().add(dfs);
+			g.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>(t.nodeSet);
+			g.nodeNum = t.nodeNum;
 			if(!g.nodeSet.containsKey(e1)){
+				log.debug("add nodeSet");
 				int attr1 = e1.x;
 			
 					VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
@@ -839,26 +845,38 @@ public class GfdTree implements Serializable {
 			
 			int fId = g.nodeSet.get(e1);
 			int tId = g.nodeSet.get(e2);
+			log.debug(dfs.toString()+"\t" +fId +"\t" +tId +"\n");
 			if(g.getPattern().contains(fId, tId)){
 				TypedEdge e = g.getPattern().getEdge(fId, tId);
 				e.setAttr(dfs.eLabel);
 			}
 			else{
+				if(!g.getPattern().contains(tId, fId)){
 				TypedEdge e = new TypedEdge(g.getPattern().allVertices().get(fId),
 					g.getPattern().allVertices().get(tId));
 				e.setAttr(dfs.eLabel);
+				g.getPattern().addEdge(e);
+				}
 			}
 			//g.key = t.key+dfs.toString();
-			if(t!=root){
+			
 				g.pId = patterns_Map.size()+1;
 				patterns_Map.put(g.pId, g);
-			}
+				 if(t == this.root){
+					   dfs2Ids.put(dfs, g.pId);
+				   }
+		
 			//create work unit
 			
 			//int id = this.dfs2Id.get(dfs);
 			g.addNode =  new Pair<Integer,Integer>(fId, tId);
 			g.ltree.gNode = g;
-			g.attrs = new HashMap<Integer,Integer>(t.attrs);
+			if(t == this.root){
+				g.attrs = new HashMap<Integer,Integer>();
+			}
+			else{
+				g.attrs = new HashMap<Integer,Integer>(t.attrs);
+			}
 			if(!g.attrs.containsKey(dfs.fLabel.x)){
 				g.attrs.put(dfs.fLabel.x, 1);
 			}else{
@@ -887,7 +905,7 @@ public class GfdTree implements Serializable {
 			    	s = s+i+",";
 			    }
 			    g.orderId = s;
-			return g;
+   }
 			
 		
 			
@@ -1073,23 +1091,34 @@ public class GfdTree implements Serializable {
 		dom.add("b");
 		SuppResult r =new SuppResult();
 		GfdTree gtree = new GfdTree();
-    	//gtree.extendRoot(edgePattern,r);
+    	gtree.extendRoot(edgePattern);
 		
 		//gtree.extendNode(gtree.getRoot(),edgePattern, dom );
 		//log.debug( gtree.root.getChildren().size());
 		//gtree.initialExtend(edgePattern,attr_Map);
 		
 		for(GfdNode g1: gtree.root.getChildren()){
+		for(Pair<Integer,Integer>p: g1.nodeSet.keySet()){
+			log.debug(p.toString() + g1.nodeSet.get(p));
+			Pair<Integer,Integer> pair = new Pair<Integer,Integer>(1,0);
+			if(g1.nodeSet.containsKey(pair)){
+				log.debug("true");
+			}
 			
-			for(GfdNode g2: g1.getChildren()){
-				 log.debug("extenf general t" + g2.edgePattern.toString());
-				gtree. extendGeneral(edgePattern,g2);
-				for(GfdNode x :g2.children){
-				  log.debug(x.edgePattern.toString());
-				 }
-				
-		    }
 		}
+		}
+		
+			//gtree.extendGeneral(edgePattern, g1);
+		//}
+			//for(GfdNode g2: g1.getChildren()){
+				// log.debug("extenf general" + g2.edgePattern.toString());
+				//gtree.extendGeneral(edgePattern,g2);
+				//for(GfdNode x :g2.children){
+				 // log.debug(x.edgePattern.toString());
+				// }
+				
+		   // }
+		
 
 		System.out.println(gtree.patterns_Map.size());
 
@@ -1100,6 +1129,8 @@ public class GfdTree implements Serializable {
 		System.out.println(t23.patterns_Map.size());
 	}
 }
+	
+
 		
 		
 

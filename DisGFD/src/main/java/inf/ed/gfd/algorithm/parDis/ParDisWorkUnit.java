@@ -53,7 +53,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	//private Set<WorkUnit> workload;
 	//private Map<String, WorkUnit> assembledWorkload;
 	public GfdMsg gfdMsg = new GfdMsg();
-	private int partitionId;
+	//private int partitionId;
 	
 
 	
@@ -111,7 +111,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			}
 			loadBalance();
 			log.debug("begin to balance pattern match");
-			sendBalanceMsg();
+			sendBalanceMsg(partition.getPartitionID());
 			return 3;
 			
 			
@@ -358,6 +358,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				}
 			}
 		}
+		matchNum.clear();
 	}	
 			
 
@@ -392,13 +393,15 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		return tmpt;
 	}
 	
-	private void sendBalanceMsg(){
+	private void sendBalanceMsg(int partitionId){
 		//gfdMsg.clear();
 		//transAttr_Map.clear();
 		//loadBalance();
+		
 		for (int targetPartitionID = 0; targetPartitionID < Params.N_PROCESSORS  
 				; targetPartitionID++) {
-		  if(targetPartitionID!= partitionId ){
+		  if(targetPartitionID != partitionId ){
+			  log.debug(targetPartitionID);
 			  GfdMsg gm = new GfdMsg();
 			  gm.patternmatches =  getMatch(gm);
 			  Message<GfdMsg> nMsg = new Message<GfdMsg>(partitionId,
@@ -581,7 +584,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	}
 	public void incrementalCompute(Partition partition, List<Message<?>> incomingMessages) {
 		// TODO Auto-generated method stub
-
+       
 	   // log.info("now incremental compute ");
 		if(flag == 2){
 	         log.debug("receive the edgematch mas, begin to check pattern");

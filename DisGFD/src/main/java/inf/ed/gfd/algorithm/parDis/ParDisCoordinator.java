@@ -590,13 +590,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 			/** receive all the partial results, assemble them. */
 			log.info("assemble the result");
-
-			
-
 				SuppResult finalResult = new SuppResult();
+				log.debug(resultMap.size());
 				//log.debug(finalResult.pivotMatchP.size());
 				//log.debug(resultMap.values().size());
 				finalResult.assemblePartialResults(resultMap.values());
+				
 				log.debug(finalResult.toString());
 				//log.debug(finalResult.pivotMatchP.size());
 				//log.debug("graph node num : " +finalResult.nodeNum);
@@ -604,7 +603,6 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				//ws.clear();
 				extendAndDistributeWorkUnits(finalResult);
 				//log.debug("has created the new workunit");
-				
 				
 				try {
 					log.debug("begin to process.");
@@ -634,6 +632,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 				}
 				//patternCheck
 				if(finalResult.extendPattern){
+					avgWork.clear();
 					for(Entry<Integer,Integer> entry : finalResult.patternMatchesNum.entrySet()){
 						   int key = entry.getKey();
 						    int sum = entry.getValue();

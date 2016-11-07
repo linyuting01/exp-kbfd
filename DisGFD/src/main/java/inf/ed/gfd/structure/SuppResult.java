@@ -167,7 +167,7 @@ public class SuppResult extends Result implements Serializable {
 		
 		
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
-		
+		log.debug(partialResults.size());
 		for(Result r : partialResults){
 			SuppResult pr = (SuppResult) r;
 			this.extendPattern = pr.extendPattern;

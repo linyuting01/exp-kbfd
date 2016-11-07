@@ -409,11 +409,13 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 			}
 
 			else {
+				log.debug("outgoing message size" + outgoingMessages.size());
 
 				log.debug(" Worker: Superstep " + superstep + " completed begin send infomation .");
 
 				for (Entry<String, List<Message<?>>> entry : outgoingMessages.entrySet()) {
 					try {
+						
 						log.info("+++++try to send message to " + entry.getKey() + ", message ");
 						worker2WorkerProxy.sendMessage(entry.getKey(), entry.getValue());
 					} catch (RemoteException e) {
@@ -487,13 +489,14 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 	 */
 	private void updateOutgoingMessages(List<Message<?>> messagesFromCompute) throws RemoteException {
 		log.debug("updateOutgoingMessages.size = " + messagesFromCompute.size());
+		log.debug("updateOutgoingMessages.size = " + outgoingMessages.size());
 
 		String workerID = null;
 		int partitionID = -1;
 		List<Message<?>> workerMessages = null;
 
 		for (Message<?> message : messagesFromCompute) {
-
+         
 			//log.debug(message.toString());
 			partitionID = message.getDestinationPartitionID();
 			workerID = mapPartitionIdToWorkerId.get(partitionID);

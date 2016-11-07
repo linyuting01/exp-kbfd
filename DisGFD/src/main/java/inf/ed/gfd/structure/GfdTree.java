@@ -803,7 +803,7 @@ public class GfdTree implements Serializable {
 	  // for(Entry<pair<Integer,Integer>,Integer> entry: g.nodeSet.)
 	 // if(!t.extendDfss.contains(dfs)){
 	 
-		  if(!t.extendDfss.contains(dfs) ){
+		  if(!t.extendDfss.contains(dfs) && !dfs.fLabel.equals(dfs.tLabel)){
 		    log.debug("extend dfs : " + dfs);
 	        t.extendDfss.add(dfs);
 		    //log.debug(dfs.toString());
@@ -851,12 +851,12 @@ public class GfdTree implements Serializable {
 				e.setAttr(dfs.eLabel);
 			}
 			else{
-				if(!g.getPattern().contains(tId, fId)){
-				TypedEdge e = new TypedEdge(g.getPattern().allVertices().get(fId),
-					g.getPattern().allVertices().get(tId));
-				e.setAttr(dfs.eLabel);
-				g.getPattern().addEdge(e);
-				}
+				
+					TypedEdge e = new TypedEdge(g.getPattern().allVertices().get(fId),
+						g.getPattern().allVertices().get(tId));
+					e.setAttr(dfs.eLabel);
+					g.getPattern().addEdge(e);
+				
 			}
 			//g.key = t.key+dfs.toString();
 			

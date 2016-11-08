@@ -115,7 +115,22 @@ public class LiterTree implements Serializable {
 			}	    
 		}
 	
-	
+	public boolean extend(Condition c, EqLiteral xl){
+		int count = 0;
+		for(EqLiteral x : c.XEqualsLiteral){
+			if(x.nId == xl.nId){
+				count ++;
+				if(x.attrId == xl.attrId){
+					return false;
+				}
+			}
+		}
+	    if(count == 2){
+	    	return false;
+	    }
+		
+		return true;
+	}
 	
 	
 	
@@ -191,7 +206,10 @@ public class LiterTree implements Serializable {
 			int i = t.addLiteral+1;
 		    for(; i<literArray.size() && i!= t.yLiterl;i++ ){
 		    	EqLiteral eql = literArray.get(i);
-		    	addNodeXLiteral(t,eql,n);			
+		    	boolean flag = extend(t.dependency,eql);
+		    	if(flag){
+		    		addNodeXLiteral(t,eql,n);	
+		    	}
 		    } 
 		    int j = t.addVar +1;
 		    for(; j<varArray.size() && j!= t.yVar;j++ ){

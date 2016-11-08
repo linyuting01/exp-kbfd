@@ -16,6 +16,7 @@ public class Params {
 	public static int var_K = 10;
 	public static int VAR_SUPP;
 	public static Double VAR_SKEW;
+	public static int VAR_UNSAT = 100;
 
 
 

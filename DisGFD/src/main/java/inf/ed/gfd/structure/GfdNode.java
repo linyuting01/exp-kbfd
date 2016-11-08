@@ -65,7 +65,7 @@ public class GfdNode implements Comparable<GfdNode>, Serializable {
 	public int supp;
 
 	public int nodeNum = 0;
-	public boolean extend = true;
+	public boolean extend = false;
 	
 	public Pair<Integer,Integer> addNode;
 	

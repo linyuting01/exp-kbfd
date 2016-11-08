@@ -29,4 +29,10 @@ public class TransAttr implements Serializable {
 	  public int hashCode() { 
 		  return  attr ^ ((val == null) ? 0 : val.hashCode());
 	  }
+	  
+
+	  @Override
+	  public String toString(){
+		  return ""+ this.attr + "\t" +this.val;
+	  }
 }

@@ -1,6 +1,7 @@
 package inf.ed.gfd.util;
 
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
@@ -12,7 +13,9 @@ import org.apache.logging.log4j.Logger;
 import inf.ed.gfd.algorithm.sequential.EdgePattern;
 import inf.ed.gfd.structure.Condition;
 import inf.ed.gfd.structure.DFS;
+import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
+import inf.ed.grape.interfaces.Result;
 import inf.ed.graph.structure.adaptor.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -78,6 +81,14 @@ public class Fuc {
 		public static WorkUnit getRandomWorkUnit(Set<WorkUnit> workload){
 			for(WorkUnit w :workload ){
 				return w;
+			}
+			return null;
+		}
+		
+		public static SuppResult getRandomSuppResult(Collection<Result> partialResults){
+			for(Result  r : partialResults ){
+				SuppResult sr = (SuppResult) r;
+				return sr;
 			}
 			return null;
 		}

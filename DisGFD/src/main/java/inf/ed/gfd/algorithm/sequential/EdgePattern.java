@@ -263,7 +263,7 @@ public static void main(String args[]) throws IOException {
 	Map<DFS,IntSet> pivotPMatch  = new HashMap<DFS,IntSet>();
 	Map<DFS,IntSet> pivotPMatchtmpt  = new HashMap<DFS,IntSet>();
 	
-	KB.loadGraphFromVEFile("/afs/inf.ed.ac.uk/group/project/dgrape/KBsFD/yago4/yago",true);
+	KB.loadGraphFromVEFile("/afs/inf.ed.ac.uk/user/v/v1xliu33/exp-data/datasets/dbpedia",true);
 	
 
 	
@@ -295,9 +295,11 @@ public static void main(String args[]) throws IOException {
 	   FileWriter fw = new FileWriter(file.getAbsoluteFile());
 	   BufferedWriter bw = new BufferedWriter(fw);
 	   for(DFSF d : dfsl){
+		   if(d.freq >100){
 		   String s = d.dfs.toString()+"\t" +d.freq;
 	       bw.write(s);
 	       bw.newLine();
+		   }
 	   }
 	   bw.close();
 	

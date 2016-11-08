@@ -71,7 +71,10 @@ public class KV {
 			
 			Params.VAR_SKEW =  Config.getInstance().getDoubleProperty("SKEW_THRESHOLD");
 			 
-			Params.UNSAT_RATIO =  Config.getInstance().getDoubleProperty("UNSAT_RATIO"); ;
+			//Params.UNSAT_RATIO =  Config.getInstance().getDoubleProperty("UNSAT_RATIO"); 
+			
+			Params.VAR_UNSAT  =  Config.getInstance().getIntProperty("VAR_UNSAT"); 
+			
 
 			
 

@@ -62,6 +62,17 @@ public class SuppResult extends Result implements Serializable {
 	public boolean matchsize  = false;
 	//public boolean istest = false;
 	
+	
+	
+
+	//early termination
+	
+	public IntSet freqPattern;
+	public Int2ObjectMap<IntSet>  freqGfd ;
+	public Int2ObjectMap<IntSet> unSatGfds;
+	//basic idea : two filter process; one in worker, one in SC;
+	
+	
 
 	public SuppResult(){
 		    this.edgeCands = new HashSet<DFS>();
@@ -71,6 +82,9 @@ public class SuppResult extends Result implements Serializable {
 			this.isoResult = new Int2ObjectOpenHashMap<IntSet>();
 			this.patternMatchesNum = new Int2IntOpenHashMap();
 			
+			this.freqGfd = new Int2ObjectOpenHashMap<IntSet>();;
+			this.freqPattern = new  IntOpenHashSet();
+			this.unSatGfds =  new Int2ObjectOpenHashMap<IntSet>();
 		}
 	
 	/*
@@ -162,8 +176,8 @@ public class SuppResult extends Result implements Serializable {
 	}
 
 
-	@Override
-	public void assemblePartialResults(Collection<Result> partialResults) {
+	//@Override
+	public void assemblePartialResults1(Collection<Result> partialResults) {
 		
 		
 		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
@@ -193,9 +207,8 @@ public class SuppResult extends Result implements Serializable {
 					}
 				}
 			}
-			if(this.isFirst == true){
-				this.edgeCands.addAll(pr.edgeCands);
-			}
+			
+		
 			if(this.isIsoCheck == true){
 				if(!pr.isoResult.isEmpty()){
 					this.isoResult.putAll(pr.isoResult);
@@ -244,17 +257,12 @@ public class SuppResult extends Result implements Serializable {
 					
 					
 				}
-			
-	
-		if(this.isIsoCheck){
-			Int2ObjectMap<IntSet> a = new Int2ObjectOpenHashMap<IntSet>(this.isoResult);
-			this.isoResult = Fuc.getIsoResult(a);
 		}
 			
 	}
 	
 			
-	}
+	
 	
 	public void combineLiterDom(Int2ObjectMap<Set<String>> dom1, 
 			Int2ObjectMap<Set<String>> dom2){
@@ -280,65 +288,177 @@ public class SuppResult extends Result implements Serializable {
 		}
 	}
 	
-	/*
-	public static void main(String[] args){
-		HashMap<String, HashMap<String,IntSet>> gfdPMatch = new HashMap<String,HashMap<String,IntSet>>();
-		HashMap<String, HashMap<String,Boolean>> satCId = new HashMap<String,HashMap<String,Boolean>>();
-		HashMap<String,IntSet> pivotMatchP = new HashMap<String,IntSet>();
-		boolean flag = false;
-		 
-		HashMap<String,IntSet> pmap = new HashMap<String,IntSet>();
-		for(int i=0;i<5;i++){
-			IntSet b = new IntOpenHashSet();
-			b.add(0);
-			b.add(1);
-			b.add(2);
-			String s = ""+i;
-			pmap.put(s, b);
+
+	@Override
+	public void assemblePartialResults(Collection<Result> partialResults){
+		//SuppResult pr = Fuc.getRandomSuppResult(partialResults);
+		
+	
+		
+		
+		SuppResult pr = Fuc.getRandomSuppResult(partialResults);
+		
+		this.extendPattern = pr.extendPattern;
+		this.checkGfd = pr.checkGfd;
+		this.isIsoCheck = pr.isIsoCheck;
+		this.nodeNum = this.nodeNum + pr.nodeNum;
+		this.isFirst = pr.isFirst;
+		this.matchsize = pr.matchsize;
+	
+		HashMap<String,IntSet> pMatch = new HashMap<String,IntSet>();
+		log.debug("partial result size " + partialResults.size());
+		if(this.checkGfd || this.extendPattern){
+			for(Result r : partialResults){
+				
+				SuppResult spr = (SuppResult) r;
+					if(this.extendPattern){
+						if(spr.freqPattern != null){
+							if(!spr.freqPattern.isEmpty()){
+								this.freqPattern.addAll(spr.freqPattern);
+							}
+						}
+					}
+				if(this.checkGfd ){
+					this.freqGfd.putAll(spr.freqGfd);
+					this.unSatGfds.putAll(spr.unSatGfds);
+				}
+			}
 		}
+		for(Result r : partialResults){
+			SuppResult spr = (SuppResult) r;
+
+			if(matchsize){
+				for(Entry<Integer,Integer> entry : pr.patternMatchesNum.entrySet()){
+					if(!patternMatchesNum.containsKey(entry.getKey())){
+						patternMatchesNum.put(entry.getKey(), entry.getValue());
+					}
+					else{
+						int key = entry.getKey();
+						int i = patternMatchesNum.get(entry.getKey());
+						int num = i + entry.getValue();
+						patternMatchesNum.put(key, num);
+					}
+				}
+			}
+			
 		
-		SuppResult sp1 = new SuppResult(pmap);
-		sp1.extendPattern = true;
-		//SuppResult sp2 = new SuppResult(pmap);
-		//sp2.extendPattern = true;
-		Collection<Result> partialResults = new HashSet<Result>();
-		partialResults.add(sp1);
-		//partialResults.add(sp2);
-		SuppResult sp = new SuppResult();
-		//sp.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
-		log.debug("done"+pivotMatchP.size());
+			if(this.isIsoCheck == true){
+				if(!pr.isoResult.isEmpty()){
+					this.isoResult.putAll(pr.isoResult);
+				}
+				
+			}
 		
-		HashMap<String, HashMap<String,IntSet>> gfdmatch = new HashMap<String,HashMap<String,IntSet>>();
-		for(int i=0;i<5;i++){
-			String s = ""+i;
-			gfdmatch.put(s, pmap);
+			if(this.extendPattern == true){
+				//first filter,
+				for(Entry<Integer, IntSet> entry: pr.pivotMatchP.entrySet()){
+					int pId = entry.getKey();
+					if(!freqPattern.contains(pId)){
+						if(!this.pivotMatchP.containsKey(pId)){
+							this.pivotMatchP.put(pId,entry.getValue());
+						}
+						else{
+							this.pivotMatchP.get(pId).addAll(entry.getValue());
+							int size1 = this.pivotMatchP.get(pId).size();
+							if(size1 >= Params.VAR_SUPP){
+								freqPattern.add(pId);
+							}
+						}
+					}
+				}
+			}
+			if(this.checkGfd){
+				
+				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.pivotMatchGfd.entrySet()){
+					int pId = entry.getKey();
+					for(Entry<Integer,IntSet> entry2 :pr.pivotMatchGfd.get(pId).entrySet()){
+						int cId = entry2.getKey();
+						if(freqGfd.isEmpty() ||!freqGfd.containsKey(pId)){
+								if(!this.pivotMatchGfd.containsKey(entry.getKey())){
+									this.pivotMatchGfd.put(pId,new Int2ObjectOpenHashMap<IntSet>());
+								}
+								 if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
+								    	this.pivotMatchGfd.get(pId).put(cId,entry2.getValue());    
+								 }
+								 else{
+									 this.pivotMatchGfd.get(pId).get(cId).addAll(entry2.getValue());
+									 int size2 = this.pivotMatchGfd.get(pId).get(cId).size();
+									 if(size2 >= Params.VAR_SUPP){
+										 if(!freqGfd.containsKey(pId)){
+											 freqGfd.put(pId, new IntOpenHashSet());
+										 }
+										 freqGfd.get(pId).add(cId);
+										 
+									 }
+								 }
+						}
+						if(freqGfd.containsKey(pId)){
+							if(!freqGfd.get(pId).contains(cId)){
+								if(!this.pivotMatchGfd.containsKey(entry.getKey())){
+									this.pivotMatchGfd.put(pId,new Int2ObjectOpenHashMap<IntSet>());
+								}
+								 if(!this.pivotMatchGfd.get(pId).containsKey(cId)){
+								    	this.pivotMatchGfd.get(pId).put(cId,entry2.getValue());    
+								 }
+								 else{
+									 this.pivotMatchGfd.get(pId).get(cId).addAll(entry2.getValue());
+									 int size2 = this.pivotMatchGfd.get(pId).get(cId).size();
+									 if(size2 >= Params.VAR_SUPP){
+										 freqGfd.get(pId).add(cId);	 
+									 }
+								 }
+							}
+						}
+					}
+				}
+			}
+				for(Entry<Integer, Int2ObjectMap<IntSet>> entry: pr.satCId.entrySet()){
+					int pId = entry.getKey();
+					for(Entry<Integer,IntSet> entry2 :pr.satCId.get(pId).entrySet()){
+						int cId = entry2.getKey();
+						if(unSatGfds.isEmpty() ||!unSatGfds.containsKey(pId)){
+								if(!this.satCId.containsKey(entry.getKey())){
+									this.satCId.put(pId,new Int2ObjectOpenHashMap<IntSet>());
+								}
+								 if(!this.satCId.get(pId).containsKey(cId)){
+								    	this.satCId.get(pId).put(cId,entry2.getValue());    
+								 }
+								 else{
+									 this.satCId.get(pId).get(cId).addAll(entry2.getValue());
+									 int size2 = this.satCId.get(pId).get(cId).size();
+									 if(size2 >= Params.VAR_UNSAT){
+										 if(!unSatGfds.containsKey(pId)){
+											 unSatGfds.put(pId, new IntOpenHashSet());
+										 }
+										 unSatGfds.get(pId).add(cId);
+										 
+									 }
+								 }
+						}
+						if(unSatGfds.containsKey(pId)){
+							if(!unSatGfds.get(pId).contains(cId)){
+								if(!this.satCId.containsKey(entry.getKey())){
+									this.satCId.put(pId,new Int2ObjectOpenHashMap<IntSet>());
+								}
+								 if(!this.satCId.get(pId).containsKey(cId)){
+								    	this.satCId.get(pId).put(cId,entry2.getValue());    
+								 }
+								 else{
+									 this.satCId.get(pId).get(cId).addAll(entry2.getValue());
+									 int size2 = this.satCId.get(pId).get(cId).size();
+									 if(size2 >= Params.VAR_UNSAT){
+										 unSatGfds.get(pId).add(cId);	 
+									 }
+								 }
+							}
+						}
+					}
+				}
+				
+			}
+		Int2ObjectMap<IntSet> a = new Int2ObjectOpenHashMap<IntSet>(this.isoResult);
+		this.isoResult = Fuc.getIsoResult(a);
 		}
-		
-		HashMap<String,Boolean> cid = new HashMap<String,Boolean>();
-		for(int i=0;i<5;i++){
-			String s = ""+i;
-			cid.put(s, true);
-		}
-		
-		HashMap<String, HashMap<String,Boolean>> c = new HashMap<String,HashMap<String,Boolean>>();
-		for(int i=0;i<5;i++){
-			String s = ""+i;
-			c.put(s, cid);
-		}
-		SuppResult sp3 = new SuppResult(gfdmatch,c);
-		//SuppResult sp4 = new SuppResult(gfdmatch,c);
-		Collection<Result> partialResults2 = new HashSet<Result>();
-		partialResults2.add(sp3);
-		//partialResults2.add(sp4);
-		SuppResult s = new SuppResult();
-		//s.assemblePartialResults(partialResults,pivotMatchP,gfdPMatch,satCId, flag);
-		log.debug("done");
-		
-		
-		
-		
-	}
-	*/
 		
 	@Override
 	public void writeToFile(String filename) {
@@ -352,17 +472,7 @@ public class SuppResult extends Result implements Serializable {
 
 
 
-	
-	/*
-	public WorkUnitW2C(String pId, int supp, int parId, List<Int2IntMap> boderMatch){
-		this.patternId = pId;
-		this.support = supp;
-		this.partitionId = parId;
-		this.boderMatch =  boderMatch;
-	}
-	*/
-	
-	
+
 	
 	
 

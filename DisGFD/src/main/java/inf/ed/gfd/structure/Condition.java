@@ -120,38 +120,49 @@ public class Condition implements Serializable, Cloneable {
 		      // log.debug("begin verify: " + match.toString());
 
 		      // check for X
+			 if(this.isEmpty()){
+				 return true;
+			 }
 		      for (EqLiteral eql : XEqualsLiteral) {
+		    	  log.debug("literal " + eql.attrId + " " + eql.val);
 		    	  int vertexID = match.get(eql.nId);
 		    	  if(kbAttr_Map.containsKey(vertexID)){
+		    		 // String s = "";
+		             //  for(TransAttr b : kbAttr_Map.get(vertexID)){
+		            //	   s = s + b.toString() + " ";
+		            //   }
+		              
+		    		 // log.debug("kbAttr_Map at node"+ vertexID + ", values=  " + s);
 		    		  TransAttr a = new TransAttr(eql.attrId,eql.val);
 		    
 			    	  if(!kbAttr_Map.get(vertexID).contains(a)){
 			    		  return false;
 			    	  }
+			    	 
 			    	}
 		      }
 
 		      for(EqVarLiter eqv : XEqualsVariable){
 		    	  int vertexID = match.get(eqv.fId);
 		    	  int vertexID2 = match.get(eqv.tId);
-		    	  Set<String> fval = new HashSet<String>();
-		    	  Set<String> tval = new HashSet<String>();
+		    	  String fval = null,tval = null;
 		    	
 		    	  if(kbAttr_Map.containsKey(vertexID) && kbAttr_Map.containsKey(vertexID2) ){
-		    		  for(TransAttr a : kbAttr_Map.get(vertexID) ){
+		    		  for(TransAttr a : kbAttr_Map.get(vertexID)){
 		    			  if(a.attr ==  eqv.fattr){
-		    				  fval.add(a.val);
+		    				  fval = a.val;
+		    				  break;
 		    			  }
 		    		
 		    		  }
 		    		  for(TransAttr a : kbAttr_Map.get(vertexID2) ){
 		    			  if(a.attr ==  eqv.tattr){
-		    				  tval.add(a.val);
+		    				  tval = a.val;
+		    				  break;
 		    			  }
 		    		
 		    		  }
-		    		  fval.retainAll(tval);
-		    		  if(fval.isEmpty()){
+		    		  if(!fval.equals(tval)){
 		    			  return false;
 		    		  }
 			    	 
@@ -164,44 +175,50 @@ public class Condition implements Serializable, Cloneable {
 
       // check for Y. it valid only satisfy the condition
       if(this.isLiteral == true){
+    	//  log.debug("literal " + YEqualsLiteral.attrId + " " + YEqualsLiteral.val);
 	    	  int vertexID = match.get(YEqualsLiteral.nId);
 		    	  if(kbAttr_Map.containsKey(vertexID)){
-		    		  TransAttr a = new TransAttr(YEqualsLiteral.attrId,YEqualsLiteral.val);
-		    
-			    	  if(!kbAttr_Map.get(vertexID).contains(a)){
-			    		  return false;
+		    		 TransAttr a = new TransAttr(YEqualsLiteral.attrId,YEqualsLiteral.val);
+		    		//  String s = "";
+		            //   for(TransAttr b : kbAttr_Map.get(vertexID)){
+		            	//   s = s + b.toString() + " ";
+		            //   }
+		              
+		           //    log.debug("kbAttr_Map at node"+ vertexID + ", valuesS =  " + s);
+			    	  if(kbAttr_Map.get(vertexID).contains(a)){
+			    		  return true;
 			    	  }
 			    	}
 	
 	     }
 		else{
-			  int vertexID = match.get(YEqualsVariable.fId);
+			 int vertexID = match.get(YEqualsVariable.fId);
 	    	  int vertexID2 = match.get(YEqualsVariable.tId);
-	    	  Set<String> fval = new HashSet<String>();
-	    	  Set<String> tval = new HashSet<String>();
-	    	
-	    	  if(kbAttr_Map.containsKey(vertexID) && kbAttr_Map.containsKey(vertexID2) ){
-	    		  for(TransAttr a : kbAttr_Map.get(vertexID) ){
+	    	  String fval = null,tval = null;
+			 if(kbAttr_Map.containsKey(vertexID) && kbAttr_Map.containsKey(vertexID2) ){
+	    		  for(TransAttr a : kbAttr_Map.get(vertexID)){
 	    			  if(a.attr ==  YEqualsVariable.fattr){
-	    				  fval.add(a.val);
+	    				  fval = a.val;
+	    				  break;
 	    			  }
 	    		
 	    		  }
 	    		  for(TransAttr a : kbAttr_Map.get(vertexID2) ){
 	    			  if(a.attr ==  YEqualsVariable.tattr){
-	    				  tval.add(a.val);
+	    				  tval = a.val;
+	    				  break;
 	    			  }
 	    		
 	    		  }
-	    		  fval.retainAll(tval);
-	    		  if(fval.isEmpty()){
-	    			  return false;
+	    		  if(fval.equals(tval)){
+	    			  return true;
 	    		  }
-		    	 
-	    	  }
-	    	  
+			 }
 		}
-      return true;
+		    	 
+	    	  
+		
+      return false;
   }
 	 @Override
 	    
@@ -227,7 +244,10 @@ public class Condition implements Serializable, Cloneable {
 	 }
 
   public  boolean isEmpty(){
-	  if(this.YEqualsLiteral == null && this.YEqualsVariable == null){
+	  if(this.XEqualsLiteral == null && this.XEqualsVariable == null){
+		  return true;
+	  }
+	  if(this.XEqualsLiteral.isEmpty() && this.XEqualsVariable.isEmpty()){
 		  return true;
 	  }
 	  return false;

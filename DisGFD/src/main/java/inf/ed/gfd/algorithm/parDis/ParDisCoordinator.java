@@ -76,8 +76,7 @@ import com.carrotsearch.sizeof.RamUsageEstimator;
  * 
  * @author yecol
  */
-public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coordinator,
-		Client2Coordinator {
+public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coordinator, Client2Coordinator {
 
 	private static final long serialVersionUID = 1L;
 
@@ -120,54 +119,42 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	private Set<WorkUnit> workunits = new HashSet<WorkUnit>();
 
-	
-	public Set<Pair<String,String>> negGfdXCands = new HashSet<Pair<String,String>>();
+	public Set<Pair<String, String>> negGfdXCands = new HashSet<Pair<String, String>>();
 	GfdTree gfdTree = new GfdTree();
-	
 
-	
 	List<DFS> edgePattern = new ArrayList<DFS>();
 	public Int2ObjectMap<IntList> attr_Map = new Int2ObjectOpenHashMap<IntList>();
 
-	
-	
 	public HashMap<String, Integer> labelId = new HashMap<String, Integer>();
-	
+
 	DisconnectedTree distree = new DisconnectedTree();
-	
-	
-	
-	
-	//public Set<Pair<Integer,Integer>> gfdResults = new HashSet<Pair<Integer,Integer>>();
-	//for negative gfds;
-	//public IntSet negCands = new IntOpenHashSet();
-	
-	
-	//public IntSet negGfdP = new IntOpenHashSet();
-	
-	//public Set<Pair<Integer,Condition>> negGfdXF = new HashSet<Pair<Integer,Condition>>();
-	public Map<DFS,Integer> dfs2Id = new HashMap<DFS,Integer>();
+
+	// public Set<Pair<Integer,Integer>> gfdResults = new
+	// HashSet<Pair<Integer,Integer>>();
+	// for negative gfds;
+	// public IntSet negCands = new IntOpenHashSet();
+
+	// public IntSet negGfdP = new IntOpenHashSet();
+
+	// public Set<Pair<Integer,Condition>> negGfdXF = new
+	// HashSet<Pair<Integer,Condition>>();
+	public Map<DFS, Integer> dfs2Id = new HashMap<DFS, Integer>();
 	public Int2ObjectMap<DFS> id2Dfs = new Int2ObjectOpenHashMap<DFS>();
-	
+
 	Set<GFD2> connectedGfds = new HashSet<GFD2>();
 	Set<GFD2> negGfds = new HashSet<GFD2>();
 	public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
-	
-	
-	//HashMap<Integer, String> attr_Map = new HashMap<Integer,String>();
-	
-	//Set<String> dom  = new HashSet<String>();
+
+	// HashMap<Integer, String> attr_Map = new HashMap<Integer,String>();
+
+	// Set<String> dom = new HashSet<String>();
 
 	static Logger log = LogManager.getLogger(ParDisCoordinator.class);
-	
-	
-	
-	//for literal extention;
-	
+
+	// for literal extention;
+
 	Int2ObjectMap<Int2ObjectMap<String>> literCands = new Int2ObjectOpenHashMap<Int2ObjectMap<String>>();
-	//var cand only for disconnected
-	
-	
+	// var cand only for disconnected
 
 	/**
 	 * Instantiates a new coordinator.
@@ -192,8 +179,8 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	}
 
 	/**
-	 * Sets the active worker set.
-	 * currentLocalComputeTaskQueue
+	 * Sets the active worker set. currentLocalComputeTaskQueue
+	 * 
 	 * @param activeWorkerSet
 	 *            the new active worker set
 	 */
@@ -216,13 +203,11 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	 *             the remote exception
 	 */
 	@Override
-	public Worker2Coordinator register(Worker worker, String workerID, int numWorkerThreads)
-			throws RemoteException {
+	public Worker2Coordinator register(Worker worker, String workerID, int numWorkerThreads) throws RemoteException {
 
 		log.debug("Worker " + workerID + " registered and ready to work!");
 		totalWorkerThreads.getAndAdd(numWorkerThreads);
-		ParDisWorkerProxy workerProxy = new ParDisWorkerProxy(worker, workerID,
-				numWorkerThreads, this);
+		ParDisWorkerProxy workerProxy = new ParDisWorkerProxy(worker, workerID, numWorkerThreads, this);
 		workerProxyMap.put(workerID, workerProxy);
 		workerMap.put(workerID, worker);
 		return (Worker2Coordinator) UnicastRemoteObject.exportObject(workerProxy, 0);
@@ -247,8 +232,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		log.debug("sendWorkerPartitionInfo");
 		for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
 			ParDisWorkerProxy workerProxy = entry.getValue();
-			workerProxy.setWorkerPartitionInfo(virtualVertexPartitionMap, partitionWorkerMap,
-					workerMap);
+			workerProxy.setWorkerPartitionInfo(virtualVertexPartitionMap, partitionWorkerMap, workerMap);
 		}
 	}
 
@@ -263,20 +247,19 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 	public static void main(String[] args) throws Exception {
 		if (args.length < 3) {
-			 System.out.println("paras: config-file, n, opt");
+			System.out.println("paras: config-file, n, opt");
 			System.exit(0);
 		}
 		Params.CONFIG_FILENAME = args[0].trim();
 		Params.N_PROCESSORS = Integer.parseInt(args[1].trim());
-		Params.RUN_MODE =  Integer.parseInt(args[2].trim());
-				
-				
-				//Integer.parseInt(args[2].trim());
+		Params.RUN_MODE = Integer.parseInt(args[2].trim());
+
+		// Integer.parseInt(args[2].trim());
 		log.debug("PARAM_CONFIG_FILE = " + Params.CONFIG_FILENAME);
 		log.debug("PARAM_N = " + Params.N_PROCESSORS);
 		log.debug("PARAM_RUN_MODE = " + Params.RUN_MODE);
 		log.debug("Processing graph = " + KV.DATASET);
-	
+
 		System.setSecurityManager(new SecurityManager());
 		ParDisCoordinator coordinator;
 		Stat.getInstance().setting = KV.SETTING_PARDISGFD;
@@ -406,7 +389,7 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	 *             the remote exception
 	 */
 	public void nextLocalCompute() throws RemoteException {
-		
+
 		log.info("---------------next begin super step " + superstep + "---------------");
 		log.debug("activeWorkerSet size " + this.activeWorkerSet.size());
 		this.workerAcknowledgementSet.clear();
@@ -419,29 +402,19 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 		superstep++;
 		resultMap.clear();
-		
-		//this.activeWorkerSet.clear();
+
+		// this.activeWorkerSet.clear();
 	}
 
-
-
 	public void finishLocalCompute() throws RemoteException {
-		//process disConnected patterns
-		//Stat.getInstance().findGfdsTime =  (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
-		//long disStartTime = System.currentTimeMillis();
-		//distree.disConnectedGFD(extendPatterns,gfdTree);
-	//	disConnectedGfds = distree.disConnectedGfds;
-		//Stat.getInstance().findDisConnectedGfdsTime = (System.currentTimeMillis() - disStartTime) * 1.0 / 1000;
-		//output final results;
+
 		Stat.getInstance().totalTime = (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
 		getResult();
 		gfdTree.writeToFile("gfdTree.dat");
-		
-		
+		log.info("the total time  = " + Stat.getInstance().totalTime);
+
 		this.shutdown();
 	}
-
-	
 
 	private void sendPartitionInfo() throws RemoteException {
 		for (Map.Entry<String, ParDisWorkerProxy> entry : workerProxyMap.entrySet()) {
@@ -450,10 +423,10 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		}
 	}
 
-	public void loadLiteralInfo(){
-	    String filename = KV.GRAPH_FILE_PATH + ".freq";
-		try{
-			File literFile =new File(filename);
+	public void loadLiteralInfo() {
+		String filename = KV.GRAPH_FILE_PATH + ".freq";
+		try {
+			File literFile = new File(filename);
 			LineIterator it = FileUtils.lineIterator(literFile, "UTF-8");
 			try {
 				while (it.hasNext()) {
@@ -461,31 +434,31 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					String[] tmpt = line.split("\t");
 					int pId = Integer.parseInt(tmpt[0].trim());
 					int attrId = Integer.parseInt(tmpt[1].trim());
-					if(!literCands.containsKey(pId)){
+					if (!literCands.containsKey(pId)) {
 						literCands.put(pId, new Int2ObjectOpenHashMap<String>());
 					}
 					literCands.get(pId).put(attrId, tmpt[2].trim());
-					if(!attr_Map.containsKey(pId)){
+					if (!attr_Map.containsKey(pId)) {
 						attr_Map.put(pId, new IntArrayList());
 					}
-					attr_Map.get(pId).add(attrId);	
+					attr_Map.get(pId).add(attrId);
 				}
 			} finally {
 				LineIterator.closeQuietly(it);
-		}
-		}catch (IOException e) {
+			}
+		} catch (IOException e) {
 			log.error("load liter file failed.");
 			e.printStackTrace();
 		}
 		return;
-	
+
 	}
-	
-	public void loadEdgePatternInfo(){
-		
-	    String filename = KV.GRAPH_FILE_PATH + ".edge";
-		try{
-			File literFile =new File(filename);
+
+	public void loadEdgePatternInfo() {
+
+		String filename = KV.GRAPH_FILE_PATH + ".edge";
+		try {
+			File literFile = new File(filename);
 			LineIterator it = FileUtils.lineIterator(literFile, "UTF-8");
 			try {
 				int i = 1;
@@ -494,636 +467,752 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 					String[] tmpt = line.split("\t");
 					String s = tmpt[0].trim();
 					DFS dfs = Fuc.getDfsFromString(s);
-					//log.debug("begin to create id for edgePatterns");
+					// log.debug("begin to create id for edgePatterns");
 					//
-					//log.debug(dfs.toString());
+					// log.debug(dfs.toString());
 					edgePattern.add(dfs);
-						//dfs2Id.put(dfs, i);
-						//id2Dfs.put(i, dfs);
-						//i++;
+					// dfs2Id.put(dfs, i);
+					// id2Dfs.put(i, dfs);
+					// i++;
 				}
-			
+
 			} finally {
 				LineIterator.closeQuietly(it);
-		}
-		}catch (IOException e) {
+			}
+		} catch (IOException e) {
 			log.error("load liter file failed.");
 			e.printStackTrace();
 		}
-		
-	    Collections.sort(edgePattern);				
-		log.debug("begin to initial extend gfd tree");
-		
+
+		Collections.sort(edgePattern);
+		log.debug("begin to initial e" + "xtend gfd tree");
+
 		gfdTree.extendRoot(edgePattern);
-		
-		log.debug(gfdTree.dfs2Ids.size());
+
+		log.debug("loaded freq-edge.size = " + gfdTree.dfs2Ids.size());
 		edgePattern.clear();
-		
-		//gfdTree.dfs2Ids = dfs2Id;
-		//log.debug("id2Dfs size" +id2Dfs.size());
+
+		// gfdTree.dfs2Ids = dfs2Id;
+		// log.debug("id2Dfs size" +id2Dfs.size());
 		WorkUnit w = new WorkUnit(gfdTree.dfs2Ids);
 		w.nodeAttr_Map = attr_Map;
 		log.debug(attr_Map.size());
-		workunits.add(w);			
+		workunits.add(w);
+		// log.debug();
+
 		return;
-	
+
 	}
-	
 
 	public void preProcess() throws RemoteException {
-		
-		
 
 		wholeStartTime = System.currentTimeMillis();
 		// read border nodes;
 
 		// distributed partition;
-	
+
 		assignDistributedPartitions();
 		sendPartitionInfo();
 
-		Stat.getInstance().getInputFilesLocalAndDistributedTime = (System.currentTimeMillis() - wholeStartTime) * 1.0 / 1000;
+		Stat.getInstance().getInputFilesLocalAndDistributedTime = (System.currentTimeMillis() - wholeStartTime) * 1.0
+				/ 1000;
 
-		//List<GFD2> queries = readGFDFromDir();
-		//log.info("load " + queries.size() + " gfds from: " + KV.QUERY_DIR_PATH);
+		// List<GFD2> queries = readGFDFromDir();
+		// log.info("load " + queries.size() + " gfds from: " +
+		// KV.QUERY_DIR_PATH);
 
 		this.workerAcknowledgementSet.clear();
 		this.workerAcknowledgementSet.addAll(this.activeWorkerSet);
 		loadLiteralInfo();
 		loadEdgePatternInfo();
-		
-		
+
 		assignWorkunitsToWorkers();
 		nextLocalCompute();
-		
-	
-		//process();
 
-		//sendGFDs2Workers(queries);
+		// process();
+
+		// sendGFDs2Workers(queries);
 	}
-
-
 
 	@Override
 	public void process() throws RemoteException {
-		
+
 		assignWorkunitsToWorkers();
 		workunits.clear();
 		nextLocalCompute();
 	}
 
+	public synchronized void receivePartialResults(String workerID, Map<Integer, Result> mapPartitionID2Result)
+			throws RemoteException {
 
-
-	public synchronized void receivePartialResults(String workerID,
-			Map<Integer, Result> mapPartitionID2Result) throws RemoteException {
-        workunits.clear();
+		workunits.clear();
 		log.debug("current ack set = " + this.workerAcknowledgementSet.toString());
 		log.debug("receive partitial results = " + workerID);
 
 		for (Entry<Integer, Result> entry : mapPartitionID2Result.entrySet()) {
+
+			SuppResult partialResult = (SuppResult) entry.getValue();
+			log.debug("got from pid = " + entry.getKey() + ", pivot match size = " + partialResult.pivotMatchP.size());
 			resultMap.put(entry.getKey(), entry.getValue());
 		}
 
 		this.workerAcknowledgementSet.remove(workerID);
 
 		if (this.workerAcknowledgementSet.size() == 0) {
-			
 
 			/** receive all the partial results, assemble them. */
 			log.info("assemble the result");
-				SuppResult finalResult = new SuppResult();
-				log.debug("begin to assembel result! Results size");
-				//log.debug(finalResult.pivotMatchP.size());
-				//log.debug(resultMap.values().size());
-				finalResult.assemblePartialResults(resultMap.values());
-				
-				//log.debug(finalResult.toString());
-				//log.debug(finalResult.pivotMatchP.size());
-				//log.debug("graph node num : " +finalResult.nodeNum);
-				log.debug("assembel done!");
-				//ws.clear();
-				extendAndDistributeWorkUnits(finalResult);
-				//log.debug("has created the new workunit");
-				
-				try {
-					log.debug("begin to process.");
-					process();
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+			SuppResult finalResult = new SuppResult();
+			log.debug("begin to assembel result! Results size");
+			// log.debug(finalResult.pivotMatchP.size());
+			// log.debug(resultMap.values().size());
+			finalResult.assemblePartialResults(resultMap.values());
+			log.debug("total pivot match size = " + finalResult.pivotMatchP.size());
+			log.debug("total pivot satisfied match size = " + finalResult.freqPattern.size());
+			// log.debug(finalResult.toString());
+			// log.debug(finalResult.pivotMatchP.size());
+			// log.debug("graph node num : " +finalResult.nodeNum);
+			log.debug("assembel done!");
+			// ws.clear();
+			extendAndDistributeWorkUnits(finalResult);
+			// log.debug("has created the new workunit");
+
+			try {
+				log.debug("begin to process.");
+				process();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}
 	}
-	
-	//put them into paraResult;
-	HashMap<Integer,Set<String>> literDom;
-	HashMap<Integer,IntSet> varDom;
-	
-	//List<DFS> edgePattern = new ArrayList<DFS>();
-	//HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
-	//superstep 1;
-	
-	
+
+	// put them into paraResult;
+	HashMap<Integer, Set<String>> literDom;
+	HashMap<Integer, IntSet> varDom;
+
+	// List<DFS> edgePattern = new ArrayList<DFS>();
+	// HashMap<String,List<WorkUnit>> ws = new HashMap<String,List<WorkUnit>>();
+	// superstep 1;
+
 	public Int2DoubleMap avgWork = new Int2DoubleOpenHashMap();
-	//public boolean isEstimateBanlance = false;
-	
-	public void extendAndDistributeWorkUnits(SuppResult finalResult) throws RemoteException{
+	// public boolean isEstimateBanlance = false;
+
+	public void extendAndDistributeWorkUnits(SuppResult finalResult) throws RemoteException {
+		log.debug("finalresult before expending = " + finalResult.freqPattern.size());
 		workunits.clear();
-				if(finalResult.checkGfd ){
-					log.info("begin verify gfd and generate workunits");
-					verifyGfdAndGenerateWorkUnits(finalResult);
-					log.info("end verify gfd and generate workunits");
-				}
-				//patternCheck
-				if(finalResult.extendPattern){
-					log.info("begin verify pattern and generate workunits");
-					avgWork.clear();
-					for(Entry<Integer,Integer> entry : finalResult.patternMatchesNum.entrySet()){
-						   int key = entry.getKey();
-						    int sum = entry.getValue();
-							double avg = (double) sum/Params.N_PROCESSORS;
-							avgWork.put(key, avg);
-						}
-						//isEstimateBanlance = true;
-					verifyPatternAndGenerateWorkUnits(finalResult);
-					log.info("end verify gfd and generate workunits");
-				}
-				if(finalResult.isIsoCheck){
-					log.info("begin verify isomorphism and generate workunits");
-					isoCheckProcess(finalResult);
-					generateWorkUnitsForPatternCheck(finalResult);
-					log.info("end verify isomorphism and generate workunits");
-						
-				}
-			
-			
-			
-			if(!finalResult.isFirst && !finalResult.checkGfd && !finalResult.extendPattern && !finalResult.isIsoCheck ){
-				finishLocalCompute();
+		if (finalResult.checkGfd) {
+			log.info("begin verify gfd and generate workunits");
+			verifyGfdAndGenerateWorkUnits(finalResult);
+			log.info("end verify gfd and generate workunits");
+		}
+		// patternCheck
+		if (finalResult.extendPattern) {
+			log.debug("begin: finalresult before expending = " + finalResult.freqPattern.size());
+			log.info("begin verify pattern and generate workunits");
+			avgWork.clear();
+			for (Entry<Integer, Integer> entry : finalResult.patternMatchesNum.entrySet()) {
+				int key = entry.getKey();
+				int sum = entry.getValue();
+				double avg = (double) sum / Params.N_PROCESSORS;
+				avgWork.put(key, avg);
 			}
-			
+			// isEstimateBanlance = true;
+			verifyPatternAndGenerateWorkUnits(finalResult);
+			log.info("end verify gfd and generate workunits");
+		}
+		if (finalResult.isIsoCheck) {
+			log.info("begin verify isomorphism and generate workunits");
+			isoCheckProcess(finalResult);
+			generateWorkUnitsForPatternCheck(finalResult);
+			log.info("end verify isomorphism and generate workunits");
+
 		}
 
-		
-	
+		if (!finalResult.isFirst && !finalResult.checkGfd && !finalResult.extendPattern && !finalResult.isIsoCheck) {
+			finishLocalCompute();
+		}
+
+	}
+
 	IntSet pIdKeep = new IntOpenHashSet();
-/*
-	public void intialExtendAndGenerateWorkUnits(SuppResult finalResult){
-		log.debug("begin compute support of edge pattern and extend condition y");
-		for(int s :finalResult.pivotMatchP.keySet()){	
-			//log.debug("node num" +finalResult.nodeNum);
-			int supp = finalResult.pivotMatchP.get(s).size();
-			log.debug("supp od rdgePattern"+ supp);
-			if(supp >= Params.VAR_SUPP){
-				//log.debug("supp value " + supp);
-				/////////////////////////////////
-				//revise;
-				DFS dfs = id2Dfs.get(s);
-				edgePattern.add(dfs);
-			//	log.debug("edgePattern size" +edgePattern.size());
-			}		
-		}
-		
-		
-		gfdTree.extendRoot(edgePattern, dfs2Id,finalResult);
-		for(GfdNode gc : gfdTree.getRoot().children){
-			pIdKeep.add(gc.pId);
-			gc.extend = true;
-		}
-		
-		log.debug("edgePattern size" + edgePattern.size());
-		
-		log.debug("begin to extend dependencied empty->y and create "
-				+ "workunit for edge pattern with empty -> y ");
-		
-		for(GfdNode g:gfdTree.getRoot().children){
-		
-			g.ltree.extendNode(g.ltree.getRoot(), literCands);	
-			Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
-			if(g.ltree.getRoot().children != null|| !g.ltree.getRoot().children.isEmpty()){
-				for(LiterNode t:g.ltree.getRoot().children){
-					if(!t.dependency.isEmpty()){
-						conditions.put(t.cId, t.dependency);
-						log.debug("pattern = " + g.pId + "  Condition Id= " +t.cId );
-						int a = g.ltree.condition_Map.get(t.cId).supp;
-					}
-				}
-				if(!conditions.isEmpty()){
-					WorkUnit w = new WorkUnit(g.pId,conditions,true);
-					workunits.add(w);
-				}
-			}
-		}
-	}*/
-	
+	/*
+	 * public void intialExtendAndGenerateWorkUnits(SuppResult finalResult){
+	 * log.debug("begin compute support of edge pattern and extend condition y"
+	 * ); for(int s :finalResult.pivotMatchP.keySet()){ //log.debug("node num"
+	 * +finalResult.nodeNum); int supp = finalResult.pivotMatchP.get(s).size();
+	 * log.debug("supp od rdgePattern"+ supp); if(supp >= Params.VAR_SUPP){
+	 * //log.debug("supp value " + supp); /////////////////////////////////
+	 * //revise; DFS dfs = id2Dfs.get(s); edgePattern.add(dfs); // log.debug(
+	 * "edgePattern size" +edgePattern.size()); } }
+	 * 
+	 * 
+	 * gfdTree.extendRoot(edgePattern, dfs2Id,finalResult); for(GfdNode gc :
+	 * gfdTree.getRoot().children){ pIdKeep.add(gc.pId); gc.extend = true; }
+	 * 
+	 * log.debug("edgePattern size" + edgePattern.size());
+	 * 
+	 * log.debug("begin to extend dependencied empty->y and create " +
+	 * "workunit for edge pattern with empty -> y ");
+	 * 
+	 * for(GfdNode g:gfdTree.getRoot().children){
+	 * 
+	 * g.ltree.extendNode(g.ltree.getRoot(), literCands);
+	 * Int2ObjectMap<Condition> conditions = new
+	 * Int2ObjectOpenHashMap<Condition>(); if(g.ltree.getRoot().children !=
+	 * null|| !g.ltree.getRoot().children.isEmpty()){ for(LiterNode
+	 * t:g.ltree.getRoot().children){ if(!t.dependency.isEmpty()){
+	 * conditions.put(t.cId, t.dependency); log.debug("pattern = " + g.pId +
+	 * "  Condition Id= " +t.cId ); int a =
+	 * g.ltree.condition_Map.get(t.cId).supp; } } if(!conditions.isEmpty()){
+	 * WorkUnit w = new WorkUnit(g.pId,conditions,true); workunits.add(w); } } }
+	 * }
+	 */
 
 	List<SimP> extendPatterns = new ArrayList<SimP>();
 	IntSet tmpPatternCheck = new IntOpenHashSet();
-	
-	public void verifyGfdAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
-          
-			log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
-			
-			//begin to create workunit
-			verifyGfds(finalResult);
-			
-			boolean flagExtend = generateWorkUnitforGfdCheck(finalResult);
-			log.debug(flagExtend);
-			if(!flagExtend){
-				log.debug("no condition more, begin to extend pattern");
-				boolean flagExtendP = generateAndAssignWorkUnitforIsoCheck(finalResult);
-				
-				if(!flagExtendP){
-					log.debug("all process done!");
-					finishLocalCompute();
-				}	
+
+	public void verifyGfdAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException {
+
+		log.debug("begin to verify gfd and extend condition X and produce workunit for next step.");
+
+		// begin to create workunit
+		verifyGfds(finalResult);
+
+		boolean flagExtend = generateWorkUnitforGfdCheck(finalResult);
+		log.debug("flagextend = " + flagExtend);
+		if (!flagExtend) {
+
+			log.debug("begin: finalresult before expending = " + finalResult.freqPattern.size());
+
+			log.debug("no condition more, begin to extend pattern");
+			log.debug("begin to expend pattern: = " + pIdKeep.size());
+			boolean flagExtendP = generateAndAssignWorkUnitforIsoCheck(finalResult);
+
+			if (!flagExtendP) {
+				log.debug("all process done!");
+				finishLocalCompute();
 			}
+		}
 	}
 
-	private void addConenectedGfd(GfdNode g, LiterNode t){
-		GFD2 gfd = new GFD2(g.pattern,t.dependency);	
+	private void addConenectedGfd(GfdNode g, LiterNode t) {
+		GFD2 gfd = new GFD2(g.pattern, t.dependency);
 		connectedGfds.add(gfd);
-		t.isSat = true;	
-		if(g.parent!= gfdTree.getRoot()){
-		if(Params.RUN_MODE == 0){
-			g.ltree.addNegCheck(t,-1);
+		t.isSat = true;
+		if (g.parent != gfdTree.getRoot()) {
+			if (Params.RUN_MODE == 0) {
+				g.ltree.addNegCheck(t, -1);
+			}
+			if (Params.RUN_MODE == 2) {
+				int n = g.parent.ltree.condition_Map.size();
+				g.ltree.addNegCheck(t, n);
+			}
+		} else {
+			g.ltree.addNegCheck(t, -1);
 		}
-		if(Params.RUN_MODE == 2){
-			int n = g.parent.ltree.condition_Map.size();
-			g.ltree.addNegCheck(t,n);
-		}
-		}
-		else{
-			g.ltree.addNegCheck(t,-1);
-		}
-		
+
 	}
-	
-	private void verifyGfds(SuppResult finalResult){
-		if(!finalResult.pivotMatchGfd.isEmpty()){
-		for(Entry<Integer, Int2ObjectMap<IntSet>> entry: finalResult.pivotMatchGfd.entrySet()){
-			int pId = entry.getKey();
-			if(!finalResult.pivotMatchGfd.get(pId).isEmpty()){
-			for(Entry<Integer,IntSet> entry2 :finalResult.pivotMatchGfd.get(pId).entrySet()){
-				//log.debug("pattern  =  " + pId);
-				
-				int cId = entry2.getKey();
-				//log.debug("condition cid " + cId);
-				GfdNode g = gfdTree.patterns_Map.get(pId);
-				//log.debug(g.pId);
-				//log.debug("condition cid " + cId);
-				LiterNode t = g.ltree.condition_Map.get(cId);
-			//	log.debug(t.cId);
-				int supp =  entry2.getValue().size();
-			//	log.debug(supp);
-				t.supp = supp;
-				t.pivotMatch = entry2.getValue();
-				//log.debug("supp value " + supp);//
-				
-				//log.debug("check negative gfd ");//
-				if(t.negCheck){
-					t.extend = false;
-					if(supp == 0){
-						GFD2 gfd = new GFD2(g.pattern,t.dependency);	
-						negGfds.add(gfd);
-					}
-				}
-				
-				if(!t.negCheck){
-					//is a minimum gfd; check negative, update liter and var dom;
-					if(supp >= Params.VAR_SUPP){
-						t.extend = true;
-						//log.debug("supp: " + supp);//
-						int unsat = finalResult.satCId.get(pId).get(cId).size();
-						double unsatRatio = (double) unsat/(supp+unsat);
-						if(unsatRatio <= Params.UNSAT_RATIO){
-							addConenectedGfd(g,t);
+
+	private void verifyGfds1(SuppResult finalResult) {
+		if (!finalResult.pivotMatchGfd.isEmpty()) {
+			for (Entry<Integer, Int2ObjectMap<IntSet>> entry : finalResult.pivotMatchGfd.entrySet()) {
+				int pId = entry.getKey();
+				if (!finalResult.pivotMatchGfd.get(pId).isEmpty()) {
+					for (Entry<Integer, IntSet> entry2 : finalResult.pivotMatchGfd.get(pId).entrySet()) {
+						// log.debug("pattern = " + pId);
+
+						int cId = entry2.getKey();
+						GfdNode g = gfdTree.patterns_Map.get(pId);
+						LiterNode t = g.ltree.condition_Map.get(cId);
+						int supp = entry2.getValue().size();
+						// log.debug(supp);
+						t.supp = supp;
+						t.pivotMatch = entry2.getValue();
+						// log.debug("supp value " + supp);//
+
+						// log.debug("check negative gfd ");//
+						if (t.negCheck) {
+							t.extend = false;
+							if (supp == 0) {
+								GFD2 gfd = new GFD2(g.pattern, t.dependency);
+								negGfds.add(gfd);
+							}
 						}
-						else{
-							//log.debug(t.children.size());
-							if(t.literNum < Params.VAR_LITERNUM){
-								if(Params.RUN_MODE == 0){
-									g.ltree.extendNode(t, literCands);
-								}
-								if(Params.RUN_MODE == 2){
-									if(g.parent == gfdTree.getRoot()){
-										g.ltree.extendNode(t, literCands);
-									}else{
-								    g.ltree.extendNodeForPrune(t, literCands);	
+
+						if (!t.negCheck) {
+							// is a minimum gfd; check negative, update liter
+							// and var dom;
+							if (supp >= Params.VAR_SUPP) {
+								t.extend = true;
+								// log.debug("supp: " + supp);//
+								int unsat = finalResult.satCId.get(pId).get(cId).size();
+								double unsatRatio = (double) unsat / (supp + unsat);
+								if (unsatRatio <= Params.UNSAT_RATIO) {
+									addConenectedGfd(g, t);
+								} else {
+									// log.debug(t.children.size());
+									if (t.literNum < Params.VAR_LITERNUM) {
+										if (Params.RUN_MODE == 0) {
+											g.ltree.extendNode(t, literCands);
+										}
+										if (Params.RUN_MODE == 2) {
+											if (g.parent == gfdTree.getRoot()) {
+												g.ltree.extendNode(t, literCands);
+											} else {
+												g.ltree.extendNodeForPrune(t, literCands);
+											}
+										}
 									}
+
 								}
-						}
-							
+							}
+
 						}
 					}
-					
 				}
 			}
 		}
-		}
-		}
-			
+
 	}
-	
-		
-			
-	private boolean generateWorkUnitforGfdCheck(SuppResult finalResult) throws RemoteException{
+
+	private void verifyGfds(SuppResult finalResult) {
+        log.debug("there are " + finalResult.freqGfd.size() +"patterns has frequnet gfd");
+      
+		for (Entry<Integer, IntSet> entry : finalResult.freqGfd.entrySet()) {
+			int pId = entry.getKey();
+			log.debug("the frequent gfd with pattern Id  = " + pId + ", size == "+ finalResult.freqGfd.get(pId).size());
+			GfdNode g = gfdTree.patterns_Map.get(pId);
+			log.debug("the unsatisfiable gfds with pattern Id  = " + pId + ", size == "+ finalResult.freqGfd.get(pId).size());
+			for (int cId : entry.getValue()) {
+				LiterNode t = g.ltree.condition_Map.get(cId);
+				if (finalResult.unSatGfds.containsKey(pId)) {
+					if (finalResult.unSatGfds.get(pId).contains(cId)) {
+						t.extend = true;
+						if (t.literNum < Params.VAR_LITERNUM) {
+							if (Params.RUN_MODE == 0) {
+								g.ltree.extendNode(t, literCands);
+							}
+							if (Params.RUN_MODE == 2) {
+								if (g.parent == gfdTree.getRoot()) {
+									g.ltree.extendNode(t, literCands);
+								} else {
+									g.ltree.extendNodeForPrune(t, literCands);
+								}
+							}
+						}
+					} else {
+						log.debug("found connected gfds !");
+						addConenectedGfd(g, t);
+					}
+				} else {
+					log.debug("check negative gfd");
+					if(finalResult.pivotMatchGfd.containsKey(pId)){
+						if(finalResult.pivotMatchGfd.containsKey(cId)){
+				
+					if (finalResult.pivotMatchGfd.get(pId).get(cId).size() == 0) {
+						if (t.negCheck) {
+							GFD2 gfd = new GFD2(g.pattern, t.dependency);
+							negGfds.add(gfd);
+						}
+						t.extend = false;
+					}
+						}
+					}
+				}
+
+			}
+		}
+
+	}
+
+	private boolean generateWorkUnitforGfdCheck1(SuppResult finalResult) throws RemoteException {
 		workunits.clear();
 		boolean flagExtend = false;
-		//log.debug(flagExtend);
-		for(int pId: finalResult.satCId.keySet()){
+		// log.debug(flagExtend);
+		for (int pId : finalResult.satCId.keySet()) {
 			GfdNode g = gfdTree.patterns_Map.get(pId);
 			Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
-			for(int cId: finalResult.pivotMatchGfd.get(pId).keySet()){
-				
+			for (int cId : finalResult.pivotMatchGfd.get(pId).keySet()) {
+
 				LiterNode t = g.ltree.condition_Map.get(cId);
-				//log.debug(t.children.size());
-				if(t.children!=null && t.extend ){
-					if(t.children.size()!= 0){
-						//log.debug("t chidrensize" + t.children.size());
+				// log.debug(t.children.size());
+				if (t.children != null && t.extend) {
+					if (t.children.size() != 0) {
+						// log.debug("t chidrensize" + t.children.size());
 						flagExtend = true;
-						for(LiterNode tc : t.children){
+						for (LiterNode tc : t.children) {
 							conditions.put(tc.cId, tc.dependency);
 						}
-					
-					}			
+
+					}
 				}
 			}
-			if(flagExtend && !conditions.isEmpty()){
-				WorkUnit w = new WorkUnit(g.pId,conditions,true);
+			if (flagExtend && !conditions.isEmpty()) {
+				WorkUnit w = new WorkUnit(g.pId, conditions, true);
 				workunits.add(w);
 			}
-    	}
+		}
 		return flagExtend;
 	}
-	
-	
-	
-	
-	private boolean generateAndAssignWorkUnitforIsoCheck(SuppResult finalResult) throws RemoteException{
+
+	private boolean generateWorkUnitforGfdCheck(SuppResult finalResult) throws RemoteException {
+		workunits.clear();
+		boolean flagExtend = false;
+        log.debug("has extend gfd done! begin to create workunits to check them");
+		for (int pId : finalResult.freqGfd.keySet()) {
+			GfdNode g = gfdTree.patterns_Map.get(pId);
+			Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
+			for (int cId : finalResult.freqGfd.get(pId)) {
+
+				LiterNode t = g.ltree.condition_Map.get(cId);
+				// log.debug(t.children.size());
+				if (t.children != null && t.extend) {
+					if (t.children.size() != 0) {
+						// log.debug("t chidrensize" + t.children.size());
+						flagExtend = true;
+						for (LiterNode tc : t.children) {
+							conditions.put(tc.cId, tc.dependency);
+						}
+
+					}
+				}
+				log.debug("possible gfds for pattern " +pId +"size = " + conditions.size());
+			}
+			if (flagExtend && !conditions.isEmpty()) {
+				WorkUnit w = new WorkUnit(g.pId, conditions, true);
+				workunits.add(w);
+			}
+		}
+		log.debug("workunits size ( gfds extend from fre-gfds, the fre-gfds size) = " + workunits.size() ); 
+		return flagExtend;
+	}
+
+	private boolean generateAndAssignWorkUnitforIsoCheck(SuppResult finalResult) throws RemoteException {
 		workunits.clear();
 		boolean flagExtendP = false;
 		IntSet layerGfds = new IntOpenHashSet();
-		
+
 		tmpPatternCheck.clear();
-		//log.debug("pIdkeep size = "+ pIdKeep.size());
-		for(int pId:pIdKeep){
+		// log.debug("pIdkeep size = "+ pIdKeep.size());
+		for (int pId : pIdKeep) {
 			GfdNode g = gfdTree.patterns_Map.get(pId);
-			//log.debug(g.extend);
-		//	log.debug("pattern node num = " + g.nodeNum +"; pattern extend =" +g.extend);
-			if(g.nodeNum < Params.var_K && g.extend){
-				
+			// log.debug(g.extend);
+			// log.debug("pattern node num = " + g.nodeNum +"; pattern extend ="
+			// +g.extend);
+			if (g.nodeNum < Params.var_K && g.extend) {
+
 				gfdTree.extendGeneral(edgePattern, g);
-			//	log.debug("pattern " + g.pId + "has children size = " +g.children.size());
+				
+				// log.debug("pattern " + g.pId + "has children size = "
+				// +g.children.size());
 			}
-		//	log.debug("pattern " +g.pId + "children size= " + g.children.size());
-			if(g.children != null){
-				if(!g.children.isEmpty()){
+			// log.debug("pattern " +g.pId + "children size= " +
+			// g.children.size());
+			if (g.children != null) {
+				if (!g.children.isEmpty()) {
 					flagExtendP = true;
 					tmpPatternCheck.add(g.pId);
-					for(GfdNode g1: g.children){
-						//log.debug("pattern " +g.pId + "children pId = " + g1.pId);
+					for (GfdNode g1 : g.children) {
+						// log.debug("pattern " +g.pId + "children pId = " +
+						// g1.pId);
 						layerGfds.add(g1.pId);
+						g1.extend = true;
 					}
 				}
 			}
 		}
-		log.debug("tmpPatternCheck size = " + tmpPatternCheck.size() );
-		log.debug("layerGfds size = "+ layerGfds.size());
-		if(flagExtendP == false){
+		log.debug("can extend pattern form these patterns, these pattern size = " + tmpPatternCheck.size());
+		log.debug("next layer pattern have extended from pattern in tmpPatternCheck , the  size = " + layerGfds.size());
+		if (flagExtendP == false) {
 			return flagExtendP;
 		}
-		
+
 		HashMap<String, IntSet> cluster1 = new HashMap<String, IntSet>();
 		HashMap<String, IntSet> cluster = new HashMap<String, IntSet>();
-		for(int i: layerGfds){
+		for (int i : layerGfds) {
 			String s = gfdTree.patterns_Map.get(i).orderId;
-			if(!cluster1.containsKey(s)){
+			if (!cluster1.containsKey(s)) {
 				cluster1.put(s, new IntOpenHashSet());
 			}
 			cluster1.get(s).add(i);
 		}
-		
-		for(Entry<String,IntSet> entry : cluster1.entrySet()){
-			if(entry.getValue().size()>1){
+
+		for (Entry<String, IntSet> entry : cluster1.entrySet()) {
+			if (entry.getValue().size() > 1) {
 				cluster.put(entry.getKey(), entry.getValue());
 			}
 		}
-		
-		if(cluster.isEmpty()){
+
+		if (cluster.isEmpty()) {
 			log.debug("no possible isomorphism patterns, begin to generate workunit to verify pattern!");
 			generateWorkUnitsForPatternCheck(finalResult);
-			//assignWorkunitsToWorkers();
+			// assignWorkunitsToWorkers();
 		}
-		
-		else{
-			//HashMap<Integer,Graph<VertexString, TypedEdge>> works = new 
-					//HashMap<Integer,Graph<VertexString, TypedEdge>>();
+
+		else {
+			// HashMap<Integer,Graph<VertexString, TypedEdge>> works = new
+			// HashMap<Integer,Graph<VertexString, TypedEdge>>();
+			log.debug("there are some possible isomorphism patterns, begin to generate workunit to verify ");
 			workunits.clear();
-			for(String s :cluster.keySet()){
-				for(int i: cluster.get(s)){
-					for(int j : cluster.get(s)){
-						if(i<j){
-							Pair<Graph<VertexString, TypedEdge>,Graph<VertexString, TypedEdge>> pair = 
-									new Pair<Graph<VertexString, TypedEdge>,
-									Graph<VertexString, TypedEdge>> (gfdTree.patterns_Map.get(i).pattern,
-											gfdTree.patterns_Map.get(j).pattern);
-							Pair<Integer,Integer> pairId = new Pair<Integer,Integer>(i,j);
-							WorkUnit w = new WorkUnit(pair,pairId);
+			for (String s : cluster.keySet()) {
+				for (int i : cluster.get(s)) {
+					for (int j : cluster.get(s)) {
+						if (i < j) {
+							Pair<Graph<VertexString, TypedEdge>, Graph<VertexString, TypedEdge>> pair = new Pair<Graph<VertexString, TypedEdge>, Graph<VertexString, TypedEdge>>(
+									gfdTree.patterns_Map.get(i).pattern, gfdTree.patterns_Map.get(j).pattern);
+							Pair<Integer, Integer> pairId = new Pair<Integer, Integer>(i, j);
+							WorkUnit w = new WorkUnit(pair, pairId);
 							w.isIsoCheck = true;
 							workunits.add(w);
-							
-						}                   
+
+						}
 					}
-					
+
 				}
 			}
-			//log.debug("isoWorkUnit" +workunits.size());
-			//assignIsoWOrkUnits();
+		   log.debug("have produced isoWorkUnit, size == " +workunits.size());
+			// assignIsoWOrkUnits();
 		}
 		return flagExtendP;
-					
+
 	}
-	
-	
-				
-	public void generateWorkUnitsForPatternCheck(SuppResult r)	{
-        workunits.clear();
-        log.debug(workunits.size());
-		//isoCheckProcess(r);
-		log.debug("begin to generate work units for pattern check" );
-		WorkUnit w = new WorkUnit();
-		String s = "";
-		for(int i: tmpPatternCheck){
-			s += ""+i+"\t";
-		}
-		//log.debug("tmptPatternCheck patterns = "+ s);
-		for(int pId :tmpPatternCheck){
+
+	public void generateWorkUnitsForPatternCheck(SuppResult r) {
+		workunits.clear();
+		//log.debug(workunits.size());
+		// isoCheckProcess(r);
+		log.debug("begin to generate work units for extended pattern && and the "
+				+ "pattern are extended by tmpPatternCheck, size =  "+ tmpPatternCheck.size());
+		
+		for (int pId : tmpPatternCheck) {
 			GfdNode g = gfdTree.patterns_Map.get(pId);
-			for(GfdNode t:g.children){
-			//	log.debug("extend pattern pId = " + t.pId + " extend = " + t.extend);
+			for (GfdNode t : g.children) {
+				// log.debug("extend pattern pId = " + t.pId + " extend = " +
+				// t.extend);
 				if(t.extend){
-			        DFS dfs = t.edgePattern.findDFS();
-					int id = gfdTree.dfs2Ids.get(dfs);
-					Pair<Integer,Pair<Integer,Integer>> pair = new 
-							Pair<Integer,Pair<Integer,Integer>>(id,t.addNode);
-				    w.edgeIds.put(t.pId, pair);
-				    w.oriPatternId = pId;
-				    w.isPatternCheck = true;
-				  //  log.debug(w.toString());
-				    workunits.add(w);
-				
+				// t.extend = true;
+				DFS dfs = t.edgePattern.findDFS();
+				int id = gfdTree.dfs2Ids.get(dfs);
+				WorkUnit w = new WorkUnit();
+				Pair<Integer, Pair<Integer, Integer>> pair = new Pair<Integer, Pair<Integer, Integer>>(id, t.addNode);
+				w.edgeIds.put(t.pId, pair);
+				w.oriPatternId = pId;
+				w.isPatternCheck = true;
+				// log.debug(w.toString());
+				workunits.add(w);
 				}
+
 			}
-				
-			
-			
-			
+
 		}
-	
+
+		log.debug("finish generating pattern check working unit : pattern extended by tmpPatternChecknum , size =  " + workunits.size());
+
 	}
-	
 
-    public void isoCheckProcess(SuppResult r){
-    	int j = 0;
-    	for(Entry<Integer,IntSet> entry: r.isoResult.entrySet()){
-    		GfdNode g = gfdTree.patterns_Map.get(entry.getKey());
-    		g.isopatterns = new IntOpenHashSet(entry.getValue());
-    		for(int i: entry.getValue()){
-    			GfdNode g1 = gfdTree.patterns_Map.get(i);
-    			g1.extend = false;
-    		}
-    	}
-    	
-    }
-							
-	
-  
-	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException{
-					workunits.clear();
-		           // extendPatterns.clear();
-		            pIdKeep.clear();
-					boolean flagExtend = false;
+	public void isoCheckProcess(SuppResult r) {
+		int j = 0;
+		for (Entry<Integer, IntSet> entry : r.isoResult.entrySet()) {
+			GfdNode g = gfdTree.patterns_Map.get(entry.getKey());
+			g.isopatterns = new IntOpenHashSet(entry.getValue());
+			for (int i : entry.getValue()) {
+				GfdNode g1 = gfdTree.patterns_Map.get(i);
+				g1.extend = false;
+			}
+		}
 
-					
-					log.debug("begin to verify pattern support");
-					for(int pId :finalResult.pivotMatchP.keySet()){
-						GfdNode g = gfdTree.patterns_Map.get(pId);
-					    int supp = finalResult.pivotMatchP.get(pId).size();
-					    g.supp = supp;
-					  
-					    if(supp == 0){
-                            GFD2 gfd = new GFD2(g.pattern,null);
-							negGfds.add(gfd);
-						}
-						if(supp >= Params.VAR_SUPP){
-							  log.debug("patterns support" + g.supp);
-							if(g.parent == gfdTree.getRoot()){
-							
-								edgePattern.add(g.edgePattern);
-							}
-							g.extend = true;
-							flagExtend = true;
-							pIdKeep.add(pId);
-						//	g.literDom = finalResult.literDom.get(pId);
-						//	g.varDom = finalResult.varDom.get(pId);
-								
-							//for disconnected
-							SimP simp = new SimP(pId,supp,g.nodeNum);
-							extendPatterns.add(simp);
-							/////////////////
-							if(Params.RUN_MODE == 0){
-								g.ltree.extendNode(g.ltree.getRoot(),literCands);
-							}
-							if(Params.RUN_MODE == 2){
-								//log.debug(arg0);
-								if(g.parent == gfdTree.getRoot()){
-									g.ltree.extendNode(g.ltree.getRoot(),literCands);
-								}
-								else{
-									g.ltree.extendNodeForPrune(g.ltree.getRoot(),literCands);
-								}
-							}
-							
-								Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
-								for(LiterNode tc : g.ltree.getRoot().children){
-									conditions.put(tc.cId, tc.dependency);
-								}
-								WorkUnit w = new WorkUnit(g.pId,conditions,true);
-								if(Params.RUN_MODE == 2){
-									w.isAvg = true;
-									w.avg = avgWork.get(pId);
-								}
-								workunits.add(w);
-								
-							}
-						else{
-							g.extend = false;
-						}
-							
-						}
-					
-					//log.debug("flagExtend" + flagExtend);
-				
-					if(!flagExtend){
-						log.debug("all process done!");
-						finishLocalCompute();		
+	}
+
+	public void verifyPatternAndGenerateWorkUnits1(SuppResult finalResult) throws RemoteException {
+		workunits.clear();
+		// extendPatterns.clear();
+		pIdKeep.clear();
+		boolean flagExtend = false;
+
+		log.debug("begin to verify pattern support");
+		for (int pId : finalResult.pivotMatchP.keySet()) {
+			GfdNode g = gfdTree.patterns_Map.get(pId);
+			int supp = finalResult.pivotMatchP.get(pId).size();
+			g.supp = supp;
+
+			if (supp == 0) {
+				GFD2 gfd = new GFD2(g.pattern, null);
+				negGfds.add(gfd);
+			}
+			if (supp >= Params.VAR_SUPP) {
+				log.debug("patterns support" + g.supp);
+				if (g.parent == gfdTree.getRoot()) {
+
+					edgePattern.add(g.edgePattern);
+				}
+				g.extend = true;
+				flagExtend = true;
+				pIdKeep.add(pId);
+				// g.literDom = finalResult.literDom.get(pId);
+				// g.varDom = finalResult.varDom.get(pId);
+
+				// for disconnected
+				SimP simp = new SimP(pId, supp, g.nodeNum);
+				extendPatterns.add(simp);
+				/////////////////
+				if (Params.RUN_MODE == 0) {
+					g.ltree.extendNode(g.ltree.getRoot(), literCands);
+				}
+				if (Params.RUN_MODE == 2) {
+					// log.debug(arg0);
+					if (g.parent == gfdTree.getRoot()) {
+						g.ltree.extendNode(g.ltree.getRoot(), literCands);
+					} else {
+						g.ltree.extendNodeForPrune(g.ltree.getRoot(), literCands);
 					}
 				}
 
+				Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
+				for (LiterNode tc : g.ltree.getRoot().children) {
+					conditions.put(tc.cId, tc.dependency);
+				}
+				WorkUnit w = new WorkUnit(g.pId, conditions, true);
+				if (Params.RUN_MODE == 2) {
+					w.isAvg = true;
+					w.avg = avgWork.get(pId);
+				}
+				workunits.add(w);
+
+			} else {
+				g.extend = false;
+			}
+
+		}
+
+		// log.debug("flagExtend" + flagExtend);
+
+		if (!flagExtend) {
+			log.debug("all process done!");
+			finishLocalCompute();
+		}
+	}
+
+	public void verifyPatternAndGenerateWorkUnits(SuppResult finalResult) throws RemoteException {
+		workunits.clear();
+		// extendPatterns.clear();
+		pIdKeep.clear();
+		boolean flagExtend = false;
+		log.debug("begin to verify pattern, the frequnet pattern size " + finalResult.freqPattern.size());
+		if (!finalResult.freqPattern.isEmpty()) {
+			log.debug("begin to create y literal for fre-pattern");
+			for (int pId : finalResult.freqPattern) {
+
+				GfdNode g = gfdTree.patterns_Map.get(pId);
+				// log.debug("patterns support" + g.supp);
+			   
+				if (g.parent == gfdTree.getRoot()) {
+
+					edgePattern.add(g.edgePattern);
+				}
+				g.extend = true;
+				flagExtend = true;
+				pIdKeep.add(pId);
+				
+				if (Params.RUN_MODE == 0) {
+					g.ltree.extendNode(g.ltree.getRoot(), literCands);
+				}
+				if (Params.RUN_MODE == 2) {
+					// log.debug(arg0);
+					if (g.parent == gfdTree.getRoot()) {
+						g.ltree.extendNode(g.ltree.getRoot(), literCands);
+					} else {
+						g.ltree.extendNodeForPrune(g.ltree.getRoot(), literCands);
+					}
+				}
+				
+
+				Int2ObjectMap<Condition> conditions = new Int2ObjectOpenHashMap<Condition>();
+				for (LiterNode tc : g.ltree.getRoot().children) {
+					conditions.put(tc.cId, tc.dependency);
+				}
+				
+				log.debug("finish generate y literal for pattern pId = " + pId + ", y literal size = " +conditions.size());
+
+				WorkUnit w = new WorkUnit(g.pId, conditions, true);
+				if (Params.RUN_MODE == 2) {
+					w.isAvg = true;
+					w.avg = avgWork.get(pId);
+				}
+				workunits.add(w);
+				
+			}
+			log.debug("finish cretw work unit for checking gfd y literal , the workload size == " +
+					workunits.size()+ "it shoud be == pattern size  = " + finalResult.freqPattern.size());
+
+
+		}
+		for (int neg : finalResult.pivotMatchP.keySet()) {
+			if (finalResult.pivotMatchP.get(neg).size() == 0) {
+				GfdNode g = gfdTree.patterns_Map.get(neg);
+				GFD2 gfd = new GFD2(g.pattern, null);
+				negGfds.add(gfd);
+
+			}
+
+		}
+
+		if (!flagExtend) {
+			log.debug("there is no pattern is frequnet, all process done!");
+			finishLocalCompute();
+		}
+	}
+
 	private void assignWorkunitsToWorkers() throws RemoteException {
-		log.debug("begin to assign workunit to workers" );
-		//for(WorkUnit s : workunits){
-			//log.debug(s.toString());
-		//}
+		log.debug("begin to assign workunit to workers");
+		// for(WorkUnit s : workunits){
+		// log.debug(s.toString());
+		// }
 		WorkUnit s = Fuc.getRandomWorkUnit(workunits);
 		boolean isIsoCheck = s.isIsoCheck;
-		if(isIsoCheck){
+		if (isIsoCheck) {
 			assignIsoWOrkUnits();
-		}
-		else{
+		} else {
 			assignWorkunitsToWorkersAVG();
 		}
-		
+
 	}
-	
+
 	private void assignWorkunitsToWorkersAVG() throws RemoteException {
-       
+
 		Stat.getInstance().sc2wcommunicationData += RamUsageEstimator.sizeOf(workunits);
-        Stat.getInstance().totalWorkUnit += workunits.size();
-		//log.debug("begin assign work units to workers.");
-	//	log.debug("workload size" + workunits.size());
-	
-		
-		
-		//if(isEstimateBanlance){
-	//	if(workunits.size() > 0){
-			//for(WorkUnit w:workunits){
-				//w.avgMatch = avgWork;
-			//	w.isAvg = true;
-				//isIsoCheck = w.isIsoCheck;
-			//	break;
-			//}
-		//}
-		///}
-		
+		Stat.getInstance().totalWorkUnit += workunits.size();
+		// log.debug("begin assign work units to workers.");
+		// log.debug("workload size" + workunits.size());
+
+		// if(isEstimateBanlance){
+		// if(workunits.size() > 0){
+		// for(WorkUnit w:workunits){
+		// w.avgMatch = avgWork;
+		// w.isAvg = true;
+		// isIsoCheck = w.isIsoCheck;
+		// break;
+		// }
+		// }
+		/// }
 
 		long assignStartTime = System.currentTimeMillis();
 
 		int machineNum = workerProxyMap.size();
-		//Stat.getInstance().totalWorkUnit = workunits.size();
+		// Stat.getInstance().totalWorkUnit = workunits.size();
 
-		Int2ObjectMap<Set<WorkUnit>> assignment = new 
-				Int2ObjectOpenHashMap<Set<WorkUnit>>();
-		//Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
-		//Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new Int2ObjectOpenHashMap<Set<CrossingEdge>>();
+		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
+		// Int2ObjectMap<Int2ObjectMap<IntSet>> prefetchRequest = new
+		// Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+		// Int2ObjectMap<Set<CrossingEdge>> crossingEdges = new
+		// Int2ObjectOpenHashMap<Set<CrossingEdge>>();
 		Random r = new Random();
 
-		//log.debug("should be very quick");
-		//for (WorkUnit wu : workunits) {
-			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
-				assignment.put(assignedMachine, workunits);
-			}
-	//	log.debug("job assignment finished. begin to dispatch.");
+		// log.debug("should be very quick");
+		// for (WorkUnit wu : workunits) {
+		for (int assignedMachine = 0; assignedMachine < machineNum; assignedMachine++) {
+			assignment.put(assignedMachine, workunits);
+		}
+		// log.debug("job assignment finished. begin to dispatch.");
 
 		for (int machineID : assignment.keySet()) {
 			String workerID = partitionWorkerMap.get(machineID);
@@ -1133,42 +1222,38 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 		localStartTime = System.currentTimeMillis();
 		Stat.getInstance().jobAssignmentTime = (localStartTime - assignStartTime) * 1.0 / 1000;
 	}
-	
-	
 
-	private void assignIsoWOrkUnits() throws RemoteException{
-		
-		
+	private void assignIsoWOrkUnits() throws RemoteException {
+
 		Queue<WorkUnit> workload = new LinkedList<WorkUnit>();
 		int machineNum = workerProxyMap.size();
-		for(WorkUnit w : workunits){
+		for (WorkUnit w : workunits) {
 			workload.add(w);
 		}
 
-		//Stat.getInstance().totalWorkUnit = workloads.size();
+		// Stat.getInstance().totalWorkUnit = workloads.size();
 
 		Int2ObjectMap<Set<WorkUnit>> assignment = new Int2ObjectOpenHashMap<Set<WorkUnit>>();
 		log.debug("finished assigment.");
-		
-			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
-				if(!workload.isEmpty()){
-					WorkUnit w = workload.poll();
-					if(!assignment.containsKey(assignedMachine)){
-						assignment.put(assignedMachine, new HashSet<WorkUnit>());
-					}
-					assignment.get(assignedMachine).add(w);		
-			}
-		}
-		  // for there is not enough work for all workers
-			WorkUnit w = new WorkUnit();
-			w.isIsoCheck = true;
-			for(int assignedMachine = 0; assignedMachine  < machineNum ;assignedMachine ++){
-				if(!assignment.containsKey(assignedMachine)){
+
+		for (int assignedMachine = 0; assignedMachine < machineNum; assignedMachine++) {
+			if (!workload.isEmpty()) {
+				WorkUnit w = workload.poll();
+				if (!assignment.containsKey(assignedMachine)) {
 					assignment.put(assignedMachine, new HashSet<WorkUnit>());
 				}
 				assignment.get(assignedMachine).add(w);
 			}
-			
+		}
+		// for there is not enough work for all workers
+		WorkUnit w = new WorkUnit();
+		w.isIsoCheck = true;
+		for (int assignedMachine = 0; assignedMachine < machineNum; assignedMachine++) {
+			if (!assignment.containsKey(assignedMachine)) {
+				assignment.put(assignedMachine, new HashSet<WorkUnit>());
+			}
+			assignment.get(assignedMachine).add(w);
+		}
 
 		for (int machineID : assignment.keySet()) {
 			// here machineID = partitionID
@@ -1179,69 +1264,68 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		}
 	}
-	//partition to check isomorphism;
-	
+	// partition to check isomorphism;
 
-	private void getResult(){
-		
-	    String filename = KV.RESULT_FILE_PATH ;
-	
-		//public IntSet negGfdP = new IntOpenHashSet();
-		//public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
-		//public Set<Pair<Integer,Condition>> negGfdXF = new HashSet<Pair<Integer,Condition>>();
+	private void getResult() {
+
+		String filename = KV.RESULT_FILE_PATH;
+
+		// public IntSet negGfdP = new IntOpenHashSet();
+		// public Set<GFD2> disConnectedGfds = new HashSet<GFD2>();
+		// public Set<Pair<Integer,Condition>> negGfdXF = new
+		// HashSet<Pair<Integer,Condition>>();
 		log.debug("Write final result file ");
 
 		PrintWriter writer;
 		try {
-			File file1 = new File(filename+".neg");
+			File file1 = new File(filename + ".neg");
 			writer = new PrintWriter(file1);
 			log.debug(negGfds.size());
-			for(GFD2 gfd : negGfds){
-			
+			for (GFD2 gfd : negGfds) {
+
 				writer.println(gfd.tofileC());
 			}
 			writer.flush();
 			writer.close();
-		}catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-			
-		try{
-			File file1 = new File(filename+".gfds");
+
+		try {
+			File file1 = new File(filename + ".gfds");
 			writer = new PrintWriter(file1);
 			log.debug(connectedGfds.size());
-			for(GFD2 gfd : connectedGfds){
+			for (GFD2 gfd : connectedGfds) {
 				writer.println(gfd.tofileC());
 			}
 			writer.flush();
 			writer.close();
-		}catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		try{
-			File file1 = new File(filename+".disconnected");
+		try {
+			File file1 = new File(filename + ".disconnected");
 			writer = new PrintWriter(file1);
-			for(GFD2 gfd : disConnectedGfds){
+			for (GFD2 gfd : disConnectedGfds) {
 				writer.println(gfd.tofileDC());
 			}
 			writer.flush();
 			writer.close();
-		}catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		try{
-			File file1 = new File(filename+".info");
+		try {
+			File file1 = new File(filename + ".info");
 			writer = new PrintWriter(file1);
-			
-		    writer.println(Stat.getInstance().getInfo());
-			
+
+			writer.println(Stat.getInstance().getInfo());
+
 			writer.flush();
 			writer.close();
-		}catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}	
+		}
 	}
-	
 
 	@Override
 	public void postProcess() throws RemoteException {
@@ -1250,23 +1334,21 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 	@Override
 	public void vote2halt(String workerID) throws RemoteException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void sendPartialResult(String workerID, Map<Integer, Result> mapPartitionID2Result) throws RemoteException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void sendPartialResult(String workerID, Map<Integer, Result> partialResults, double communicationData)
 			throws RemoteException {
 		// TODO Auto-generated method stub
-		
-	}
 
-	
+	}
 
 	@Override
 	public void localComputeCompleted(String workerID, Set<String> activeWorkerIDs) throws RemoteException {
@@ -1284,16 +1366,12 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 
 		if (this.workerAcknowledgementSet.size() == 0) {
 
-			Stat.getInstance().finishGapTime = (System.currentTimeMillis() - firstPartialResultArrivalTime) * 1.0 / 1000;
-			
+			Stat.getInstance().finishGapTime = (System.currentTimeMillis() - firstPartialResultArrivalTime) * 1.0
+					/ 1000;
+
 			nextLocalCompute();
-			
+
 		}
 	}
-
-
-	
-	
-	
 
 }

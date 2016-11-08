@@ -730,6 +730,9 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				localComputeTask.pivotPMatch1.clear();
 				localComputeTask.satCId1.clear();
 				localComputeTask.pivotMatchGfd1.clear();
+				localComputeTask.freqGfd.clear();
+				localComputeTask.freqPattern.clear();
+				localComputeTask.unSatGfds.clear();
 				this.nextLocalComputeTasksQueue.add(localComputeTask);
 
 			} catch (Exception e) {

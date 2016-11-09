@@ -14,10 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import inf.ed.gfd.util.ColoneUtils;
 import inf.ed.graph.structure.SimpleGraph;
 import inf.ed.graph.structure.adaptor.Pair;
@@ -26,9 +22,12 @@ import inf.ed.graph.structure.adaptor.VertexString;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class GfdTree implements Serializable {
 	
-	static Logger log = LogManager.getLogger(GfdTree.class);
+	static //////////logger //////////log = //////////logManager.get//////////logger(GfdTree.class);
 	
     private GfdNode root;
     
@@ -89,11 +88,11 @@ public class GfdTree implements Serializable {
 			 //g.extend = true;
 		 }
 			// for(GfdNode t : this.root.children){
-				// log.debug("extenf general t" + t.edgePattern.toString());
+				// //////////log.debug("extenf general t" + t.edgePattern.toString());
 				// extendRootChild(t,edgePattern);
 				 /*
 				 for(GfdNode x :t.children){
-					 log.debug(x.edgePattern.toString());
+					 //////////log.debug(x.edgePattern.toString());
 				 }*/
 		 // }
 		 
@@ -108,19 +107,19 @@ public class GfdTree implements Serializable {
 		int tx = dfs.tLabel.x;
 		int fy = dfs.fLabel.y;
 		int ty = dfs.tLabel.y;
-		//log.debug("extend dfs:"+ dfs);
+		////////////log.debug("extend dfs:"+ dfs);
 		for(DFS dfs1 : edgePattern){
-			//log.debug("extend's candidate:" + dfs1);
+			////////////log.debug("extend's candidate:" + dfs1);
 			int fx1 = dfs1.fLabel.x;
 			int tx1 = dfs1.tLabel.x;
 			
 			if(fx1==fx){  // t: A_mC_n
 				if(tx1 == tx){  //edgepattern: AC
-					log.debug(dfs.toString() + "," + dfs1.toString());
+					//////////log.debug(dfs.toString() + "," + dfs1.toString());
 					int n1 = t.attrs.get(tx);//A_mC_n+1
 					Pair<Integer,Integer> p3 = new Pair<Integer,Integer>(tx,n1);
 					DFS dfs13 = new DFS(dfs.fLabel,p3,dfs1.eLabel);
-					log.debug(dfs13.toString());
+					//////////log.debug(dfs13.toString());
 				
 					newNode(t,dfs13);	
 					int m = t.attrs.get(fx);
@@ -130,14 +129,14 @@ public class GfdTree implements Serializable {
 						Pair<Integer,Integer> p2 = new Pair<Integer,Integer>(tx,k);
 						DFS dfs11 = new DFS(p1,p2,dfs1.eLabel);
 						
-						log.debug(dfs11.toString());
+						////////////log.debug(dfs11.toString());
 						
 						 newNode(t,dfs11);		
 					}
 					if(dfs.isEqualL()){// A_mA_n
 						if(fy <ty){ //m<n add A_nA_m
 							DFS dfs12 = new DFS(dfs.tLabel,dfs.fLabel,dfs1.eLabel);	
-							//log.debug(dfs12.toString());
+							////////////log.debug(dfs12.toString());
 							
 							newNode(t,dfs12);
 							
@@ -151,7 +150,7 @@ public class GfdTree implements Serializable {
 						
 						newNode(t,dfs12);
 						
-						//log.debug(dfs12.toString());
+						////////////log.debug(dfs12.toString());
 					}
 					else{//AD_1.AD_n
 						int n = t.attrs.get(tx1);
@@ -161,7 +160,7 @@ public class GfdTree implements Serializable {
 							
 							 newNode(t,dfs12);	
 							
-							// log.debug(dfs12.toString());
+							// //////////log.debug(dfs12.toString());
 						}
 						
 					}
@@ -198,7 +197,7 @@ public class GfdTree implements Serializable {
 							
 						
 							newNode(t,dfs13);
-							//log.debug(dfs13.toString());
+							////////////log.debug(dfs13.toString());
 						}
 					}
 					if(fx1<fx){
@@ -228,7 +227,7 @@ public class GfdTree implements Serializable {
 						if(!t.attrs.containsKey(tx1)){//CB_0,CB_1
 							DFS dfs3 = new DFS(dfs.tLabel,dfs1.tLabel,dfs1.eLabel);
 							 newNode(t,dfs3);
-							 //log.debug(dfs1.toString());
+							 ////////////log.debug(dfs1.toString());
 						}
 						else{
 							int n = t.attrs.get(tx1);
@@ -237,7 +236,7 @@ public class GfdTree implements Serializable {
 								DFS dfs3 = new DFS(dfs.tLabel,p2,dfs1.eLabel);
 								
 								newNode(t,dfs3);
-								//log.debug(dfs3.toString());
+								////////////log.debug(dfs3.toString());
 							}
 							
 						}	
@@ -268,7 +267,7 @@ public class GfdTree implements Serializable {
 								 DFS dfs3 = new DFS(dfs1.fLabel,dfs.fLabel,dfs1.eLabel);
 								
 								  newNode(t,dfs3);
-								 // log.debug(dfs3.toString());
+								 // //////////log.debug(dfs3.toString());
 							  }
 							  else{////D_0A_m,D_n,A_m
 								  int m = t.attrs.get(fx1);
@@ -277,7 +276,7 @@ public class GfdTree implements Serializable {
 										DFS dfs3 = new DFS(p2,dfs.fLabel,dfs1.eLabel);
 										
 										newNode(t,dfs3);
-										//log.debug(dfs3.toString());
+										////////////log.debug(dfs3.toString());
 								  }
 									  
 								  }
@@ -310,7 +309,7 @@ public class GfdTree implements Serializable {
 									DFS dfs3 = new DFS(p2,dfs1.tLabel,dfs1.eLabel);
 									
 									newNode(t,dfs3);
-									//log.debug(dfs3.toString());
+									////////////log.debug(dfs3.toString());
 							  }
 					 
 						   
@@ -329,7 +328,7 @@ public class GfdTree implements Serializable {
 		  // extend root's children
 		      //t.wC2Wp.oriPatternId = t.key;
 			  DFS tdfs = t.edgePattern;
-			// log.debug(tdfs.toString() + ":");
+			// //////////log.debug(tdfs.toString() + ":");
 			  int index = edgePattern.indexOf(tdfs);
 			  index++;
 			  //for AA_1 , add AA_2, A_1A, and A{C},{C}A  and A_1{C} and {C}A_1
@@ -400,9 +399,9 @@ public class GfdTree implements Serializable {
 		
 			 Collections.sort(g.children);
 			  int i = 0 ;
-			  //log.debug( dfs.toString() +"children");
+			  ////////////log.debug( dfs.toString() +"children");
 			  for(GfdNode gx : g.children){
-				  log.debug("general node " +dfs.toString() + "children "+ gx.edgePattern.toString());
+				  //////////log.debug("general node " +dfs.toString() + "children "+ gx.edgePattern.toString());
 				  gx.pos = i;
 				  i++;
 			  }
@@ -474,10 +473,10 @@ public class GfdTree implements Serializable {
 			   String f1 = dfs1.fLabel.x;
 			   String t1 = dfs1.tLabel.x;
 			   DFS dfse = dfs1.findDFS();
-			  // log.debug(dfse.toString());
+			  // //////////log.debug(dfse.toString());
 			   String id = dfse.toString();
 			   GfdNode g = this.pattern_Map.get(id);
-			  // log.debug(g.edgePattern.toString());
+			  // //////////log.debug(g.edgePattern.toString());
 			   for(GfdNode g1: g.children){
 				   DFS child = g1.edgePattern;
 				   String f2 = child.fLabel.x;
@@ -569,7 +568,7 @@ public class GfdTree implements Serializable {
 	 					   tp.y = i;
 	 					   DFS dfs3 = new DFS(dfs.fLabel,tp,dfs.eLabel);
 	 					   DFS dfs4 = new DFS(tp,dfs.tLabel,dfs.eLabel);
-	 					  //log.debug(dfs3.toString()+"\t"+dfs4.toString());
+	 					  ////////////log.debug(dfs3.toString()+"\t"+dfs4.toString());
 	 					   addNode(g,  dfs3,  s);
 	 					   addNode(g,  dfs4, s);
 	 					} 
@@ -606,7 +605,7 @@ public class GfdTree implements Serializable {
 		  // extend root's children
 		      //t.wC2Wp.oriPatternId = t.key;
 			  DFS tdfs = t.edgePattern;
-			 log.debug(tdfs.toString() + ":");
+			 //////////log.debug(tdfs.toString() + ":");
 			  int index = edgePattern.indexOf(tdfs);
 			  index++;
 			  //for AA_1 , add AA_2, A_1A, and A{C},{C}A  and A_1{C} and {C}A_1
@@ -684,7 +683,7 @@ public class GfdTree implements Serializable {
  					   tp.y = i;
  					   DFS dfs3 = new DFS(dfs.fLabel,tp,dfs.eLabel);
  					   DFS dfs4 = new DFS(tp,dfs.tLabel,dfs.eLabel);
- 					  //log.debug(dfs3.toString()+"\t"+dfs4.toString());
+ 					  ////////////log.debug(dfs3.toString()+"\t"+dfs4.toString());
  					   addNode(g,  dfs3,  s);
  					   addNode(g,  dfs4, s);
  					} 
@@ -766,7 +765,7 @@ public class GfdTree implements Serializable {
 	
   private int findIndex(DFS dfs,List<DFS> edgePattern){
 	  DFS dfsn = dfs.findDFS();
-	 // log.debug(dfsn.toString());
+	 // //////////log.debug(dfsn.toString());
 	  return edgePattern.indexOf(dfsn);
   }
   private Pair<Integer,Integer> addPair(Pair<Integer,Integer> a){
@@ -795,9 +794,9 @@ public class GfdTree implements Serializable {
 	 // if(!t.extendDfss.contains(dfs)){
 	 
 		  if(!t.extendDfss.contains(dfs) && !dfs.fLabel.equals(dfs.tLabel)){
-		   // log.debug("extend dfs : " + dfs);
+		   // //////////log.debug("extend dfs : " + dfs);
 	        t.extendDfss.add(dfs);
-		    //log.debug(dfs.toString());
+		    ////////////log.debug(dfs.toString());
 			GfdNode g = new GfdNode();
 			g.setParent(t);
 			if(t != this.root){
@@ -814,7 +813,7 @@ public class GfdTree implements Serializable {
 			g.nodeSet = new HashMap<Pair<Integer,Integer>,Integer>(t.nodeSet);
 			g.nodeNum = t.nodeNum;
 			if(!g.nodeSet.containsKey(e1)){
-				//log.debug("add nodeSet");
+				////////////log.debug("add nodeSet");
 				int attr1 = e1.x;
 			
 					VertexString vertex1 = new VertexString(g.pattern.vertexSize()+1, attr1);
@@ -836,7 +835,7 @@ public class GfdTree implements Serializable {
 			
 			int fId = g.nodeSet.get(e1);
 			int tId = g.nodeSet.get(e2);
-			//log.debug(dfs.toString()+"\t" +fId +"\t" +tId +"\n");
+			////////////log.debug(dfs.toString()+"\t" +fId +"\t" +tId +"\n");
 			if(g.getPattern().contains(fId, tId)){
 				TypedEdge e = g.getPattern().getEdge(fId, tId);
 				e.setAttr(dfs.eLabel);
@@ -913,13 +912,13 @@ public class GfdTree implements Serializable {
 		
 				g.key = dfs.toString();
 				g.ltree.extendNode(dom, g.ltree.getRoot());	
-				log.debug(g.ltree.getRoot().children.size());
+				//////////log.debug(g.ltree.getRoot().children.size());
 	
     }
 
 	private void addNode(GfdNode t, DFS dfs,  LiterNode s){
 		if(t.nodeNum >= Params.var_K){
-			log.debug("pattern has already k size");
+			//////////log.debug("pattern has already k size");
 		}
 		else{
 			GfdNode g = newNode(t,dfs);
@@ -995,7 +994,7 @@ public class GfdTree implements Serializable {
 	  */
    /*
 	 public void updateLiteral(GfdNode t, List<DFS> edgePattern, LiterNode s){
-			log.debug(s.key);
+			//////////log.debug(s.key);
 			if(t.children.isEmpty() || t.children == null){
 				this.extendNode(t, edgePattern, s);
 			}
@@ -1007,7 +1006,7 @@ public class GfdTree implements Serializable {
 					}
 					else{
 						 String key = s.getParent().key;
-						 log.debug(key);
+						 //////////log.debug(key);
 						 LiterNode update = g.ltree.condition_Map.get(key);
 						 if(s.addXLiteral){
 							 g.ltree.addNode(update, 0, s.addxl.x,  s.addxl.y);
@@ -1085,30 +1084,30 @@ public class GfdTree implements Serializable {
     	gtree.extendRoot(edgePattern);
 		Set<GfdNode> tmpt = new HashSet<GfdNode>();
 		for(DFS dfs : edgePattern){
-			log.debug(dfs);
+			//////////log.debug(dfs);
 		}
 	   for(GfdNode g1 :gtree.getRoot().children ){
 		   gtree.extendGeneral(edgePattern,g1);
-		   log.debug(g1.children.size());
+		   //////////log.debug(g1.children.size());
 		   for(GfdNode g2 : g1.children){
-			  log.debug(g1.edgePattern + "\t" +g2.edgePattern);
+			  //////////log.debug(g1.edgePattern + "\t" +g2.edgePattern);
 			   tmpt.add(g2);
 		   }
 	   }
 	   for(GfdNode g3 : tmpt){
 		   gtree.extendGeneral(edgePattern,g3);
-		   log.debug(g3.children.size());
+		   //////////log.debug(g3.children.size());
 		   for(GfdNode g4 : g3.children){
-			   log.debug(g3.edgePattern + "\t" +g4.edgePattern);
+			   //////////log.debug(g3.edgePattern + "\t" +g4.edgePattern);
 		   }
 	   }
 			//gtree.extendGeneral(edgePattern, g1);
 		//}
 			//for(GfdNode g2: g1.getChildren()){
-				// log.debug("extenf general" + g2.edgePattern.toString());
+				// //////////log.debug("extenf general" + g2.edgePattern.toString());
 				//gtree.extendGeneral(edgePattern,g2);
 				//for(GfdNode x :g2.children){
-				 // log.debug(x.edgePattern.toString());
+				 // //////////log.debug(x.edgePattern.toString());
 				// }
 				
 		   // }

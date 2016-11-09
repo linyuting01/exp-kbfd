@@ -801,9 +801,15 @@ public class ParDisCoordinator extends UnicastRemoteObject implements Worker2Coo
 							}
 						}
 					} else {
-						log.debug("found connected gfds !");
-						addConenectedGfd(g, t);
+						if(finalResult.satCId.containsKey(pId)){
+							if(finalResult.satCId.get(pId).containsKey(cId)){		
+							
+							log.debug("found connected gfds !");
+							addConenectedGfd(g, t);}
+						}
 					}
+						
+					
 				} else {
 					log.debug("check negative gfd");
 					if(finalResult.pivotMatchGfd.containsKey(pId)){

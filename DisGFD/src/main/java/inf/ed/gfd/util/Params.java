@@ -6,7 +6,7 @@ public class Params {
 	public static final int VAR_NB = 1;
 	public static final int VAR_OPT = 2;
 	
-	public static final int VAR_LITERNUM = 2;
+	public static final int VAR_LITERNUM = 3;
 	public static  double UNSAT_RATIO ;
 
 	public static int RUN_MODE;

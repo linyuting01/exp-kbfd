@@ -719,7 +719,8 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 
 				localComputeTask.init(entry.getKey());
 				localComputeTask.setWorkUnits(workload);
-				
+				log.debug("patternNodeMatchesN size = "+ localComputeTask.patternNodeMatchesN.size());
+				log.debug("patternNodeMatchesN size = "+ localComputeTask.patternNodeMatchesP.size());
 				if (!localComputeTask.patternNodeMatchesN.isEmpty()) {
 					localComputeTask.patternNodeMatchesP.clear();
 					localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(

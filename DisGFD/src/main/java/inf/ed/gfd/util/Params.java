@@ -2,8 +2,8 @@ package inf.ed.gfd.util;
 
 public class Params {
     
-	public static final int VAR_NP = 0;
-	public static final int VAR_NB = 1;
+	public static final int VAR_NB = 0;
+	public static final int VAR_NP = 1;
 	public static final int VAR_OPT = 2;
 	
 	public static final int VAR_LITERNUM = 3;

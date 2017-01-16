@@ -177,6 +177,16 @@ public class SuppResult extends Result implements Serializable {
 
 
 	//@Override
+	public void assemblePartialResults(Collection<Result> partialResults){
+		log.debug("Params run_mode = " + Params.RUN_MODE);
+		if(Params.RUN_MODE == 1){
+			
+			assemblePartialResults1(partialResults);
+		}
+		else{
+			assemblePartialResults2(partialResults);
+		}
+	}
 	public void assemblePartialResults1(Collection<Result> partialResults) {
 		
 		
@@ -289,8 +299,8 @@ public class SuppResult extends Result implements Serializable {
 	}
 	
 
-	@Override
-	public void assemblePartialResults(Collection<Result> partialResults){
+
+	public void assemblePartialResults2(Collection<Result> partialResults){
 		//SuppResult pr = Fuc.getRandomSuppResult(partialResults);
 		
 	

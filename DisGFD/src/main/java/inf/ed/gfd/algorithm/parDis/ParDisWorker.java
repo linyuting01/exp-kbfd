@@ -9,6 +9,7 @@ import inf.ed.gfd.structure.Partition;
 import inf.ed.gfd.structure.SuppResult;
 import inf.ed.gfd.structure.WorkUnit;
 import inf.ed.gfd.util.Dev;
+import inf.ed.gfd.util.Fuc;
 import inf.ed.gfd.util.KV;
 import inf.ed.gfd.util.Params;
 import inf.ed.gfd.util.Stat;
@@ -721,13 +722,19 @@ public class ParDisWorker extends UnicastRemoteObject implements Worker {
 				localComputeTask.setWorkUnits(workload);
 				log.debug("patternNodeMatchesN size = "+ localComputeTask.patternNodeMatchesN.size());
 				log.debug("patternNodeMatchesN size = "+ localComputeTask.patternNodeMatchesP.size());
-				if (!localComputeTask.patternNodeMatchesN.isEmpty()) {
-					localComputeTask.patternNodeMatchesP.clear();
-					localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(
-							localComputeTask.patternNodeMatchesN);
-					localComputeTask.patternNodeMatchesN.clear();
-					log.debug(localComputeTask.patternNodeMatchesP.size());
+				
+				if(!workload.isEmpty()){
+					WorkUnit w = Fuc.getRandomWorkUnit(workload);
+					if(w.isPatternCheck){
+						localComputeTask.patternNodeMatchesP.clear();
+						localComputeTask.patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>(
+								localComputeTask.patternNodeMatchesN);
+						localComputeTask.patternNodeMatchesN.clear();
+						log.debug(localComputeTask.patternNodeMatchesP.size());
+					}
 				}
+				
+				
 				localComputeTask.pivotPMatch1.clear();
 				localComputeTask.satCId1.clear();
 				localComputeTask.pivotMatchGfd1.clear();

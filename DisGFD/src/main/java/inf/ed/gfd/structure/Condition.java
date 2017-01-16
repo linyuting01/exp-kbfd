@@ -41,10 +41,6 @@ public class Condition implements Serializable, Cloneable {
 	public EqVarLiter YEqualsVariable = null;
 	
 	
-	
-
-
-	
 
 	//public HashMap<Integer, S tring> YEqualsLiteral;
 	//public HashMap<Integer, IntSet> YEqualsVariable;
@@ -126,18 +122,14 @@ public class Condition implements Serializable, Cloneable {
 		      for (EqLiteral eql : XEqualsLiteral) {
 		    	  log.debug("literal " + eql.attrId + " " + eql.val);
 		    	  int vertexID = match.get(eql.nId);
-		    	  if(kbAttr_Map.containsKey(vertexID)){
-		    		 // String s = "";
-		             //  for(TransAttr b : kbAttr_Map.get(vertexID)){
-		            //	   s = s + b.toString() + " ";
-		            //   }
-		              
-		    		 // log.debug("kbAttr_Map at node"+ vertexID + ", values=  " + s);
-		    		  TransAttr a = new TransAttr(eql.attrId,eql.val);
-		    
-			    	  if(!kbAttr_Map.get(vertexID).contains(a)){
-			    		  return false;
-			    	  }
+		    	  if( kbAttr_Map.get(vertexID)!= null){
+		    			 if(!kbAttr_Map.get(vertexID).isEmpty()) {
+		    				 TransAttr a = new TransAttr(eql.attrId,eql.val);
+		    			 
+		    				 if(kbAttr_Map.get(vertexID).contains(a)){
+		    					 return false;
+		    				 }
+		    			 }
 			    	 
 			    	}
 		      }
@@ -162,7 +154,7 @@ public class Condition implements Serializable, Cloneable {
 		    			  }
 		    		
 		    		  }
-		    		  if(!fval.equals(tval)){
+		    		  if(fval != null && tval != null && !fval.equals(tval)){
 		    			  return false;
 		    		  }
 			    	 
@@ -185,11 +177,18 @@ public class Condition implements Serializable, Cloneable {
 		            //   }
 		              
 		           //    log.debug("kbAttr_Map at node"+ vertexID + ", valuesS =  " + s);
-			    	  if(kbAttr_Map.get(vertexID).contains(a)){
-			    		  return true;
-			    	  }
-			    	}
-	
+		    		 if( kbAttr_Map.get(vertexID)!= null){
+		    			 if(!kbAttr_Map.get(vertexID).isEmpty()) {
+		    				 if(kbAttr_Map.get(vertexID).contains(a)){
+		    					 log.debug("x literal true");
+					    		  return true;
+					    		 
+					    	  }
+		    			 }
+		    		 }
+		    	  }
+			    	 
+			    
 	     }
 		else{
 			 int vertexID = match.get(YEqualsVariable.fId);
@@ -210,7 +209,7 @@ public class Condition implements Serializable, Cloneable {
 	    			  }
 	    		
 	    		  }
-	    		  if(fval.equals(tval)){
+	    		  if(fval != null && tval != null && fval.equals(tval)){
 	    			  return true;
 	    		  }
 			 }

@@ -53,7 +53,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public GfdMsg gfdMsg = new GfdMsg();
 	// private int partitionId;
 
-	static ////logger ////log = ////logManager.get////logger(ParDisWorkUnit.class);
+	static Logger log = LogManager.getLogger(ParDisWorkUnit.class);
 	public Int2ObjectMap<IntSet> pivotPMatch1 = new Int2ObjectOpenHashMap<IntSet>();
 	public Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesN = new Int2ObjectOpenHashMap<List<Int2IntMap>>();
 	public Int2ObjectMap<List<Int2IntMap>> patternNodeMatchesP = new Int2ObjectOpenHashMap<List<Int2IntMap>>();
@@ -102,7 +102,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		WorkUnit ws = Fuc.getRandomWorkUnit(workload);
 		if (ws.isAvg) {
 			for (WorkUnit w : workload) {
-				if (patternNodeMatchesP.containsKey(w.patternId)) {
+				if (patternNodeMatchesN.containsKey(w.patternId)) {
 					avgMatch.put(w.patternId, w.avg);
 				}
 			}
@@ -255,7 +255,8 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		// TODO Auto-generated method stub
 		int pId = w.patternId;
 		int round = 1;
-		if (patternNodeMatchesP.containsKey(pId)) {
+		log.debug("pattern match n size = " + patternNodeMatchesN.size());
+		if (patternNodeMatchesN.containsKey(pId)) {
 			if (!pivotMatchGfd1.containsKey(pId)) {
 				pivotMatchGfd1.put(pId, new Int2ObjectOpenHashMap<IntSet>());
 
@@ -274,7 +275,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				int cId = entry.getKey();
 				Condition c = entry.getValue();
 				////log.debug("match size  for pattern " + pId + "size = " + patternNodeMatchesP.get(pId).size());
-				for (Int2IntMap match : patternNodeMatchesP.get(pId)) {
+				for (Int2IntMap match : patternNodeMatchesN.get(pId)) {
 					
 
 					if (!satCId1.get(pId).containsKey(cId)) {
@@ -300,27 +301,27 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 					}
 				}
-				if (pivotMatchGfd1.containsKey(pId)) {
-					if (pivotMatchGfd1.get(pId).containsKey(cId)) {
-						////log.debug( "gfd supp size"   + pivotMatchGfd1.get(pId).get(cId).size());
-						if (pivotMatchGfd1.get(pId).get(cId).size() >= Params.VAR_SUPP) {
-							pivotMatchGfd1.get(pId).remove(cId);
-							if (!freqGfd.containsKey(pId)) {
+				if(Params.RUN_MODE != 1){
+					if(pivotMatchGfd1.get(pId).containsKey(cId)){
+						if(pivotMatchGfd1.get(pId).get(cId).size() >= Params.VAR_SUPP){
+							if(!freqGfd.containsKey(pId)){
 								freqGfd.put(pId, new IntOpenHashSet());
 							}
 							freqGfd.get(pId).add(cId);
+							pivotMatchGfd1.get(pId).remove(cId);
 						}
+								
 					}
-				}
-				if (satCId1.containsKey(pId)) {
-					if (satCId1.get(pId).containsKey(cId)) {
-						if (satCId1.get(pId).get(cId).size() >= Params.VAR_UNSAT) {
-							satCId1.get(pId).remove(cId);
-							if (!unSatGfds.containsKey(pId)) {
+					
+					if(satCId1.get(pId).containsKey(cId)){
+						if(satCId1.get(pId).get(cId).size() >= Params.VAR_UNSAT){
+							if(!unSatGfds.containsKey(pId)){
 								unSatGfds.put(pId, new IntOpenHashSet());
 							}
 							unSatGfds.get(pId).add(cId);
+							satCId1.get(pId).remove(cId);
 						}
+								
 					}
 				}
 			}
@@ -364,7 +365,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			for (int pId : balancePId) {
 				int i = 1;
 				List<Int2IntMap> tmptm = new ArrayList<Int2IntMap>();
-				Iterator<Int2IntMap> it = patternNodeMatchesP.get(pId).iterator();
+				Iterator<Int2IntMap> it = patternNodeMatchesN.get(pId).iterator();
 				int size = matchNum.get(pId);
 				int avg = size / Params.N_PROCESSORS;
 				while (it.hasNext() && i < avg) {
@@ -405,10 +406,10 @@ public class ParDisWorkUnit extends LocalComputeTask {
 				GfdMsg msg = (GfdMsg) recvMsg.getContent();
 				for (Entry<Integer, List<Int2IntMap>> entry : msg.patternmatches.entrySet()) {
 					int pId = entry.getKey();
-					if (!patternNodeMatchesP.containsKey(pId)) {
-						patternNodeMatchesP.put(pId, new ArrayList<Int2IntMap>());
+					if (!patternNodeMatchesN.containsKey(pId)) {
+						patternNodeMatchesN.put(pId, new ArrayList<Int2IntMap>());
 					}
-					patternNodeMatchesP.get(pId).addAll(entry.getValue());
+					patternNodeMatchesN.get(pId).addAll(entry.getValue());
 
 				}
 			}
@@ -531,7 +532,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	public void compute2(Partition partition) {
 		EdgePattern eP = new EdgePattern();
 		for (WorkUnit w : workload) {
-			////log.debug("got freq-edge size in worker = " + w.dfs2Ids.size());
+			log.debug("got freq-edge size in worker = " + w.dfs2Ids.size());
 			dfs2Id = w.dfs2Ids;
 			nodeAttr_Map = w.nodeAttr_Map;
 			for (Entry<DFS, Integer> entry : dfs2Id.entrySet()) {
@@ -542,22 +543,24 @@ public class ParDisWorkUnit extends LocalComputeTask {
 		eP.edgePattern(partition.getGraph(), pivotPMatch1, edgePatternNodeMatch1, patternNodeMatchesN, dfs2Id, matchNum,
 				kbAttr_Map, nodeAttr_Map);
 		////log.debug("kb_arrr size = " + kbAttr_Map.size());
-		for (int key : pivotPMatch1.keySet()) {
+	//	for (int key : pivotPMatch1.keySet()) {
 			////log.debug("pivot-match-size" + key  + "\t" + pivotPMatch1.get(key).size());
-		}
+		//}
 		////log.debug("freq-edges in the worker:" + patternNodeMatchesN.size());
-
-		Iterator<Map.Entry<Integer, IntSet>> entries = pivotPMatch1.entrySet().iterator();
+		if(Params.RUN_MODE != 1){
+            
+			Iterator<Map.Entry<Integer, IntSet>> entries = pivotPMatch1.entrySet().iterator();
+			
+			while (entries.hasNext()) {
+	
+					Map.Entry<Integer, IntSet> entry = entries.next();
+					if (entry.getValue().size() >= Params.VAR_SUPP) {
+						log.debug("edgeId = " + entry.getKey() + ", pivot match size = " + entry.getValue().size());
+						freqPattern.add(entry.getKey());
 		
-		while (entries.hasNext()) {
-
-			Map.Entry<Integer, IntSet> entry = entries.next();
-			if (entry.getValue().size() >= Params.VAR_SUPP) {
-				////log.debug("edgeId = " + entry.getKey() + ", pivot match size = " + entry.getValue().size());
-				freqPattern.add(entry.getKey());
-
-				entries.remove();
-			}
+						entries.remove();
+					}
+				}
 		}
 		////log.debug("freqpattern produced by step 0" + freqPattern.size());
 
@@ -573,11 +576,12 @@ public class ParDisWorkUnit extends LocalComputeTask {
 	}
 
 	int flag = -1;
+	
 
 	@Override
 	public int incrementalCompute(Partition partition) {
 		////log.info("now incremental compute to verify  ");
-
+	
 		flag = processWorkUnitAndGfdMsg(partition);
 		// ////log.debug("flag" + flag);
 		if (flag == 0) {
@@ -594,7 +598,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 
 		// ////log.info("now incremental compute ");
 		if (flag == 2) {
-			////log.debug("receive the edgematch mas, begin to check pattern");
+		log.debug("receive the edgematch mas, begin to check pattern");
 			IncrePattern(partition, edgePatternNodeMatch1);
 
 			if (Params.N_PROCESSORS > 1) {
@@ -605,7 +609,7 @@ public class ParDisWorkUnit extends LocalComputeTask {
 			prepareResult(2);
 		}
 		if (flag == 3) {
-			////log.debug("receive the balance msg begin to check gfd");
+			log.debug("receive the balance msg begin to check gfd");
 			receiveBalancedMsg(partition, incomingMessages);
 			for (WorkUnit w : workload) {
 				checkGfd(w, partition);
@@ -648,9 +652,11 @@ public class ParDisWorkUnit extends LocalComputeTask {
 					int edgeId = entry.getValue().x;
 					Pair<Integer, Integer> pair = entry.getValue().y;
 					IncPatterMatchEdge(match, ppId, pId, edgeId, pair, partition, edgePatternNodeMatch12);
-					if (pivotPMatch1.get(pId).size() >= Params.VAR_SUPP) {
-						freqPattern.add(pId);
-						pivotPMatch1.remove(pId);
+					if(Params.RUN_MODE != 1){
+						if (pivotPMatch1.get(pId).size() >= Params.VAR_SUPP) {
+							freqPattern.add(pId);
+							pivotPMatch1.remove(pId);
+						}
 					}
 				}
 			}

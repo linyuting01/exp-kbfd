@@ -39,7 +39,11 @@ public class VertexString implements Vertex, Serializable {
 	public boolean match(Object other) {
 		if (this.attr == KV.ANY) {
 			return true;
-		} else if (other instanceof VertexOString) {
+		}else if (other instanceof VertexString) {
+			VertexString ov = (VertexString) other;
+			return this.attr == ov.getAttr();
+		} 
+		else if (other instanceof VertexOString) {
 			VertexOString ov = (VertexOString) other;
 			return this.attr == ov.getAttr();
 		}

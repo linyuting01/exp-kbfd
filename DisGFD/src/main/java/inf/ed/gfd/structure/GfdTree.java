@@ -27,13 +27,11 @@ import org.apache.logging.log4j.Logger;
 
 public class GfdTree implements Serializable {
 	
-	static //////////logger //////////log = //////////logManager.get//////////logger(GfdTree.class);
+	static Logger log = LogManager.getLogger(GfdTree.class);
 	
     private GfdNode root;
     
     public int beginId = 0;
-    
-   
     
     //public HashMap<String, GfdNode> pattern_Map;
     public HashMap<Integer, GfdNode> patterns_Map;
@@ -85,16 +83,7 @@ public class GfdTree implements Serializable {
 	public void extendRoot(List<DFS> edgePattern){
 		 for(DFS dfs: edgePattern){
 			  newNode(root,dfs);
-			 //g.extend = true;
 		 }
-			// for(GfdNode t : this.root.children){
-				// //////////log.debug("extenf general t" + t.edgePattern.toString());
-				// extendRootChild(t,edgePattern);
-				 /*
-				 for(GfdNode x :t.children){
-					 //////////log.debug(x.edgePattern.toString());
-				 }*/
-		 // }
 		 
 	 }
 	
@@ -789,9 +778,6 @@ public class GfdTree implements Serializable {
     */
   
    private void newNode(GfdNode t, DFS dfs){
-	   
-	  // for(Entry<pair<Integer,Integer>,Integer> entry: g.nodeSet.)
-	 // if(!t.extendDfss.contains(dfs)){
 	 
 		  if(!t.extendDfss.contains(dfs) && !dfs.fLabel.equals(dfs.tLabel)){
 		   // //////////log.debug("extend dfs : " + dfs);
